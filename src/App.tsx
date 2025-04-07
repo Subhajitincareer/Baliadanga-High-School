@@ -13,29 +13,36 @@ import Staff from "./pages/Staff";
 import Resources from "./pages/Resources";
 import Portal from "./pages/Portal";
 import NotFound from "./pages/NotFound";
+import { AdminProvider } from "./contexts/AdminContext";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
+    <AdminProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/announcements" element={<Announcements />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/staff" element={<Staff />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/portal" element={<Portal />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Index />} />
+              <Route path="announcements" element={<Announcements />} />
+              <Route path="courses" element={<Courses />} />
+              <Route path="events" element={<Events />} />
+              <Route path="staff" element={<Staff />} />
+              <Route path="resources" element={<Resources />} />
+              <Route path="portal" element={<Portal />} />
+              <Route path="admin/login" element={<AdminLogin />} />
+              <Route path="admin/dashboard" element={<AdminDashboard />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AdminProvider>
   </QueryClientProvider>
 );
 

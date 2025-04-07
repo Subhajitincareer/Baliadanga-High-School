@@ -1,35 +1,55 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Bell } from 'lucide-react';
+import { Calendar, Bell } from 'lucide-react';
 
-const announcements = [
+type Announcement = {
+  id: number;
+  title: string;
+  date: string;
+  type: "Event" | "Notice";
+  description: string;
+};
+
+const defaultAnnouncements = [
   {
     id: 1,
     title: "Annual Sports Day",
     date: "2025-04-15",
-    type: "Event",
+    type: "Event" as const,
     description: "The annual sports day will be held on April 15th. All students are encouraged to participate in various sports activities."
   },
   {
     id: 2,
     title: "Parent-Teacher Meeting",
     date: "2025-04-20",
-    type: "Notice",
+    type: "Notice" as const,
     description: "Parent-teacher meeting for all classes will be held on April 20th from 10:00 AM to 2:00 PM."
   },
   {
     id: 3,
     title: "Science Exhibition",
     date: "2025-05-05",
-    type: "Event",
+    type: "Event" as const,
     description: "Science exhibition for classes 8-10 will be organized on May 5th. Students should submit their project proposals by April 25th."
   }
 ];
 
 const AnnouncementSection = () => {
+  const [announcements, setAnnouncements] = useState<Announcement[]>(defaultAnnouncements);
+
+  useEffect(() => {
+    // Load announcements from localStorage if available
+    const storedAnnouncements = localStorage.getItem('announcements');
+    if (storedAnnouncements) {
+      const allAnnouncements = JSON.parse(storedAnnouncements);
+      // Only show the latest 3 announcements on the home page
+      setAnnouncements(allAnnouncements.slice(0, 3));
+    }
+  }, []);
+
   return (
     <section className="py-12 md:py-16">
       <div className="container">
