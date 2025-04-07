@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { SearchInput } from '@/components/ui/search-input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Announcement } from '@/components/admin/AnnouncementForm';
 import AnnouncementForm from '@/components/admin/AnnouncementForm';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, Edit, Trash2, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardHeader } from '@/components/admin/DashboardHeader';
+import { AnnouncementToolbar } from '@/components/admin/AnnouncementToolbar';
+import { AnnouncementTable } from '@/components/admin/AnnouncementTable';
 
 // Initial announcements data (we'll use localStorage to persist changes)
 const defaultAnnouncements: Announcement[] = [
@@ -158,100 +158,28 @@ const AdminDashboard = () => {
 
   return (
     <div className="container py-8">
-      <div className="mb-8 flex flex-col justify-between md:flex-row md:items-center">
-        <div>
-          <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">Admin Dashboard</h1>
-          <p className="text-lg text-muted-foreground">Manage school announcements and notices</p>
-        </div>
-        <Button 
-          onClick={handleLogout}
-          variant="outline"
-          className="mt-4 md:mt-0"
-        >
-          <LogOut className="mr-2 h-4 w-4" /> Logout
-        </Button>
-      </div>
+      <DashboardHeader 
+        title="Admin Dashboard"
+        subtitle="Manage school announcements and notices"
+        onLogout={handleLogout}
+      />
 
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Announcements Management</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <SearchInput
-              placeholder="Search announcements..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-64 md:w-80"
-              icon={Search}
-            />
-            <Button onClick={() => setIsCreating(true)} className="bg-school-primary hover:bg-school-primary/90">
-              <Plus className="mr-2 h-4 w-4" /> New Announcement
-            </Button>
-          </div>
+          <AnnouncementToolbar 
+            searchTerm={searchTerm}
+            onSearchChange={(e) => setSearchTerm(e.target.value)}
+            onCreateClick={() => setIsCreating(true)}
+          />
 
-          {filteredAnnouncements.length > 0 ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAnnouncements.map((announcement) => (
-                    <TableRow key={announcement.id}>
-                      <TableCell className="font-medium">{announcement.title}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          announcement.type === "Event" 
-                            ? "bg-blue-100 text-blue-800" 
-                            : "bg-amber-100 text-amber-800"
-                        }`}>
-                          {announcement.type}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(announcement.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => editAnnouncement(announcement)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteAnnouncement(announcement.id)}
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="flex h-32 items-center justify-center rounded-md border border-dashed">
-              <p className="text-center text-muted-foreground">
-                {searchTerm ? "No announcements match your search" : "No announcements available. Create one to get started."}
-              </p>
-            </div>
-          )}
+          <AnnouncementTable 
+            announcements={filteredAnnouncements}
+            onEdit={editAnnouncement}
+            onDelete={deleteAnnouncement}
+          />
         </CardContent>
       </Card>
     </div>
