@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, FileText } from 'lucide-react';
 import { Announcement } from '@/components/admin/AnnouncementForm';
 
 interface AnnouncementTableProps {
@@ -34,6 +34,7 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
             <TableHead>Title</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Date</TableHead>
+            <TableHead>PDF</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -56,6 +57,20 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
                   month: 'short',
                   day: 'numeric',
                 })}
+              </TableCell>
+              <TableCell>
+                {announcement.pdfFile ? (
+                  <a 
+                    href={announcement.pdfFile.data}
+                    download={announcement.pdfFile.name}
+                    className="flex items-center text-blue-600 hover:text-blue-800"
+                  >
+                    <FileText className="mr-1 h-4 w-4" />
+                    <span className="text-xs">Download</span>
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground">No PDF</span>
+                )}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end space-x-2">

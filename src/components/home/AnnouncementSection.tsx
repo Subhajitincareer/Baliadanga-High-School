@@ -3,15 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Calendar, Bell } from 'lucide-react';
-
-type Announcement = {
-  id: number;
-  title: string;
-  date: string;
-  type: "Event" | "Notice";
-  description: string;
-};
+import { Calendar, Bell, FileText } from 'lucide-react';
+import { Announcement } from '@/components/admin/AnnouncementForm';
 
 const defaultAnnouncements = [
   {
@@ -84,11 +77,26 @@ const AnnouncementSection = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">{announcement.description}</p>
+                
+                {announcement.pdfFile && (
+                  <div className="mt-4">
+                    <a 
+                      href={announcement.pdfFile.data}
+                      download={announcement.pdfFile.name}
+                      className="inline-flex items-center rounded-md bg-school-light px-3 py-2 text-sm font-medium text-school-primary hover:bg-school-light/80"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Download PDF
+                    </a>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
-                <Button variant="ghost" className="text-school-primary hover:bg-school-light hover:text-school-primary">
-                  Read More
-                </Button>
+                <Link to="/announcements">
+                  <Button variant="ghost" className="text-school-primary hover:bg-school-light hover:text-school-primary">
+                    Read More
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
           ))}
