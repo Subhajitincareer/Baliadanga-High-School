@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Clock, MapPin, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { SearchInput } from '@/components/ui/search-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const events = [
@@ -90,7 +90,7 @@ const Events = () => {
       
       <div className="mb-8 flex flex-col gap-4 md:flex-row">
         <div className="flex-1">
-          <Input
+          <SearchInput
             placeholder="Search events..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

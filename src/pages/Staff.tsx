@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { SearchInput } from '@/components/ui/search-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Mail, Phone } from 'lucide-react';
 
@@ -192,7 +192,7 @@ const Staff = () => {
       </div>
       
       <div className="mb-8">
-        <Input
+        <SearchInput
           placeholder="Search staff by name or position..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}

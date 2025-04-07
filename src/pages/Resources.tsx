@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Download, Book, Info, FileQuestion, Calendar } from 'lucide-react';
+import { FileText, Download, Book, Info, FileQuestion, Calendar, Mail, Phone } from 'lucide-react';
 
 const policies = [
   {
