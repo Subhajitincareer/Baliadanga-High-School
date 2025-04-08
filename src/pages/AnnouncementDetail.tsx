@@ -33,21 +33,21 @@ const AnnouncementDetail = () => {
             id: "1",
             title: "Annual Sports Day",
             date: "2025-04-15",
-            type: "Event",
+            type: "Event" as const,
             content: "The annual sports day will be held on April 15th. All students are encouraged to participate in various sports activities. Parents are invited to attend and support their children. Please ensure your child wears appropriate sports attire on the day."
           },
           {
             id: "2",
             title: "Parent-Teacher Meeting",
             date: "2025-04-20",
-            type: "Notice",
+            type: "Notice" as const,
             content: "Parent-teacher meeting for all classes will be held on April 20th from 10:00 AM to 2:00 PM. Parents are requested to attend without fail to discuss their child's academic progress. Please bring the student diary and progress report."
           },
           {
             id: "3",
             title: "Science Exhibition",
             date: "2025-05-05",
-            type: "Event",
+            type: "Event" as const,
             content: "Science exhibition for classes 8-10 will be organized on May 5th. Students should submit their project proposals by April 25th. The theme for this year's exhibition is 'Sustainable Development and Innovation'."
           }
         ];
@@ -94,11 +94,15 @@ const AnnouncementDetail = () => {
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/">Home</BreadcrumbLink>
+            <BreadcrumbLink asChild>
+              <Link to="/">Home</Link>
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/announcements">Announcements</BreadcrumbLink>
+            <BreadcrumbLink asChild>
+              <Link to="/announcements">Announcements</Link>
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

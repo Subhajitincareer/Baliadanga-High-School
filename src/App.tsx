@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -40,8 +41,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Index />} />
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/announcements/:id" element={<AnnouncementDetail />} />
             <Route path="/courses" element={<Courses />} />
