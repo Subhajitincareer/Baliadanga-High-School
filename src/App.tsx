@@ -6,6 +6,14 @@ import { AdminProvider } from "@/contexts/AdminContext";
 import { Toaster } from "@/components/ui/toaster";
 import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/admin/Dashboard";
+import Announcements from "@/pages/Announcements";
+import AnnouncementDetail from "@/pages/AnnouncementDetail";
+import Courses from "@/pages/Courses";
+import Resources from "@/pages/Resources";
+import Events from "@/pages/Events";
+import Staff from "@/pages/Staff";
+import Portal from "@/pages/Portal";
+import NotFound from "@/pages/NotFound";
 
 // Create a ProtectedRoute component to guard admin routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -18,7 +26,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => {
+function App() {
   return (
     <AdminProvider>
       <Router>
@@ -32,17 +40,17 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/*"
-            element={
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  {/* Add more routes as needed */}
-                </Routes>
-              </Layout>
-            }
-          />
+          <Route element={<Layout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/announcements" element={<Announcements />} />
+            <Route path="/announcements/:id" element={<AnnouncementDetail />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/staff" element={<Staff />} />
+            <Route path="/portal" element={<Portal />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </Router>
       <Toaster />

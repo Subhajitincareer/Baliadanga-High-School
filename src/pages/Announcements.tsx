@@ -104,7 +104,10 @@ const Announcements = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">{announcement.content}</p>
+              <p className="text-muted-foreground">
+                {announcement.content.length > 150 ? 
+                  `${announcement.content.substring(0, 150)}...` : announcement.content}
+              </p>
               
               {announcement.pdfFile && (
                 <div className="mt-4">
@@ -120,9 +123,11 @@ const Announcements = () => {
               )}
             </CardContent>
             <CardFooter>
-              <Button variant="ghost" className="text-school-primary hover:bg-school-light hover:text-school-primary">
-                Read More
-              </Button>
+              <Link to={`/announcements/${announcement.id}`}>
+                <Button variant="ghost" className="text-school-primary hover:bg-school-light hover:text-school-primary">
+                  Read More
+                </Button>
+              </Link>
             </CardFooter>
           </Card>
         ))}

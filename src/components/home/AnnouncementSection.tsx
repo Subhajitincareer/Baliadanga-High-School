@@ -76,7 +76,9 @@ const AnnouncementSection = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{announcement.content}</p>
+                <p className="text-muted-foreground">{announcement.content.length > 120 ? 
+                  `${announcement.content.substring(0, 120)}...` : announcement.content}
+                </p>
                 
                 {announcement.pdfFile && (
                   <div className="mt-4">
@@ -92,7 +94,7 @@ const AnnouncementSection = () => {
                 )}
               </CardContent>
               <CardFooter>
-                <Link to="/announcements">
+                <Link to={`/announcements/${announcement.id}`}>
                   <Button variant="ghost" className="text-school-primary hover:bg-school-light hover:text-school-primary">
                     Read More
                   </Button>
