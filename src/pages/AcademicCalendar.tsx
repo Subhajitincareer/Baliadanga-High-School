@@ -134,24 +134,25 @@ const AcademicCalendar = () => {
     return filteredEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
   };
   
-  // Custom day rendering for the calendar - Fixed to safely handle props
+  // Custom day rendering for the calendar - Fixed to properly handle day props
   const customDayRender = (props: any) => {
-    // Ensure we have a valid date before proceeding
+    // Check if props and date exist before proceeding
     if (!props || !props.date) {
       return (
         <div className="relative">
-          <time>{props?.day?.getDate?.() || ''}</time>
+          <time>{''}</time>
         </div>
       );
     }
     
-    // Use the date prop which is available in the DayPicker component props
+    // Get the date from props
     const date = props.date;
-    const dayEvents = events.filter(
-      event =>
-        event.date.getDate() === date.getDate() &&
-        event.date.getMonth() === date.getMonth() &&
-        event.date.getFullYear() === date.getFullYear()
+    
+    // Find events for this date
+    const dayEvents = events.filter(event => 
+      event.date.getDate() === date.getDate() &&
+      event.date.getMonth() === date.getMonth() &&
+      event.date.getFullYear() === date.getFullYear()
     );
     
     return (
