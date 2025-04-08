@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,9 +91,9 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
       if (announcement?.id) {
         // Update existing announcement
         const { error } = await supabase
-          .from('announcements')
+          .from("announcements")
           .update(announcementData)
-          .eq('id', announcement.id);
+          .eq("id", announcement.id);
 
         if (error) throw error;
 
@@ -103,7 +104,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
       } else {
         // Create new announcement
         const { error } = await supabase
-          .from('announcements')
+          .from("announcements")
           .insert([announcementData]);
 
         if (error) throw error;

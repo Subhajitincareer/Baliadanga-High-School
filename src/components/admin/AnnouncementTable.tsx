@@ -8,7 +8,7 @@ import { Announcement } from '@/components/admin/AnnouncementForm';
 interface AnnouncementTableProps {
   announcements: Announcement[];
   onEdit: (announcement: Announcement) => void;
-  onDelete: (id: number) => void;
+  onDelete: (announcement: Announcement) => void;
 }
 
 export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
@@ -84,7 +84,7 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onDelete(announcement.id)}
+                    onClick={() => onDelete(announcement)}
                     className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />

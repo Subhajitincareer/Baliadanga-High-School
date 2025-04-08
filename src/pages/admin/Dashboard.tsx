@@ -36,7 +36,7 @@ const Dashboard = () => {
   const fetchAnnouncements = async () => {
     try {
       const { data, error } = await supabase
-        .from('announcements')
+        .from("announcements")
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -106,9 +106,9 @@ const Dashboard = () => {
 
     try {
       const { error } = await supabase
-        .from('announcements')
+        .from("announcements")
         .delete()
-        .eq('id', selectedAnnouncement.id);
+        .eq("id", selectedAnnouncement.id);
 
       if (error) throw error;
 
