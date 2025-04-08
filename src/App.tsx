@@ -15,6 +15,9 @@ import Events from "@/pages/Events";
 import Staff from "@/pages/Staff";
 import Portal from "@/pages/Portal";
 import NotFound from "@/pages/NotFound";
+import Contact from "@/pages/Contact";
+import Gallery from "@/pages/Gallery";
+import AcademicCalendar from "@/pages/AcademicCalendar";
 
 // Create a ProtectedRoute component to guard admin routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -50,6 +53,9 @@ function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/staff" element={<Staff />} />
             <Route path="/portal" element={<Portal />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/academic-calendar" element={<AcademicCalendar />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

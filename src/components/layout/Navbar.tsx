@@ -25,20 +25,48 @@ const navigationItems = [
     href: "/announcements"
   },
   {
-    title: "Courses",
-    href: "/courses"
+    title: "Academics",
+    submenu: [
+      {
+        title: "Courses",
+        href: "/courses",
+        description: "Explore our comprehensive academic curriculum"
+      },
+      {
+        title: "Academic Calendar",
+        href: "/academic-calendar",
+        description: "View important academic dates and events"
+      },
+      {
+        title: "Resources",
+        href: "/resources",
+        description: "Access learning materials and educational resources"
+      }
+    ]
   },
   {
-    title: "Events",
-    href: "/events"
+    title: "Campus Life",
+    submenu: [
+      {
+        title: "Events",
+        href: "/events",
+        description: "Stay updated with school events and activities"
+      },
+      {
+        title: "Gallery",
+        href: "/gallery",
+        description: "Browse photos of our school and events"
+      },
+      {
+        title: "Staff",
+        href: "/staff",
+        description: "Meet our dedicated teachers and staff members"
+      }
+    ]
   },
   {
-    title: "Staff",
-    href: "/staff"
-  },
-  {
-    title: "Resources",
-    href: "/resources"
+    title: "Contact",
+    href: "/contact"
   }
 ];
 
@@ -89,16 +117,34 @@ const Navbar = () => {
           {isMobileMenuOpen && (
             <div className="absolute left-0 right-0 top-16 z-50 animate-fade-in bg-white p-4 shadow-md">
               <div className="flex flex-col space-y-2">
-                {navigationItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.title}
-                  </Link>
-                ))}
+                {navigationItems.map((item) => 
+                  item.submenu ? (
+                    <div key={item.title} className="space-y-1">
+                      <div className="px-4 py-2 font-medium text-gray-900">{item.title}</div>
+                      <div className="ml-4 border-l border-gray-200 pl-2">
+                        {item.submenu.map((subItem) => (
+                          <Link
+                            key={subItem.href}
+                            to={subItem.href}
+                            className="block rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {subItem.title}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.title}
+                    </Link>
+                  )
+                )}
                 <Link to="/portal" className="mt-2">
                   <Button className="w-full bg-school-primary hover:bg-school-dark">
                     Student Portal
@@ -120,15 +166,36 @@ const Navbar = () => {
         </Link>
         <NavigationMenu>
           <NavigationMenuList>
-            {navigationItems.map((item) => (
-              <NavigationMenuItem key={item.href}>
-                <Link to={item.href}>
-                  <NavigationMenuLink className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
+            {navigationItems.map((item) => 
+              item.submenu ? (
+                <NavigationMenuItem key={item.title}>
+                  <NavigationMenuTrigger className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
                     {item.title}
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            ))}
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
+                      {item.submenu.map((subItem) => (
+                        <ListItem
+                          key={subItem.href}
+                          title={subItem.title}
+                          href={subItem.href}
+                        >
+                          {subItem.description}
+                        </ListItem>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              ) : (
+                <NavigationMenuItem key={item.href || item.title}>
+                  <Link to={item.href}>
+                    <NavigationMenuLink className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
+                      {item.title}
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              )
+            )}
           </NavigationMenuList>
         </NavigationMenu>
         <Link to="/portal">
