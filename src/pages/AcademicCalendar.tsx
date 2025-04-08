@@ -134,9 +134,10 @@ const AcademicCalendar = () => {
     return filteredEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
   };
   
-  // Custom day rendering for the calendar
-  const customDayRender = (day: Date, events: typeof generateEvents) => {
-    const dayEvents = events().filter(
+  // Custom day rendering for the calendar - Fixed to use DayProps
+  const customDayRender = (props: any) => {
+    const day = props.day;
+    const dayEvents = events.filter(
       event =>
         event.date.getDate() === day.getDate() &&
         event.date.getMonth() === day.getMonth() &&
@@ -187,7 +188,7 @@ const AcademicCalendar = () => {
               onMonthChange={handleMonthChange}
               className="rounded-md border"
               components={{
-                Day: ({ day }: { day: Date }) => customDayRender(day, generateEvents)
+                Day: customDayRender
               }}
             />
             
