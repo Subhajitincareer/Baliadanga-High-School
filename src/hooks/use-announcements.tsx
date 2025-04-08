@@ -57,7 +57,7 @@ export function useAnnouncements() {
       const { error } = await supabase
         .from("announcements")
         .delete()
-        .eq("id", announcement.id);
+        .eq("id", announcement.id); // Using string ID
 
       if (error) throw error;
 

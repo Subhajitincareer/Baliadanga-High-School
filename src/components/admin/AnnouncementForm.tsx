@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +13,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 export interface Announcement {
-  id: number;
+  id: string;
   title: string;
   content: string;
   type: 'Event' | 'Notice';
@@ -60,7 +59,6 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
     try {
       let pdfData = existingPdf;
 
-      // If there's a new file, convert it to base64
       if (pdfFile) {
         const reader = new FileReader();
         const base64 = await new Promise<string>((resolve) => {
@@ -89,7 +87,6 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
       };
 
       if (announcement?.id) {
-        // Update existing announcement
         const { error } = await supabase
           .from("announcements")
           .update(announcementData)
@@ -102,7 +99,6 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
           description: 'The announcement has been updated successfully.'
         });
       } else {
-        // Create new announcement
         const { error } = await supabase
           .from("announcements")
           .insert([announcementData]);
@@ -115,20 +111,17 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
         });
       }
 
-      // Store it in localStorage also to keep the front-end in sync
       const storedAnnouncements = localStorage.getItem('announcements');
       const announcements = storedAnnouncements ? JSON.parse(storedAnnouncements) : [];
       
       if (announcement?.id) {
-        // Update in local storage
         const index = announcements.findIndex((a: Announcement) => a.id === announcement.id);
         if (index !== -1) {
           announcements[index] = { ...announcements[index], ...announcementData, pdfFile: pdfData };
           localStorage.setItem('announcements', JSON.stringify(announcements));
         }
       } else {
-        // Add to local storage
-        const newId = Math.max(0, ...announcements.map((a: Announcement) => a.id)) + 1;
+        const newId = crypto.randomUUID();
         const newAnnouncement = { 
           id: newId, 
           ...announcementData, 
