@@ -9,42 +9,42 @@ import { Announcement } from '@/components/admin/AnnouncementForm';
 
 const defaultAnnouncements: Announcement[] = [
   {
-    id: 1,
+    id: "1",
     title: "Annual Sports Day",
     date: "2025-04-15",
     type: "Event",
     content: "The annual sports day will be held on April 15th. All students are encouraged to participate in various sports activities. Parents are invited to attend and support their children. Please ensure your child wears appropriate sports attire on the day."
   },
   {
-    id: 2,
+    id: "2",
     title: "Parent-Teacher Meeting",
     date: "2025-04-20",
     type: "Notice",
     content: "Parent-teacher meeting for all classes will be held on April 20th from 10:00 AM to 2:00 PM. Parents are requested to attend without fail to discuss their child's academic progress. Please bring the student diary and progress report."
   },
   {
-    id: 3,
+    id: "3",
     title: "Science Exhibition",
     date: "2025-05-05",
     type: "Event",
     content: "Science exhibition for classes 8-10 will be organized on May 5th. Students should submit their project proposals by April 25th. The theme for this year's exhibition is 'Sustainable Development and Innovation'."
   },
   {
-    id: 4,
+    id: "4",
     title: "School Closed for Elections",
     date: "2025-04-10",
     type: "Notice",
     content: "The school will remain closed on April 10th due to municipal elections as the school premises will be used as a polling booth. Regular classes will resume from April 11th."
   },
   {
-    id: 5,
+    id: "5",
     title: "Summer Vacation Schedule",
     date: "2025-05-20",
     type: "Notice",
     content: "The summer vacation will commence from May 20th and the school will reopen on June 15th. Students are advised to complete their holiday homework during the vacation period."
   },
   {
-    id: 6,
+    id: "6",
     title: "Annual Cultural Program",
     date: "2025-05-25",
     type: "Event",

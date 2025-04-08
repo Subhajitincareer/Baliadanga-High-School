@@ -8,21 +8,21 @@ import { Announcement } from '@/components/admin/AnnouncementForm';
 
 const defaultAnnouncements: Announcement[] = [
   {
-    id: 1,
+    id: "1",
     title: "Annual Sports Day",
     date: "2025-04-15",
     type: "Event",
     content: "The annual sports day will be held on April 15th. All students are encouraged to participate in various sports activities."
   },
   {
-    id: 2,
+    id: "2",
     title: "Parent-Teacher Meeting",
     date: "2025-04-20",
     type: "Notice",
     content: "Parent-teacher meeting for all classes will be held on April 20th from 10:00 AM to 2:00 PM."
   },
   {
-    id: 3,
+    id: "3",
     title: "Science Exhibition",
     date: "2025-05-05",
     type: "Event",
