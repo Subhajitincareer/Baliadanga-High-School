@@ -1,9 +1,9 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Users, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const courses = {
   junior: [
@@ -142,7 +142,7 @@ const courses = {
   ]
 };
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, onViewSyllabus }) => {
   return (
     <Card className="h-full transition-all duration-300 hover:shadow-md">
       <CardHeader>
@@ -170,7 +170,11 @@ const CourseCard = ({ course }) => {
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full border-school-primary text-school-primary hover:bg-school-primary hover:text-white">
+        <Button
+          variant="outline"
+          className="w-full border-school-primary text-school-primary hover:bg-school-primary hover:text-white"
+          onClick={() => onViewSyllabus(course)}
+        >
           View Syllabus
         </Button>
       </CardFooter>
@@ -179,45 +183,81 @@ const CourseCard = ({ course }) => {
 };
 
 const Courses = () => {
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewSyllabus = (course) => {
+    setSelectedCourse(course);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCourse(null);
+  };
+
   return (
     <div className="container py-8">
       <div className="mb-8">
         <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">Courses & Curriculum</h1>
         <p className="text-lg text-muted-foreground">Explore our academic offerings and comprehensive curriculum</p>
       </div>
-      
+
       <Tabs defaultValue="middle" className="w-full">
-        <TabsList className="mb-8 grid w-full grid-cols-3">
+        <TabsList className="mb-8 flex flex-col gap-2 sm:grid sm:grid-cols-3">
           <TabsTrigger value="junior">Junior Section (Classes 1-5)</TabsTrigger>
           <TabsTrigger value="middle">Middle Section (Classes 6-8)</TabsTrigger>
           <TabsTrigger value="senior">Senior Section (Classes 9-10)</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="junior" className="mt-0">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {courses.junior.map(course => (
-              <CourseCard key={course.id} course={course} />
+            {courses.junior.map((course) => (
+              <CourseCard key={course.id} course={course} onViewSyllabus={handleViewSyllabus} />
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="middle" className="mt-0">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {courses.middle.map(course => (
-              <CourseCard key={course.id} course={course} />
+            {courses.middle.map((course) => (
+              <CourseCard key={course.id} course={course} onViewSyllabus={handleViewSyllabus} />
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="senior" className="mt-0">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {courses.senior.map(course => (
-              <CourseCard key={course.id} course={course} />
+            {courses.senior.map((course) => (
+              <CourseCard key={course.id} course={course} onViewSyllabus={handleViewSyllabus} />
             ))}
           </div>
         </TabsContent>
       </Tabs>
-      
+
+      {/* Modal for Syllabus */}
+      {isModalOpen && selectedCourse && (
+        <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{selectedCourse.title} - Syllabus</DialogTitle>
+              <DialogDescription>{selectedCourse.description}</DialogDescription>
+            </DialogHeader>
+            <div>
+              <h4 className="mb-2 font-semibold">Key Topics:</h4>
+              <ul className="list-inside list-disc space-y-1 pl-2 text-sm text-gray-600">
+                {selectedCourse.subjects.map((subject, index) => (
+                  <li key={index}>{subject}</li>
+                ))}
+              </ul>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleCloseModal}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       <div className="mt-12 rounded-lg bg-school-light p-6">
         <h3 className="font-heading mb-4 text-2xl font-bold text-school-primary">Curriculum Philosophy</h3>
         <p className="mb-4">

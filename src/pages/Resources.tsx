@@ -10,35 +10,35 @@ const policies = [
     title: "School Handbook",
     description: "Comprehensive guide to school policies, procedures, and expectations for students and parents",
     icon: Book,
-    downloadLink: "#"
+    downloadLink: "/downloads/school-handbook.pdf" // Replace with actual file path
   },
   {
     id: 2,
     title: "Attendance Policy",
     description: "Guidelines regarding student attendance, tardiness, and leave applications",
     icon: Calendar,
-    downloadLink: "#"
+    downloadLink: "/downloads/attendance-policy.pdf" // Replace with actual file path
   },
   {
     id: 3,
     title: "Code of Conduct",
     description: "Expected behavior standards, disciplinary procedures, and student rights and responsibilities",
     icon: FileText,
-    downloadLink: "#"
+    downloadLink: "/downloads/code-of-conduct.pdf" // Replace with actual file path
   },
   {
     id: 4,
     title: "Uniform Guidelines",
     description: "Detailed information about the school uniform requirements for all grades",
     icon: Info,
-    downloadLink: "#"
+    downloadLink: "/downloads/uniform-guidelines.pdf" // Replace with actual file path
   },
   {
     id: 5,
     title: "Anti-Bullying Policy",
     description: "School's approach to preventing and addressing bullying and harassment",
     icon: FileText,
-    downloadLink: "#"
+    downloadLink: "/downloads/anti-bullying-policy.pdf" // Replace with actual file path
   }
 ];
 
@@ -145,9 +145,15 @@ const Resources = () => {
                   <CardDescription>{policy.description}</CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button variant="outline" className="w-full border-school-primary text-school-primary hover:bg-school-primary hover:text-white">
-                    <Download size={16} className="mr-2" /> Download
-                  </Button>
+                  <a
+                    href={policy.downloadLink}
+                    download
+                    className="w-full"
+                  >
+                    <Button variant="outline" className="w-full border-school-primary text-school-primary hover:bg-school-primary hover:text-white">
+                      <Download size={16} className="mr-2" /> Download
+                    </Button>
+                  </a>
                 </CardFooter>
               </Card>
             ))}
