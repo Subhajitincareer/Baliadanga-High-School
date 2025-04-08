@@ -1,73 +1,200 @@
-# Welcome to your Lovable project
+# Baliadanga High School Hub
 
-## Project info
+A comprehensive web application for managing school information, staff, and resources.
 
-**URL**: https://lovable.dev/projects/3518b09d-7668-42e5-83de-82d48bac54ce
+## Table of Contents
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Authentication](#authentication)
+- [Components](#components)
+- [Admin Panel](#admin-panel)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- 🏫 School Information Management
+- 👥 Staff Directory
+- 📢 Announcements & Events
+- 📚 Course Management
+- 🔐 Admin Dashboard
+- 📱 Responsive Design
+- 🎨 Modern UI with shadcn-ui
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3518b09d-7668-42e5-83de-82d48bac54ce) and start prompting.
+- **Frontend Framework**: React with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn-ui
+- **Routing**: React Router DOM
+- **State Management**: React Context
+- **Form Handling**: React Hook Form
+- **Icons**: Lucide React
 
-Changes made via Lovable will be committed automatically to this repo.
+## Getting Started
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js (v16 or higher)
+- npm or yarn
+- Git
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/baliadanga-high-hub.git
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Navigate to project directory
+cd baliadanga-high-hub
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+baliadanga-high-hub/
+├── src/
+│   ├── components/         # Reusable UI components
+│   │   ├── ui/            # shadcn-ui components
+│   │   └── admin/         # Admin-specific components
+│   ├── contexts/          # React Context providers
+│   ├── hooks/             # Custom React hooks
+│   ├── pages/             # Page components
+│   ├── styles/            # Global styles
+│   └── types/             # TypeScript type definitions
+├── public/                # Static assets
+└── package.json          # Project dependencies
+```
 
-**Use GitHub Codespaces**
+## Authentication
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The application uses a simple admin authentication system:
 
-## What technologies are used for this project?
+```typescript
+// Default admin credentials
+username: "admin"
+password: "bali2025"
+```
 
-This project is built with:
+Protected routes require authentication through the AdminContext provider.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Components
 
-## How can I deploy this project?
+### Core Components
 
-Simply open [Lovable](https://lovable.dev/projects/3518b09d-7668-42e5-83de-82d48bac54ce) and click on Share -> Publish.
+1. **Layout Component**
+   - Main layout wrapper
+   - Navigation menu
+   - Footer
 
-## Can I connect a custom domain to my Lovable project?
+2. **Staff Directory**
+   - Staff listing
+   - Staff details
+   - Category filtering
 
-Yes it is!
+3. **Announcements**
+   - Event announcements
+   - School notices
+   - PDF attachments
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Admin Components
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. **AdminDashboard**
+   - Overview statistics
+   - Quick actions
+   - Recent activities
+
+2. **StaffForm**
+   - Add/Edit staff members
+   - Image upload
+   - Validation
+
+## Admin Panel
+
+Access the admin panel at `/admin/login`. Features include:
+
+- Staff management
+- Announcement creation
+- Resource updates
+- Event scheduling
+
+### Protected Routes
+
+```typescript
+/admin/dashboard  // Main admin dashboard
+/admin/staff      // Staff management
+/admin/resources  // Resource management
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# Run unit tests
+npm run test
+
+# Run e2e tests
+npm run test:e2e
+```
+
+### Building for Production
+
+```bash
+# Create production build
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Deployment
+
+The application can be deployed using:
+
+1. **Vercel**
+   - Connect GitHub repository
+   - Configure build settings
+   - Deploy
+
+2. **Manual Deployment**
+   ```bash
+   npm run build
+   # Deploy the dist folder to your hosting provider
+   ```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+   ```bash
+   git checkout -b feature/YourFeature
+   ```
+3. Commit changes
+   ```bash
+   git commit -m 'Add some feature'
+   ```
+4. Push to the branch
+   ```bash
+   git push origin feature/YourFeature
+   ```
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, email support@baliadangahs.edu or open an issue in the GitHub repository.
