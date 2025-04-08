@@ -1,239 +1,252 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Bell, Calendar, Paperclip } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
-export type Announcement = {
+export interface Announcement {
   id: number;
   title: string;
+  content: string;
+  type: 'Event' | 'Notice';
   date: string;
-  type: "Event" | "Notice";
-  description: string;
   pdfFile?: {
     name: string;
-    data: string; // Base64 encoded PDF data
+    data: string;
   };
-};
+}
 
 interface AnnouncementFormProps {
   announcement?: Announcement;
-  onSave: (announcement: Omit<Announcement, 'id'> & { id?: number }) => void;
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
-const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ 
-  announcement, 
-  onSave, 
-  onCancel 
-}) => {
-  const { toast } = useToast();
+const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuccess, onCancel }) => {
   const [title, setTitle] = useState(announcement?.title || '');
-  const [date, setDate] = useState(announcement?.date || new Date().toISOString().split('T')[0]);
-  const [type, setType] = useState<"Event" | "Notice">(announcement?.type || "Notice");
-  const [description, setDescription] = useState(announcement?.description || '');
-  const [pdfFile, setPdfFile] = useState<{ name: string; data: string } | undefined>(announcement?.pdfFile);
-  const [fileLoading, setFileLoading] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!title || !date || !description) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    onSave({
-      id: announcement?.id,
-      title,
-      date,
-      type,
-      description,
-      pdfFile,
-    });
-  };
+  const [content, setContent] = useState(announcement?.content || '');
+  const [type, setType] = useState<'Event' | 'Notice'>(announcement?.type || 'Notice');
+  const [date, setDate] = useState<Date>(announcement?.date ? new Date(announcement.date) : new Date());
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [existingPdf, setExistingPdf] = useState(announcement?.pdfFile);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Check if file is PDF
-    if (file.type !== 'application/pdf') {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload PDF files only.",
-        variant: "destructive",
-      });
-      return;
+    if (file) {
+      setPdfFile(file);
     }
-
-    // Check file size (limit to 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "PDF files must be less than 5MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setFileLoading(true);
-    
-    // Convert to base64
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64String = e.target?.result as string;
-      setPdfFile({
-        name: file.name,
-        data: base64String,
-      });
-      setFileLoading(false);
-    };
-    reader.onerror = () => {
-      toast({
-        title: "File Error",
-        description: "Failed to read the PDF file.",
-        variant: "destructive",
-      });
-      setFileLoading(false);
-    };
-    reader.readAsDataURL(file);
   };
 
-  const removePdf = () => {
-    setPdfFile(undefined);
+  const handleRemoveFile = () => {
+    setPdfFile(null);
+    setExistingPdf(undefined);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      let pdfData = existingPdf;
+
+      // If there's a new file, convert it to base64
+      if (pdfFile) {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onload = (e) => {
+            if (e.target?.result) {
+              resolve(e.target.result as string);
+            }
+          };
+          reader.readAsDataURL(pdfFile);
+        });
+
+        pdfData = {
+          name: pdfFile.name,
+          data: base64
+        };
+      }
+
+      const formattedDate = format(date, 'yyyy-MM-dd');
+
+      const announcementData = {
+        title,
+        content,
+        type,
+        date: formattedDate,
+        pdf_url: pdfData ? JSON.stringify(pdfData) : null
+      };
+
+      if (announcement?.id) {
+        // Update existing announcement
+        const { error } = await supabase
+          .from('announcements')
+          .update(announcementData)
+          .eq('id', announcement.id);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Announcement updated',
+          description: 'The announcement has been updated successfully.'
+        });
+      } else {
+        // Create new announcement
+        const { error } = await supabase
+          .from('announcements')
+          .insert([announcementData]);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Announcement created',
+          description: 'The announcement has been created successfully.'
+        });
+      }
+
+      // Store it in localStorage also to keep the front-end in sync
+      const storedAnnouncements = localStorage.getItem('announcements');
+      const announcements = storedAnnouncements ? JSON.parse(storedAnnouncements) : [];
+      
+      if (announcement?.id) {
+        // Update in local storage
+        const index = announcements.findIndex((a: Announcement) => a.id === announcement.id);
+        if (index !== -1) {
+          announcements[index] = { ...announcements[index], ...announcementData, pdfFile: pdfData };
+          localStorage.setItem('announcements', JSON.stringify(announcements));
+        }
+      } else {
+        // Add to local storage
+        const newId = Math.max(0, ...announcements.map((a: Announcement) => a.id)) + 1;
+        const newAnnouncement = { 
+          id: newId, 
+          ...announcementData, 
+          pdfFile: pdfData 
+        };
+        announcements.push(newAnnouncement);
+        localStorage.setItem('announcements', JSON.stringify(announcements));
+      }
+
+      onSuccess();
+    } catch (error) {
+      console.error('Error saving announcement:', error);
+      toast({
+        title: 'Error',
+        description: 'There was an error saving the announcement.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Card className="w-full">
-      <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>{announcement ? 'Edit Announcement' : 'Create New Announcement'}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter announcement title"
-              required
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <div className="flex space-x-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="notice"
-                    name="type"
-                    value="Notice"
-                    checked={type === "Notice"}
-                    onChange={() => setType("Notice")}
-                    className="h-4 w-4 text-school-primary"
-                  />
-                  <label htmlFor="notice" className="text-sm font-medium">Notice</label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="event"
-                    name="type"
-                    value="Event"
-                    checked={type === "Event"}
-                    onChange={() => setType("Event")}
-                    className="h-4 w-4 text-school-primary"
-                  />
-                  <label htmlFor="event" className="text-sm font-medium">Event</label>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter announcement description"
-              rows={5}
-              required
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter announcement title"
+          required
+        />
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="pdfFile">Attach PDF Document (Optional)</Label>
-            <div className="flex flex-col gap-2">
-              <Input
-                id="pdfFile"
-                type="file"
-                accept=".pdf"
-                onChange={handleFileChange}
-                disabled={fileLoading}
-                className={fileLoading ? "opacity-50" : ""}
-              />
-              
-              {fileLoading && (
-                <p className="text-sm text-muted-foreground">Loading file...</p>
+      <div className="space-y-2">
+        <Label htmlFor="type">Type</Label>
+        <Select
+          value={type}
+          onValueChange={(value) => setType(value as 'Event' | 'Notice')}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Event">Event</SelectItem>
+            <SelectItem value="Notice">Notice</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="date">Date</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !date && "text-muted-foreground"
               )}
-              
-              {pdfFile && (
-                <div className="mt-2 flex items-center rounded-md border border-border bg-background p-2">
-                  <Paperclip className="mr-2 h-4 w-4 text-school-primary" />
-                  <span className="flex-1 truncate text-sm">{pdfFile.name}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={removePdf}
-                    className="hover:text-destructive"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, 'PP') : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(date) => setDate(date || new Date())}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="content">Content</Label>
+        <Textarea
+          id="content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Enter announcement content"
+          rows={5}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="pdf">PDF Attachment (Optional)</Label>
+        {(existingPdf || pdfFile) ? (
+          <div className="flex items-center rounded-md border border-border p-2">
+            <div className="flex-1 truncate">
+              {pdfFile ? pdfFile.name : existingPdf?.name}
             </div>
+            <Button variant="ghost" size="sm" type="button" onClick={handleRemoveFile}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-school-primary hover:bg-school-primary/90">
-            {announcement ? 'Update' : 'Create'}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+        ) : (
+          <Input
+            id="pdf"
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+          />
+        )}
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : announcement ? 'Update' : 'Create'}
+        </Button>
+      </div>
+    </form>
   );
 };
 
