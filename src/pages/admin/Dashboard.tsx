@@ -1,26 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useAdmin } from '@/contexts/AdminContext';
 import { DashboardHeader } from '@/components/admin/DashboardHeader';
 import { AnnouncementTable } from '@/components/admin/AnnouncementTable';
 import { AnnouncementToolbar } from '@/components/admin/AnnouncementToolbar';
-import AnnouncementForm, { Announcement } from '@/components/admin/AnnouncementForm';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Announcement } from '@/components/admin/AnnouncementForm';
+import { AnnouncementDialog } from '@/components/admin/AnnouncementDialog';
+import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementDialog';
+import { useAnnouncements } from '@/hooks/use-announcements';
 
 const Dashboard = () => {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { isAdmin, logout } = useAdmin();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { announcements, isLoading, fetchAnnouncements, handleDeleteAnnouncement } = useAnnouncements();
 
   useEffect(() => {
     // Redirect if not admin
@@ -28,53 +25,7 @@ const Dashboard = () => {
       navigate('/admin');
       return;
     }
-
-    // Fetch announcements from Supabase
-    fetchAnnouncements();
   }, [isAdmin, navigate]);
-
-  const fetchAnnouncements = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("announcements")
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      if (data) {
-        // Process data to match our Announcement interface
-        const processedData = data.map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          type: item.type,
-          date: item.date,
-          pdfFile: item.pdf_url ? JSON.parse(item.pdf_url) : undefined
-        }));
-
-        setAnnouncements(processedData);
-        
-        // Also update localStorage for the frontend components
-        localStorage.setItem('announcements', JSON.stringify(processedData));
-      }
-    } catch (error) {
-      console.error('Error fetching announcements:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load announcements.',
-        variant: 'destructive',
-      });
-      
-      // Fallback to localStorage if supabase fails
-      const storedAnnouncements = localStorage.getItem('announcements');
-      if (storedAnnouncements) {
-        setAnnouncements(JSON.parse(storedAnnouncements));
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const filteredAnnouncements = announcements.filter((announcement) =>
     announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,35 +54,9 @@ const Dashboard = () => {
 
   const handleDeleteConfirm = async () => {
     if (!selectedAnnouncement) return;
-
-    try {
-      const { error } = await supabase
-        .from("announcements")
-        .delete()
-        .eq("id", selectedAnnouncement.id);
-
-      if (error) throw error;
-
-      // Update local state
-      setAnnouncements(announcements.filter(a => a.id !== selectedAnnouncement.id));
-      
-      // Update localStorage
-      localStorage.setItem('announcements', JSON.stringify(
-        announcements.filter(a => a.id !== selectedAnnouncement.id)
-      ));
-
-      toast({
-        title: 'Announcement deleted',
-        description: 'The announcement has been deleted successfully.',
-      });
-    } catch (error) {
-      console.error('Error deleting announcement:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete the announcement.',
-        variant: 'destructive',
-      });
-    } finally {
+    
+    const success = await handleDeleteAnnouncement(selectedAnnouncement);
+    if (success) {
       setIsDeleteDialogOpen(false);
       setSelectedAnnouncement(null);
     }
@@ -174,39 +99,20 @@ const Dashboard = () => {
       )}
 
       {/* Announcement Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-md md:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedAnnouncement ? 'Edit Announcement' : 'Create Announcement'}
-            </DialogTitle>
-          </DialogHeader>
-          <AnnouncementForm 
-            announcement={selectedAnnouncement || undefined} 
-            onSuccess={handleFormSuccess}
-            onCancel={() => setIsFormOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      <AnnouncementDialog
+        isOpen={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        selectedAnnouncement={selectedAnnouncement}
+        onSuccess={handleFormSuccess}
+      />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the announcement "{selectedAnnouncement?.title}".
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteAnnouncementDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        selectedAnnouncement={selectedAnnouncement}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 };
