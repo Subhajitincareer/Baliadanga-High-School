@@ -30,50 +30,58 @@ const AcademicCalendar = () => {
   };
   
   return (
-    <div className="container py-8">
-      <div className="mb-8">
+    <div className="container py-8 max-w-6xl mx-auto">
+      <div className="mb-8 text-center">
         <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">Academic Calendar</h1>
         <p className="text-lg text-muted-foreground">
           View important academic dates, holidays, exams, and school events
         </p>
       </div>
       
-      <div className="grid gap-8 md:grid-cols-5">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CalendarIcon className="mr-2 h-5 w-5" />
-              Calendar View
-            </CardTitle>
-            <CardDescription>Select a date to view events</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              onMonthChange={handleMonthChange}
-              className="rounded-md border"
-              components={{
-                Day: customDayRender
-              }}
-            />
+      <div className="flex justify-center items-center">
+        <div className="w-full max-w-4xl">
+          <div className="grid gap-8 md:grid-cols-5">
+            <Card className="md:col-span-2 shadow-lg border-2 border-school-light/50">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CalendarIcon className="mr-2 h-5 w-5 text-school-primary" />
+                  Calendar View
+                </CardTitle>
+                <CardDescription>Select a date to view events</CardDescription>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  onMonthChange={handleMonthChange}
+                  className="rounded-md border shadow-sm"
+                  components={{
+                    Day: customDayRender
+                  }}
+                />
+              </CardContent>
+              
+              {date && (
+                <div className="p-4">
+                  <EventDetailCard date={date} events={events} />
+                </div>
+              )}
+            </Card>
             
-            {date && <EventDetailCard date={date} events={events} />}
-          </CardContent>
-        </Card>
-        
-        <Card className="md:col-span-3">
-          <CardHeader>
-            <MonthlyEventsList 
-              events={events}
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
-              filter={filter}
-              setFilter={setFilter}
-            />
-          </CardHeader>
-        </Card>
+            <Card className="md:col-span-3 shadow-lg border-2 border-school-light/50">
+              <CardHeader>
+                <MonthlyEventsList 
+                  events={events}
+                  selectedMonth={selectedMonth}
+                  selectedYear={selectedYear}
+                  filter={filter}
+                  setFilter={setFilter}
+                />
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
       </div>
       
       <AcademicYearDates />
