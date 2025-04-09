@@ -47,6 +47,11 @@ export function StaffCardMobile({ staff, onEdit, onDelete }: StaffCardMobileProp
                 <span className="text-sm font-medium">Bio:</span> <p className="text-sm">{staff.bio}</p>
               </div>
             )}
+            {staff.image_url && (
+              <div className="py-1">
+                <span className="text-sm font-medium">Image URL:</span> <p className="text-sm truncate">{staff.image_url}</p>
+              </div>
+            )}
           </CardContent>
         </CollapsibleContent>
         

@@ -23,7 +23,7 @@ export function useStaff() {
   const fetchStaffMembers = async () => {
     try {
       setIsLoading(true);
-      // Use type assertion to tell TypeScript this is valid
+      // Use type assertion to specify the return type
       const { data, error } = await supabase
         .from("staff")
         .select('*')
