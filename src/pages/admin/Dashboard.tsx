@@ -9,12 +9,16 @@ import { Announcement } from '@/components/admin/AnnouncementForm';
 import { AnnouncementDialog } from '@/components/admin/AnnouncementDialog';
 import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementDialog';
 import { useAnnouncements } from '@/hooks/use-announcements';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StaffManagement } from '@/components/admin/StaffManagement';
+import { BellRing, Users } from 'lucide-react';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [activeTab, setActiveTab] = useState('announcements');
   const { isAdmin, logout } = useAdmin();
   const navigate = useNavigate();
   const { announcements, isLoading, fetchAnnouncements, handleDeleteAnnouncement } = useAnnouncements();
@@ -75,28 +79,47 @@ const Dashboard = () => {
   return (
     <div className="container py-8">
       <DashboardHeader 
-        title="School Announcements" 
-        subtitle="Manage notices and events for the school website" 
+        title="School Administration" 
+        subtitle="Manage content for the school website" 
         onLogout={handleLogout}
       />
 
-      <AnnouncementToolbar 
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        onCreateClick={handleCreateClick}
-      />
+      <Tabs defaultValue="announcements" value={activeTab} onValueChange={setActiveTab} className="mt-6">
+        <TabsList className="mb-8 grid w-full grid-cols-2">
+          <TabsTrigger value="announcements" className="flex items-center justify-center">
+            <BellRing className="mr-2 h-4 w-4" />
+            <span>Announcements</span>
+          </TabsTrigger>
+          <TabsTrigger value="staff" className="flex items-center justify-center">
+            <Users className="mr-2 h-4 w-4" />
+            <span>Staff Directory</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="announcements" className="mt-0">
+          <AnnouncementToolbar 
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            onCreateClick={handleCreateClick}
+          />
 
-      {isLoading ? (
-        <div className="flex h-32 items-center justify-center">
-          <p>Loading announcements...</p>
-        </div>
-      ) : (
-        <AnnouncementTable 
-          announcements={filteredAnnouncements} 
-          onEdit={handleEditClick}
-          onDelete={handleDeleteClick}
-        />
-      )}
+          {isLoading ? (
+            <div className="flex h-32 items-center justify-center">
+              <p>Loading announcements...</p>
+            </div>
+          ) : (
+            <AnnouncementTable 
+              announcements={filteredAnnouncements} 
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="staff" className="mt-0">
+          <StaffManagement />
+        </TabsContent>
+      </Tabs>
 
       {/* Announcement Form Dialog */}
       <AnnouncementDialog

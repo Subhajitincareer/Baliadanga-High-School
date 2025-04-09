@@ -42,12 +42,53 @@ export type Database = {
         }
         Relationships: []
       }
+      staff: {
+        Row: {
+          bio: string | null
+          created_at: string
+          email: string | null
+          id: string
+          image_url: string | null
+          name: string
+          phone: string | null
+          position: string
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          phone?: string | null
+          position: string
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          phone?: string | null
+          position?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_admin_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          isadmin: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
