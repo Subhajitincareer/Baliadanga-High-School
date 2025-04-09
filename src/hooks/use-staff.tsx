@@ -11,6 +11,8 @@ export type StaffMember = {
   phone?: string;
   bio?: string;
   image_url?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export function useStaff() {
@@ -21,10 +23,11 @@ export function useStaff() {
   const fetchStaffMembers = async () => {
     try {
       setIsLoading(true);
+      // Use type assertion to tell TypeScript this is valid
       const { data, error } = await supabase
         .from("staff")
         .select('*')
-        .order('name');
+        .order('name') as { data: StaffMember[] | null; error: any };
 
       if (error) throw error;
 
@@ -45,10 +48,11 @@ export function useStaff() {
 
   const addStaffMember = async (staffMember: Omit<StaffMember, 'id'>) => {
     try {
+      // Use type assertion for the Supabase query
       const { data, error } = await supabase
         .from("staff")
         .insert([staffMember])
-        .select();
+        .select() as { data: StaffMember[] | null; error: any };
 
       if (error) throw error;
 
@@ -73,11 +77,12 @@ export function useStaff() {
 
   const updateStaffMember = async (staffMember: StaffMember) => {
     try {
+      // Use type assertion for the Supabase query
       const { data, error } = await supabase
         .from("staff")
         .update(staffMember)
         .eq("id", staffMember.id)
-        .select();
+        .select() as { data: StaffMember[] | null; error: any };
 
       if (error) throw error;
 
@@ -102,10 +107,11 @@ export function useStaff() {
 
   const deleteStaffMember = async (id: string) => {
     try {
+      // Use type assertion for the Supabase query
       const { error } = await supabase
         .from("staff")
         .delete()
-        .eq("id", id);
+        .eq("id", id) as { error: any };
 
       if (error) throw error;
 

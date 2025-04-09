@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { SearchInput } from '@/components/ui/search-input';
@@ -64,10 +65,11 @@ const Staff = () => {
     const fetchStaff = async () => {
       try {
         setIsLoading(true);
+        // Use type assertion to properly type the response
         const { data, error } = await supabase
           .from("staff")
           .select('*')
-          .order('name');
+          .order('name') as { data: StaffMember[] | null; error: any };
           
         if (error) throw error;
         
@@ -96,7 +98,7 @@ const Staff = () => {
           });
         } else {
           // Fall back to static data if no database data is available
-          const staffMembers = {
+          const staticStaffMembers: StaffByDepartment = {
             administration: [
               {
                 id: "1",
@@ -212,11 +214,11 @@ const Staff = () => {
               }
             ]
           };
-          setStaffMembers(staffMembers);
+          setStaffMembers(staticStaffMembers);
         }
       } catch (error) {
         console.error('Error fetching staff data:', error);
-        const staffMembers = {
+        const staticStaffMembers: StaffByDepartment = {
           administration: [
             {
               id: "1",
@@ -332,7 +334,7 @@ const Staff = () => {
             }
           ]
         };
-        setStaffMembers(staffMembers);
+        setStaffMembers(staticStaffMembers);
       } finally {
         setIsLoading(false);
       }
