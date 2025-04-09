@@ -1,30 +1,23 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Dialog, DialogContent, DialogDescription, 
-  DialogFooter, DialogHeader, DialogTitle 
-} from '@/components/ui/dialog';
-import {
-  Table, TableBody, TableCell, TableHead, 
-  TableHeader, TableRow 
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { SearchInput } from '@/components/ui/search-input';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
+import { Edit, Trash2, UserPlus } from 'lucide-react';
 import { useStaff, StaffMember } from '@/hooks/use-staff';
-import { Pencil, Trash2, UserPlus, Search } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerTrigger, DrawerClose } from '@/components/ui/drawer';
+import { StaffCardMobile } from './StaffCardMobile';
 
-export const StaffManagement = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-  const [formData, setFormData] = useState({
+export function StaffManagement() {
+  const { staffMembers, isLoading, fetchStaffMembers, addStaffMember, updateStaffMember, deleteStaffMember } = useStaff();
+  const [staffForm, setStaffForm] = useState<Partial<StaffMember>>({
     name: '',
     position: '',
     email: '',
@@ -32,264 +25,290 @@ export const StaffManagement = () => {
     bio: '',
     image_url: '',
   });
-  
-  const { staffMembers, isLoading, fetchStaffMembers, addStaffMember, updateStaffMember, deleteStaffMember } = useStaff();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState<StaffMember | null>(null);
   const isMobile = useIsMobile();
 
-  const filteredStaff = staffMembers.filter((staff) =>
-    staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff.position.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleCreateClick = () => {
-    setSelectedStaff(null);
-    setFormData({
-      name: '',
-      position: '',
-      email: '',
-      phone: '',
-      bio: '',
-      image_url: '',
-    });
-    setIsFormOpen(true);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setStaffForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleEditClick = (staff: StaffMember) => {
-    setSelectedStaff(staff);
-    setFormData({
-      name: staff.name,
-      position: staff.position,
-      email: staff.email || '',
-      phone: staff.phone || '',
-      bio: staff.bio || '',
-      image_url: staff.image_url || '',
-    });
+    setStaffForm(staff);
+    setEditingId(staff.id);
     setIsFormOpen(true);
   };
 
   const handleDeleteClick = (staff: StaffMember) => {
-    setSelectedStaff(staff);
+    setStaffToDelete(staff);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    let success = false;
-    
-    if (selectedStaff) {
-      // Update existing staff member
-      success = await updateStaffMember({
-        id: selectedStaff.id,
-        ...formData
-      });
-    } else {
-      // Create new staff member
-      success = await addStaffMember(formData);
+    if (!staffForm.name || !staffForm.position) {
+      return;
     }
-    
+
+    let success;
+    if (editingId) {
+      success = await updateStaffMember({ ...staffForm, id: editingId } as StaffMember);
+    } else {
+      success = await addStaffMember(staffForm as Omit<StaffMember, 'id'>);
+    }
+
     if (success) {
+      setStaffForm({
+        name: '',
+        position: '',
+        email: '',
+        phone: '',
+        bio: '',
+        image_url: '',
+      });
+      setEditingId(null);
       setIsFormOpen(false);
       fetchStaffMembers();
     }
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedStaff) return;
-    
-    const success = await deleteStaffMember(selectedStaff.id);
+    if (!staffToDelete) return;
+
+    const success = await deleteStaffMember(staffToDelete.id);
     if (success) {
       setIsDeleteDialogOpen(false);
       fetchStaffMembers();
     }
   };
 
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl">Staff Management</CardTitle>
-        <CardDescription>
-          Add, edit, or remove staff members
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <SearchInput
-            placeholder="Search staff..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full sm:max-w-xs"
-            icon={Search}
-          />
-          
-          <Button onClick={handleCreateClick} className="bg-school-primary hover:bg-school-primary/90">
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add Staff Member
-          </Button>
+  const renderForm = () => (
+    <form onSubmit={handleFormSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Name *</Label>
+        <Input
+          id="name"
+          name="name"
+          value={staffForm.name || ''}
+          onChange={handleInputChange}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="position">Position *</Label>
+        <Input
+          id="position"
+          name="position"
+          value={staffForm.position || ''}
+          onChange={handleInputChange}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={staffForm.email || ''}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phone">Phone</Label>
+        <Input
+          id="phone"
+          name="phone"
+          value={staffForm.phone || ''}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="bio">Biography</Label>
+        <Textarea
+          id="bio"
+          name="bio"
+          value={staffForm.bio || ''}
+          onChange={handleInputChange}
+          rows={4}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="image_url">Image URL</Label>
+        <Input
+          id="image_url"
+          name="image_url"
+          value={staffForm.image_url || ''}
+          onChange={handleInputChange}
+        />
+      </div>
+      <DialogFooter className="mt-6">
+        <Button type="submit">
+          {editingId ? 'Update Staff Member' : 'Add Staff Member'}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between">
+          <h2 className="text-2xl font-bold">Staff Directory</h2>
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button size="sm" className="flex-shrink-0">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Staff
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>
+                  {editingId ? 'Edit Staff Member' : 'Add New Staff Member'}
+                </DrawerTitle>
+              </DrawerHeader>
+              <div className="px-4">
+                {renderForm()}
+              </div>
+              <DrawerFooter>
+                <DrawerClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
         </div>
         
         {isLoading ? (
-          <div className="flex h-32 items-center justify-center">
-            <p>Loading staff data...</p>
-          </div>
+          <p>Loading staff...</p>
         ) : (
-          <>
-            {filteredStaff.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    {!isMobile && <TableHead>Position</TableHead>}
-                    {!isMobile && <TableHead>Email</TableHead>}
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredStaff.map((staff) => (
-                    <TableRow key={staff.id}>
-                      <TableCell className="font-medium">{staff.name}</TableCell>
-                      {!isMobile && <TableCell>{staff.position}</TableCell>}
-                      {!isMobile && <TableCell>{staff.email || '-'}</TableCell>}
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleEditClick(staff)}>
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteClick(staff)}>
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          <div className="space-y-4">
+            {staffMembers.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">
+                No staff members found. Add your first one by clicking the button above.
+              </p>
             ) : (
-              <div className="py-10 text-center text-muted-foreground">
-                <p>No staff members found{searchTerm ? ' matching your search criteria' : ''}.</p>
-                {searchTerm && (
-                  <Button variant="outline" className="mt-2" onClick={() => setSearchTerm('')}>
-                    Clear Search
-                  </Button>
-                )}
-              </div>
+              staffMembers.map((staff) => (
+                <StaffCardMobile 
+                  key={staff.id}
+                  staff={staff}
+                  onEdit={() => handleEditClick(staff)}
+                  onDelete={() => handleDeleteClick(staff)}
+                />
+              ))
             )}
-          </>
+          </div>
         )}
-      </CardContent>
 
-      {/* Staff Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{selectedStaff ? 'Edit Staff Member' : 'Add Staff Member'}</DialogTitle>
-            <DialogDescription>
-              {selectedStaff 
-                ? `Update ${selectedStaff.name}'s information` 
-                : 'Enter details for the new staff member'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input 
-                  id="name" 
-                  name="name" 
-                  value={formData.name} 
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="position">Position *</Label>
-                <Input 
-                  id="position" 
-                  name="position" 
-                  value={formData.position} 
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  name="email" 
-                  type="email"
-                  value={formData.email} 
-                  onChange={handleFormChange}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input 
-                  id="phone" 
-                  name="phone" 
-                  value={formData.phone} 
-                  onChange={handleFormChange}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="image_url">Image URL</Label>
-                <Input 
-                  id="image_url" 
-                  name="image_url" 
-                  value={formData.image_url} 
-                  onChange={handleFormChange}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="bio">Biography</Label>
-                <Textarea 
-                  id="bio" 
-                  name="bio" 
-                  value={formData.bio} 
-                  onChange={handleFormChange}
-                  rows={3}
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                {selectedStaff ? 'Update' : 'Add'} Staff Member
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete {staffToDelete?.name}'s profile from the staff directory.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
 
-      {/* Delete Confirmation Dialog */}
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between">
+        <h2 className="text-2xl font-bold">Staff Directory</h2>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add Staff Member
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>
+                {editingId ? 'Edit Staff Member' : 'Add New Staff Member'}
+              </DialogTitle>
+            </DialogHeader>
+            {renderForm()}
+          </DialogContent>
+        </Dialog>
+      </div>
+      
+      {isLoading ? (
+        <p>Loading staff directory...</p>
+      ) : (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Position</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {staffMembers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                    No staff members found. Add your first one by clicking the "Add Staff Member" button.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                staffMembers.map((staff) => (
+                  <TableRow key={staff.id}>
+                    <TableCell className="font-medium">{staff.name}</TableCell>
+                    <TableCell>{staff.position}</TableCell>
+                    <TableCell>
+                      {staff.email && <div>{staff.email}</div>}
+                      {staff.phone && <div>{staff.phone}</div>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditClick(staff)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteClick(staff)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {selectedStaff?.name}'s profile from the staff directory.
-              This action cannot be undone.
+              This will permanently delete {staffToDelete?.name}'s profile from the staff directory.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -300,6 +319,6 @@ export const StaffManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </div>
   );
-};
+}
