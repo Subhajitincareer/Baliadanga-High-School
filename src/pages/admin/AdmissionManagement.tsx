@@ -1,79 +1,55 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
-import { DashboardHeader } from '@/components/admin/DashboardHeader';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase, Admissions } from '@/integrations/supabase/client';
-import { Search, FileText, Check, X, Eye } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { EyeIcon, CheckCircle, XCircle, SearchIcon } from 'lucide-react';
 import AdmissionDetail from '@/components/admission/AdmissionDetail';
 
-type Admission = Pick<
-  Admissions,
-  'id' | 'student_name' | 'class_applying_for' | 'status' | 'created_at' | 'access_code' | 'roll_number'
->;
+type Admission = Admissions;
+
+interface AdmissionStatusUpdateProps {
+  admissionId: string;
+  onClose: () => void;
+  onUpdate: () => void;
+}
 
 const AdmissionManagement = () => {
   const [admissions, setAdmissions] = useState<Admission[]>([]);
-  const [filteredAdmissions, setFilteredAdmissions] = useState<Admission[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedAdmission, setSelectedAdmission] = useState<Admission | null>(null);
-  const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [selectedAdmissionId, setSelectedAdmissionId] = useState<string | null>(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [rollNumber, setRollNumber] = useState('');
   const [remarks, setRemarks] = useState('');
-  
-  const { isAdmin, logout } = useAdmin();
+	const [rejectRemarks, setRejectRemarks] = useState('');
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { isAdmin, checkAdminStatus } = useAdmin();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isAdmin) {
-      navigate('/admin');
-      return;
-    }
-    
+    checkAdminStatus();
     fetchAdmissions();
-  }, [isAdmin, navigate]);
-
-  useEffect(() => {
-    filterAdmissions();
-  }, [searchTerm, statusFilter, admissions]);
+  }, []);
 
   const fetchAdmissions = async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('admissions')
-        .select('id, student_name, class_applying_for, status, created_at, access_code, roll_number')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -82,7 +58,7 @@ const AdmissionManagement = () => {
       console.error('Error fetching admissions:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch admission applications.',
+        description: 'Failed to load admissions data.',
         variant: 'destructive',
       });
     } finally {
@@ -90,46 +66,29 @@ const AdmissionManagement = () => {
     }
   };
 
-  const filterAdmissions = () => {
-    let filtered = [...admissions];
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(admission => admission.status === statusFilter);
-    }
-
-    if (searchTerm) {
-      const lowercaseSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        admission =>
-          admission.student_name.toLowerCase().includes(lowercaseSearchTerm) ||
-          admission.access_code.toLowerCase().includes(lowercaseSearchTerm)
-      );
-    }
-
-    setFilteredAdmissions(filtered);
+  const handleOpenApproveModal = (id: string) => {
+    setSelectedAdmissionId(id);
+    setShowApproveModal(true);
   };
 
-  const handleViewAdmission = (admission: Admission) => {
-    setSelectedAdmission(admission);
-    setIsViewOpen(true);
-  };
-
-  const handleApproveOpen = (admission: Admission) => {
-    setSelectedAdmission(admission);
+  const handleCloseApproveModal = () => {
+    setShowApproveModal(false);
     setRollNumber('');
     setRemarks('');
-    setIsApproveDialogOpen(true);
   };
 
-  const handleRejectOpen = (admission: Admission) => {
-    setSelectedAdmission(admission);
-    setRemarks('');
-    setIsRejectDialogOpen(true);
+	const handleOpenRejectModal = (id: string) => {
+    setSelectedAdmissionId(id);
+    setShowRejectModal(true);
   };
 
-  const handleApproveSubmit = async () => {
-    if (!selectedAdmission) return;
-    
+  const handleCloseRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectRemarks('');
+  };
+
+  const handleApproveAdmission = async () => {
+    setIsProcessing(true);
     try {
       const { error } = await supabase
         .from('admissions')
@@ -138,280 +97,278 @@ const AdmissionManagement = () => {
           roll_number: rollNumber,
           remarks: remarks
         })
-        .eq('id', selectedAdmission.id);
+        .eq('id', selectedAdmissionId);
 
       if (error) throw error;
       
       toast({
-        title: 'Application Approved',
-        description: `${selectedAdmission.student_name}'s application has been approved.`,
+        title: 'Admission Approved',
+        description: 'The admission has been successfully approved.',
       });
       
-      setAdmissions(prev =>
-        prev.map(item =>
-          item.id === selectedAdmission.id
-            ? { ...item, status: 'approved', roll_number: rollNumber }
-            : item
-        )
-      );
-      
-      setIsApproveDialogOpen(false);
+      setShowApproveModal(false);
+      fetchAdmissions();
     } catch (error) {
-      console.error('Error approving application:', error);
+      console.error('Error approving admission:', error);
       toast({
         title: 'Error',
-        description: 'Failed to approve the application.',
+        description: 'Failed to approve admission.',
         variant: 'destructive',
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleRejectSubmit = async () => {
-    if (!selectedAdmission) return;
-    
+  const handleRejectAdmission = async () => {
+    setIsProcessing(true);
     try {
       const { error } = await supabase
         .from('admissions')
         .update({
           status: 'rejected',
-          remarks: remarks
+          remarks: rejectRemarks
         })
-        .eq('id', selectedAdmission.id);
+        .eq('id', selectedAdmissionId);
 
       if (error) throw error;
       
       toast({
-        title: 'Application Rejected',
-        description: `${selectedAdmission.student_name}'s application has been rejected.`,
+        title: 'Admission Rejected',
+        description: 'The admission has been rejected.',
       });
       
-      setAdmissions(prev =>
-        prev.map(item =>
-          item.id === selectedAdmission.id
-            ? { ...item, status: 'rejected' }
-            : item
-        )
-      );
-      
-      setIsRejectDialogOpen(false);
+      setShowRejectModal(false);
+      fetchAdmissions();
     } catch (error) {
-      console.error('Error rejecting application:', error);
+      console.error('Error rejecting admission:', error);
       toast({
         title: 'Error',
-        description: 'Failed to reject the application.',
+        description: 'Failed to reject admission.',
         variant: 'destructive',
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  const handleViewDetails = (id: string) => {
+    setSelectedAdmissionId(id);
+    setIsDetailOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setIsDetailOpen(false);
+    setSelectedAdmissionId(null);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const filteredAdmissions = admissions.filter(admission => {
+    const searchTermLower = searchTerm.toLowerCase();
+    return (
+      admission.student_name.toLowerCase().includes(searchTermLower) ||
+      admission.guardian_phone.toLowerCase().includes(searchTermLower) ||
+      admission.access_code.toLowerCase().includes(searchTermLower)
+    );
+  });
+
+  if (!isAdmin) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Unauthorized Access</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>You do not have permission to view this page.</p>
+            <Button onClick={() => navigate('/')}>Go to Home</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8">
-      <DashboardHeader 
-        title="Admission Management" 
-        subtitle="Review and process admission applications" 
-        onLogout={logout}
-      />
-
-      <div className="flex flex-col md:flex-row gap-4 my-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or access code..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Select
-          value={statusFilter}
-          onValueChange={setStatusFilter}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Applications</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" onClick={fetchAdmissions}>
-          Refresh
-        </Button>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Admission Management</h1>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Class</TableHead>
-              <TableHead>Access Code</TableHead>
-              <TableHead>Roll Number</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+      <div className="mb-4 flex items-center space-x-2">
+        <Input
+          type="text"
+          placeholder="Search by name, phone, or access code..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-md"
+        />
+        <SearchIcon className="h-5 w-5 text-gray-500" />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Admissions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  Loading applications...
-                </TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Applied On</TableHead>
+                <TableHead>Class</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : filteredAdmissions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  No applications found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredAdmissions.map((admission) => (
-                <TableRow key={admission.id}>
-                  <TableCell>{admission.student_name}</TableCell>
-                  <TableCell>Class {admission.class_applying_for}</TableCell>
-                  <TableCell>
-                    <code className="bg-muted px-1 py-0.5 rounded text-xs">
-                      {admission.access_code}
-                    </code>
-                  </TableCell>
-                  <TableCell>{admission.roll_number || '-'}</TableCell>
-                  <TableCell>
-                    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${admission.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                        admission.status === 'rejected' ? 'bg-red-100 text-red-800' : 
-                        'bg-yellow-100 text-yellow-800'}`
-                    }>
-                      {admission.status === 'approved' ? 'Approved' : 
-                       admission.status === 'rejected' ? 'Rejected' : 
-                       'Pending'}
-                    </div>
-                  </TableCell>
-                  <TableCell>{new Date(admission.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">Loading...</TableCell>
+                </TableRow>
+              ) : filteredAdmissions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">No admissions found.</TableCell>
+                </TableRow>
+              ) : (
+                filteredAdmissions.map((admission) => (
+                  <TableRow key={admission.id}>
+                    <TableCell>{admission.student_name}</TableCell>
+                    <TableCell>{formatDate(admission.created_at)}</TableCell>
+                    <TableCell>Class {admission.class_applying_for}</TableCell>
+                    <TableCell>{admission.guardian_phone}</TableCell>
+                    <TableCell>
+                      {admission.status === 'approved' ? (
+                        <Badge variant="outline" className="text-green-500 border-green-500">Approved</Badge>
+                      ) : admission.status === 'rejected' ? (
+                        <Badge variant="outline" className="text-red-500 border-red-500">Rejected</Badge>
+                      ) : (
+                        <Badge variant="secondary">Pending</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Button
-                        variant="ghost"
                         size="sm"
-                        onClick={() => handleViewAdmission(admission)}
+                        variant="ghost"
+                        onClick={() => handleViewDetails(admission.id)}
                       >
-                        <Eye className="h-4 w-4" />
+                        <EyeIcon className="h-4 w-4 mr-2" />
+                        View
                       </Button>
                       {admission.status === 'pending' && (
                         <>
                           <Button
-                            variant="ghost"
                             size="sm"
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={() => handleApproveOpen(admission)}
+                            variant="ghost"
+                            onClick={() => handleOpenApproveModal(admission.id)}
                           >
-                            <Check className="h-4 w-4" />
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                            Approve
                           </Button>
-                          <Button
-                            variant="ghost"
+													<Button
                             size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleRejectOpen(admission)}
+                            variant="ghost"
+                            onClick={() => handleOpenRejectModal(admission.id)}
                           >
-                            <X className="h-4 w-4" />
+                            <XCircle className="h-4 w-4 mr-2 text-red-500" />
+                            Reject
                           </Button>
                         </>
                       )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {selectedAdmission && (
-        <AdmissionDetail
-          admissionId={selectedAdmission.id}
-          isOpen={isViewOpen}
-          onClose={() => setIsViewOpen(false)}
-        />
-      )}
-
-      <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
-        <DialogContent>
+      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Approve Application</DialogTitle>
+            <DialogTitle>Approve Admission</DialogTitle>
+            <DialogDescription>
+              Enter the roll number and any remarks for this student.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="roll-number" className="text-sm font-medium">
-                Assign Roll Number
-              </label>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="rollNumber" className="text-right">
+                Roll Number
+              </Label>
               <Input
-                id="roll-number"
+                id="rollNumber"
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
-                placeholder="Enter roll number"
+                className="col-span-3"
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="remarks" className="text-sm font-medium">
-                Remarks (Optional)
-              </label>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="remarks" className="text-right">
+                Remarks
+              </Label>
               <Textarea
                 id="remarks"
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                placeholder="Add any additional remarks"
+                className="col-span-3"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>
+            <Button type="button" variant="secondary" onClick={handleCloseApproveModal}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleApproveSubmit} 
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Approve
+            <Button type="button" onClick={handleApproveAdmission} disabled={isProcessing}>
+              {isProcessing ? 'Approving...' : 'Approve'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent>
+			<Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Reject Application</DialogTitle>
+            <DialogTitle>Reject Admission</DialogTitle>
+            <DialogDescription>
+              Enter the remarks for rejecting this student admission.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="reject-remarks" className="text-sm font-medium">
-                Reason for Rejection
-              </label>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="rejectRemarks" className="text-right">
+                Remarks
+              </Label>
               <Textarea
-                id="reject-remarks"
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                placeholder="Provide reason for rejection"
+                id="rejectRemarks"
+                value={rejectRemarks}
+                onChange={(e) => setRejectRemarks(e.target.value)}
+                className="col-span-3"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
+            <Button type="button" variant="secondary" onClick={handleCloseRejectModal}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleRejectSubmit} 
-              variant="destructive"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Reject
+            <Button type="button" onClick={handleRejectAdmission} disabled={isProcessing}>
+              {isProcessing ? 'Rejecting...' : 'Reject'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {selectedAdmissionId && (
+        <AdmissionDetail
+          admissionId={selectedAdmissionId}
+          isOpen={isDetailOpen}
+          onClose={handleCloseDetails}
+        />
+      )}
     </div>
   );
 };

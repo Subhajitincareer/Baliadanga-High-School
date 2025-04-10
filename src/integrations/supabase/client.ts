@@ -18,11 +18,4 @@ export type Staff = Tables['staff']['Row'];
 export type Announcements = Tables['announcements']['Row'];
 export type UserRoles = Tables['user_roles']['Row'];
 
-// Add this line to explicitly tell TypeScript that we can use the 'admissions' table
-declare module '@supabase/supabase-js' {
-  interface SupabaseClient<Schema> {
-    from<TableName extends keyof Schema['public']['Tables']>(
-      table: TableName
-    ): ReturnType<SupabaseClient<Schema>['from']>;
-  }
-}
+// No need for the problematic module declaration since we're using the Database type properly

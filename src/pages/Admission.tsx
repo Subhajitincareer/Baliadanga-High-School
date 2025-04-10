@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -74,7 +75,7 @@ const Admission = () => {
 
       if (error) throw error;
 
-      if (data) {
+      if (data && data.access_code) {
         setAccessCode(data.access_code);
         setShowSuccessDialog(true);
       }
