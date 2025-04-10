@@ -76,6 +76,6 @@ function App() {
       <Toaster />
     </AdminProvider>
   );
-};
+}
 
 export default App;
