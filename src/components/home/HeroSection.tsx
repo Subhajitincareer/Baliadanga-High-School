@@ -16,7 +16,7 @@ const HeroSection = () => {
             Nurturing minds, building character, and inspiring excellence since 1965
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/admissions">
+            <Link to="/admission">
               <Button className="bg-school-secondary hover:bg-green-700" size="lg">
                 Admissions
               </Button>
