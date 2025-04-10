@@ -36,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AdminProvider>
-      <Router>
+      <Router basename="/">
         <Routes>
           <Route path="/admin" element={<AdminLogin />} />
           <Route
@@ -57,18 +57,18 @@ function App() {
           />
           <Route path="/" element={<Layout />}>
             <Route index element={<Index />} />
-            <Route path="/announcements" element={<Announcements />} />
-            <Route path="/announcements/:id" element={<AnnouncementDetail />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/staff" element={<Staff />} />
-            <Route path="/portal" element={<Portal />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/academic-calendar" element={<AcademicCalendar />} />
-            <Route path="/admission" element={<Admission />} />
-            <Route path="/admission-status" element={<AdmissionStatus />} />
+            <Route path="announcements" element={<Announcements />} />
+            <Route path="announcements/:id" element={<AnnouncementDetail />} />
+            <Route path="courses" element={<Courses />} />
+            <Route path="resources" element={<Resources />} />
+            <Route path="events" element={<Events />} />
+            <Route path="staff" element={<Staff />} />
+            <Route path="portal" element={<Portal />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="gallery" element={<Gallery />} />
+            <Route path="academic-calendar" element={<AcademicCalendar />} />
+            <Route path="admission" element={<Admission />} />
+            <Route path="admission-status" element={<AdmissionStatus />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
