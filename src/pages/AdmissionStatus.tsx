@@ -44,8 +44,9 @@ const AdmissionStatus = () => {
     setIsSearching(true);
     
     try {
-      const { data: admissionData, error } = await supabase
-        .from('admissions')
+      // Using type assertion to overcome TypeScript limitations
+      const { data: admissionData, error } = await (supabase
+        .from('admissions') as any)
         .select('id, student_name, class_applying_for, status, access_code, roll_number, remarks, created_at')
         .eq('access_code', data.accessCode)
         .single();
@@ -62,7 +63,7 @@ const AdmissionStatus = () => {
         }
         setAdmissionStatus(null);
       } else {
-        setAdmissionStatus(admissionData);
+        setAdmissionStatus(admissionData as AdmissionStatusProps);
       }
     } catch (error) {
       console.error('Error fetching admission status:', error);

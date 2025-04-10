@@ -77,8 +77,9 @@ const AdmissionManagement = () => {
   const fetchAdmissions = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('admissions')
+      // Using type assertion to handle the dynamic table access
+      const { data, error } = await (supabase
+        .from('admissions') as any)
         .select('id, student_name, class_applying_for, status, created_at, access_code, roll_number')
         .order('created_at', { ascending: false });
 
@@ -139,8 +140,9 @@ const AdmissionManagement = () => {
     if (!selectedAdmission) return;
     
     try {
-      const { error } = await supabase
-        .from('admissions')
+      // Using type assertion for the dynamic table access
+      const { error } = await (supabase
+        .from('admissions') as any)
         .update({
           status: 'approved',
           roll_number: rollNumber,
@@ -179,8 +181,9 @@ const AdmissionManagement = () => {
     if (!selectedAdmission) return;
     
     try {
-      const { error } = await supabase
-        .from('admissions')
+      // Using type assertion for the dynamic table access
+      const { error } = await (supabase
+        .from('admissions') as any)
         .update({
           status: 'rejected',
           remarks: remarks

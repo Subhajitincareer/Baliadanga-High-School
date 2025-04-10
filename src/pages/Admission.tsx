@@ -64,9 +64,9 @@ const Admission = () => {
         }
       }
 
-      // Save admission application to the database
-      const { data, error } = await supabase
-        .from('admissions')
+      // Save admission application to the database using type assertion
+      const { data, error } = await (supabase
+        .from('admissions') as any)
         .insert({
           ...formData,
           documents_url: documentsUrls,

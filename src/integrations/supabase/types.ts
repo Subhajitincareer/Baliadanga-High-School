@@ -9,6 +9,75 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admissions: {
+        Row: {
+          access_code: string
+          address: string
+          class_applying_for: string
+          created_at: string
+          date_of_birth: string
+          documents_url: string[] | null
+          father_name: string
+          gender: string
+          guardian_email: string | null
+          guardian_phone: string
+          id: string
+          mother_name: string
+          previous_class: string | null
+          previous_marks: number | null
+          previous_school: string | null
+          remarks: string | null
+          roll_number: string | null
+          status: string
+          student_name: string
+          updated_at: string
+        }
+        Insert: {
+          access_code: string
+          address: string
+          class_applying_for: string
+          created_at?: string
+          date_of_birth: string
+          documents_url?: string[] | null
+          father_name: string
+          gender: string
+          guardian_email?: string | null
+          guardian_phone: string
+          id?: string
+          mother_name: string
+          previous_class?: string | null
+          previous_marks?: number | null
+          previous_school?: string | null
+          remarks?: string | null
+          roll_number?: string | null
+          status?: string
+          student_name: string
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string
+          address?: string
+          class_applying_for?: string
+          created_at?: string
+          date_of_birth?: string
+          documents_url?: string[] | null
+          father_name?: string
+          gender?: string
+          guardian_email?: string | null
+          guardian_phone?: string
+          id?: string
+          mother_name?: string
+          previous_class?: string | null
+          previous_marks?: number | null
+          previous_school?: string | null
+          remarks?: string | null
+          roll_number?: string | null
+          status?: string
+          student_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
@@ -78,11 +147,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_access_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_admin_status: {
         Args: Record<PropertyKey, never>
         Returns: {
