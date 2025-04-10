@@ -11,7 +11,8 @@ import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementD
 import { useAnnouncements } from '@/hooks/use-announcements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StaffManagement } from '@/components/admin/StaffManagement';
-import { BellRing, Users } from 'lucide-react';
+import { BellRing, Users, GraduationCap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,6 +77,10 @@ const Dashboard = () => {
     navigate('/admin');
   };
 
+  const handleAdmissionsClick = () => {
+    navigate('/admin/admissions');
+  };
+
   return (
     <div className="container py-8">
       <DashboardHeader 
@@ -83,6 +88,33 @@ const Dashboard = () => {
         subtitle="Manage content for the school website" 
         onLogout={handleLogout}
       />
+
+      <div className="mt-6 mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2"
+          onClick={() => setActiveTab('announcements')}
+        >
+          <BellRing className="h-6 w-6 text-primary" />
+          <span>Manage Announcements</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2"
+          onClick={() => setActiveTab('staff')}
+        >
+          <Users className="h-6 w-6 text-primary" />
+          <span>Manage Staff</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2"
+          onClick={handleAdmissionsClick}
+        >
+          <GraduationCap className="h-6 w-6 text-primary" />
+          <span>Manage Admissions</span>
+        </Button>
+      </div>
 
       <Tabs defaultValue="announcements" value={activeTab} onValueChange={setActiveTab} className="mt-6">
         <TabsList className="mb-8 grid w-full grid-cols-2">

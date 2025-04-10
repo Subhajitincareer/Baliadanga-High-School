@@ -7,6 +7,7 @@ import { AdminProvider } from "@/contexts/AdminContext";
 import { Toaster } from "@/components/ui/toaster";
 import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/admin/Dashboard";
+import AdmissionManagement from "@/pages/admin/AdmissionManagement";
 import Announcements from "@/pages/Announcements";
 import AnnouncementDetail from "@/pages/AnnouncementDetail";
 import Courses from "@/pages/Courses";
@@ -18,6 +19,8 @@ import NotFound from "@/pages/NotFound";
 import Contact from "@/pages/Contact";
 import Gallery from "@/pages/Gallery";
 import AcademicCalendar from "@/pages/AcademicCalendar";
+import Admission from "@/pages/Admission";
+import AdmissionStatus from "@/pages/AdmissionStatus";
 
 // Create a ProtectedRoute component to guard admin routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -44,6 +47,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/admissions"
+            element={
+              <ProtectedRoute>
+                <AdmissionManagement />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/" element={<Layout />}>
             <Route index element={<Index />} />
             <Route path="/announcements" element={<Announcements />} />
@@ -56,6 +67,8 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/academic-calendar" element={<AcademicCalendar />} />
+            <Route path="/admission" element={<Admission />} />
+            <Route path="/admission-status" element={<AdmissionStatus />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
