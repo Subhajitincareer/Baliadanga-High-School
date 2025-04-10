@@ -23,15 +23,16 @@ interface AdmissionFullDetails {
   guardian_email: string | null;
   address: string;
   class_applying_for: string;
-  previous_school: string;
-  previous_class: string;
-  previous_marks?: number | null;
+  previous_school: string | null;
+  previous_class: string | null;
+  previous_marks: number | null;
   documents_url: string[] | null;
   status: string;
   remarks: string | null;
   access_code: string;
   roll_number: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
@@ -52,7 +53,6 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
   const fetchAdmissionDetails = async () => {
     setIsLoading(true);
     try {
-      // Using type assertion to overcome TypeScript limitations with dynamic table access
       const { data, error } = await supabase
         .from('admissions')
         .select('*')
@@ -60,7 +60,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
         .single();
 
       if (error) throw error;
-      setAdmission(data as unknown as AdmissionFullDetails);
+      setAdmission(data as AdmissionFullDetails);
     } catch (error) {
       console.error('Error fetching admission details:', error);
       toast({

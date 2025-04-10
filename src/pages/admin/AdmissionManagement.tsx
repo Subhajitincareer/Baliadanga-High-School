@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -77,9 +76,8 @@ const AdmissionManagement = () => {
   const fetchAdmissions = async () => {
     setIsLoading(true);
     try {
-      // Using type assertion to handle the dynamic table access
-      const { data, error } = await (supabase
-        .from('admissions') as any)
+      const { data, error } = await supabase
+        .from('admissions')
         .select('id, student_name, class_applying_for, status, created_at, access_code, roll_number')
         .order('created_at', { ascending: false });
 
@@ -140,9 +138,8 @@ const AdmissionManagement = () => {
     if (!selectedAdmission) return;
     
     try {
-      // Using type assertion for the dynamic table access
-      const { error } = await (supabase
-        .from('admissions') as any)
+      const { error } = await supabase
+        .from('admissions')
         .update({
           status: 'approved',
           roll_number: rollNumber,
@@ -181,9 +178,8 @@ const AdmissionManagement = () => {
     if (!selectedAdmission) return;
     
     try {
-      // Using type assertion for the dynamic table access
-      const { error } = await (supabase
-        .from('admissions') as any)
+      const { error } = await supabase
+        .from('admissions')
         .update({
           status: 'rejected',
           remarks: remarks

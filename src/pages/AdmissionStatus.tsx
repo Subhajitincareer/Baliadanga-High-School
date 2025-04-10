@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -44,9 +43,8 @@ const AdmissionStatus = () => {
     setIsSearching(true);
     
     try {
-      // Using type assertion to overcome TypeScript limitations
-      const { data: admissionData, error } = await (supabase
-        .from('admissions') as any)
+      const { data: admissionData, error } = await supabase
+        .from('admissions')
         .select('id, student_name, class_applying_for, status, access_code, roll_number, remarks, created_at')
         .eq('access_code', data.accessCode)
         .single();

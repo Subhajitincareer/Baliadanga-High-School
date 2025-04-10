@@ -6,13 +6,11 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://swvzstcmzoelxmbobkna.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3dnpzdGNtem9lbHhtYm9ia25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxMDQyMDMsImV4cCI6MjA1OTY4MDIwM30.RpG2W29T9euB7alYKnMkjfkREOivURhCpIzuTUwdZ70";
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
-
-// Create a custom enhanced type to handle the newly added tables
+// Create a custom enhanced type that includes the admissions table
 type EnhancedDatabase = Database & {
   public: {
     Tables: Database['public']['Tables'] & {
+      // Add admissions table definition
       admissions: {
         Row: {
           id: string;
@@ -80,7 +78,9 @@ type EnhancedDatabase = Database & {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
+      // Add user_roles table definition
       user_roles: {
         Row: {
           id: string;
@@ -100,9 +100,11 @@ type EnhancedDatabase = Database & {
           role?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
   };
 };
 
+// Export the supabase client with enhanced types
 export const supabase = createClient<EnhancedDatabase>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
