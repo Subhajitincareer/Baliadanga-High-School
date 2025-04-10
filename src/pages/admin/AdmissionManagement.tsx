@@ -28,19 +28,14 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, Admissions } from '@/integrations/supabase/client';
 import { Search, FileText, Check, X, Eye } from 'lucide-react';
 import AdmissionDetail from '@/components/admission/AdmissionDetail';
 
-interface Admission {
-  id: string;
-  student_name: string;
-  class_applying_for: string;
-  status: string;
-  created_at: string;
-  access_code: string;
-  roll_number: string | null;
-}
+type Admission = Pick<
+  Admissions,
+  'id' | 'student_name' | 'class_applying_for' | 'status' | 'created_at' | 'access_code' | 'roll_number'
+>;
 
 const AdmissionManagement = () => {
   const [admissions, setAdmissions] = useState<Admission[]>([]);
@@ -60,7 +55,6 @@ const AdmissionManagement = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Redirect if not admin
     if (!isAdmin) {
       navigate('/admin');
       return;
@@ -98,12 +92,10 @@ const AdmissionManagement = () => {
   const filterAdmissions = () => {
     let filtered = [...admissions];
 
-    // Filter by status
     if (statusFilter !== 'all') {
       filtered = filtered.filter(admission => admission.status === statusFilter);
     }
 
-    // Filter by search term
     if (searchTerm) {
       const lowercaseSearchTerm = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -154,7 +146,6 @@ const AdmissionManagement = () => {
         description: `${selectedAdmission.student_name}'s application has been approved.`,
       });
       
-      // Update local state
       setAdmissions(prev =>
         prev.map(item =>
           item.id === selectedAdmission.id
@@ -193,7 +184,6 @@ const AdmissionManagement = () => {
         description: `${selectedAdmission.student_name}'s application has been rejected.`,
       });
       
-      // Update local state
       setAdmissions(prev =>
         prev.map(item =>
           item.id === selectedAdmission.id
@@ -221,7 +211,6 @@ const AdmissionManagement = () => {
         onLogout={logout}
       />
 
-      {/* Filters and Search */}
       <div className="flex flex-col md:flex-row gap-4 my-6">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -251,7 +240,6 @@ const AdmissionManagement = () => {
         </Button>
       </div>
 
-      {/* Admissions Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -339,7 +327,6 @@ const AdmissionManagement = () => {
         </Table>
       </div>
 
-      {/* View Admission Details Dialog */}
       {selectedAdmission && (
         <AdmissionDetail
           admissionId={selectedAdmission.id}
@@ -348,7 +335,6 @@ const AdmissionManagement = () => {
         />
       )}
 
-      {/* Approve Dialog */}
       <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -393,7 +379,6 @@ const AdmissionManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Reject Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>

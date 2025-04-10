@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, Admissions } from "@/integrations/supabase/client";
 
 const accessCodeSchema = z.object({
   accessCode: z.string().min(6, { message: "Please enter a valid access code" }).max(10),
@@ -16,16 +16,10 @@ const accessCodeSchema = z.object({
 
 type AccessCodeFormValues = z.infer<typeof accessCodeSchema>;
 
-interface AdmissionStatusProps {
-  id: string;
-  student_name: string;
-  class_applying_for: string;
-  status: string;
-  access_code: string;
-  roll_number: string | null;
-  remarks: string | null;
-  created_at: string;
-}
+type AdmissionStatusProps = Pick<
+  Admissions,
+  'id' | 'student_name' | 'class_applying_for' | 'status' | 'access_code' | 'roll_number' | 'remarks' | 'created_at'
+>;
 
 const AdmissionStatus = () => {
   const [isSearching, setIsSearching] = useState(false);

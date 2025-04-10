@@ -70,7 +70,8 @@ const Admission = () => {
         .insert({
           ...formData,
           documents_url: documentsUrls,
-          class_applying_for: selectedClass
+          class_applying_for: selectedClass,
+          status: 'pending'
         })
         .select('access_code')
         .single();
@@ -78,8 +79,10 @@ const Admission = () => {
       if (error) throw error;
 
       // Set the access code to display in success dialog
-      setAccessCode(data.access_code);
-      setShowSuccessDialog(true);
+      if (data && data.access_code) {
+        setAccessCode(data.access_code);
+        setShowSuccessDialog(true);
+      }
       
       toast({
         title: "Application submitted successfully",

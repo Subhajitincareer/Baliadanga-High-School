@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, Admissions } from '@/integrations/supabase/client';
 import { Loader2, FileText, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,28 +11,7 @@ interface AdmissionDetailProps {
   onClose: () => void;
 }
 
-interface AdmissionFullDetails {
-  id: string;
-  student_name: string;
-  gender: string;
-  date_of_birth: string;
-  father_name: string;
-  mother_name: string;
-  guardian_phone: string;
-  guardian_email: string | null;
-  address: string;
-  class_applying_for: string;
-  previous_school: string | null;
-  previous_class: string | null;
-  previous_marks: number | null;
-  documents_url: string[] | null;
-  status: string;
-  remarks: string | null;
-  access_code: string;
-  roll_number: string | null;
-  created_at: string;
-  updated_at: string;
-}
+type AdmissionFullDetails = Omit<Admissions, ''>;
 
 const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
   admissionId,
