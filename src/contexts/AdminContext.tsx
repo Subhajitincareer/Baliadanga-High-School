@@ -6,6 +6,7 @@ type AdminContextType = {
   isAdmin: boolean;
   login: (key: string) => boolean;
   logout: () => void;
+  checkAdminStatus: () => boolean;
 };
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -50,8 +51,13 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
+  const checkAdminStatus = (): boolean => {
+    const adminStatus = localStorage.getItem('isAdmin');
+    return adminStatus === 'true';
+  };
+
   return (
-    <AdminContext.Provider value={{ isAdmin, login, logout }}>
+    <AdminContext.Provider value={{ isAdmin, login, logout, checkAdminStatus }}>
       {children}
     </AdminContext.Provider>
   );

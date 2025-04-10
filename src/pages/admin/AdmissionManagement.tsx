@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -35,12 +36,12 @@ const AdmissionManagement = () => {
 	const [rejectRemarks, setRejectRemarks] = useState('');
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { isAdmin, checkAdminStatus } = useAdmin();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    checkAdminStatus();
+    // We're removing the checkAdminStatus call since we already have isAdmin from useAdmin()
     fetchAdmissions();
   }, []);
 
