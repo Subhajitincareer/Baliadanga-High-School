@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -40,7 +39,6 @@ const Admission = () => {
     setIsSubmitting(true);
 
     try {
-      // Upload documents if they exist
       const documentsUrls = [];
       
       if (formData.documents && formData.documents.length > 0) {
@@ -49,7 +47,6 @@ const Admission = () => {
           const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
           const filePath = `documents/${fileName}`;
           
-          // Upload file to Supabase Storage
           const { data, error } = await supabase.storage
             .from('admission-documents')
             .upload(filePath, file);
@@ -64,7 +61,6 @@ const Admission = () => {
         }
       }
 
-      // Save admission application to the database
       const { data, error } = await supabase
         .from('admissions')
         .insert({
@@ -78,8 +74,7 @@ const Admission = () => {
 
       if (error) throw error;
 
-      // Set the access code to display in success dialog
-      if (data && data.access_code) {
+      if (data) {
         setAccessCode(data.access_code);
         setShowSuccessDialog(true);
       }
@@ -149,7 +144,6 @@ const Admission = () => {
         </CardContent>
       </Card>
 
-      {/* Success Dialog */}
       <AdmissionSuccessDialog 
         open={showSuccessDialog}
         onOpenChange={setShowSuccessDialog}

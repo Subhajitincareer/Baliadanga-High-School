@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -76,7 +77,7 @@ const AdmissionManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAdmissions(data || []);
+      setAdmissions(data as Admission[] || []);
     } catch (error) {
       console.error('Error fetching admissions:', error);
       toast({

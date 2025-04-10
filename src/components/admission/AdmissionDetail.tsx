@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ interface AdmissionDetailProps {
   onClose: () => void;
 }
 
-type AdmissionFullDetails = Omit<Admissions, ''>;
+type AdmissionFullDetails = Admissions;
 
 const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
   admissionId,
@@ -38,6 +39,8 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
         .single();
 
       if (error) throw error;
+      
+      // Use type assertion here
       setAdmission(data as AdmissionFullDetails);
     } catch (error) {
       console.error('Error fetching admission details:', error);
