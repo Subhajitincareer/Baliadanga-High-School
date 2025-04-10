@@ -17,5 +17,3 @@ export type AdmissionsUpdate = Tables['admissions']['Update'];
 export type Staff = Tables['staff']['Row'];
 export type Announcements = Tables['announcements']['Row'];
 export type UserRoles = Tables['user_roles']['Row'];
-
-// No need for the problematic module declaration since we're using the Database type properly
