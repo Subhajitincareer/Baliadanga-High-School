@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, MapPin, Phone, Clock, ExternalLink } from "lucide-react";
-
+import emailjs from '@emailjs/browser';
 const Contact = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,24 +17,43 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
+  
+    try {
+      await emailjs.send("service_56gj0wi", "template_olbq0sc", {
+        from_name: name,
+        reply_to: email,
+        subject: subject,
+        message: message,
+      }, "YjG2ML82G4rMz-3F7");
+  
       toast({
         title: "Message sent",
-        description: "We've received your message and will get back to you soon.",
+        description: "We'll get back to you soon.",
       });
+  
+      // Clear form fields
       setName("");
       setEmail("");
       setSubject("general");
       setMessage("");
+  
+    } catch (error) {
+      console.error("EmailJS Error:", error);
+  
+      toast({
+        title: "Error",
+        description: "Failed to send message.",
+      });
+  
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
-
+  
   return (
     <div className="container py-8">
       <div className="mb-8">
@@ -52,9 +71,9 @@ const Contact = () => {
                   <div>
                     <h3 className="font-medium">Address</h3>
                     <address className="not-italic text-muted-foreground">
-                      Baliadanga High School<br />
-                      123 School Road<br />
-                      Baliadanga, West Bengal 733101<br />
+                      Baliadanga High School (H.S)<br />
+                     Baliadanga Rd<br />
+                      Baliadanga, West Bengal 741152<br />
                       India
                     </address>
                   </div>
@@ -194,8 +213,8 @@ const Contact = () => {
               <CardContent className="p-0">
                 <div className="aspect-video w-full rounded-md overflow-hidden">
                   <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3635.089751635579!2d88.41244!3d24.31995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjTCsDE5JzA5LjQiTiA4OMKwMjQnNDUuMCJF!5e0!3m2!1sen!2sus!4v1617289157271!5m2!1sen!2sus" 
-                    width="100%" 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3646.61255906547!2d88.64565342485139!3d23.93876993151946!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f94fe5d5509c0b%3A0xe405765716fb9b5f!2sBaliadanga%20High%20School(H.S)%2C%20Baliadanga%2C%20West%20Bengal%20741152!5e0!3m2!1sen!2sin!4v1744342473832!5m2!1sen!2sin"    
+                     width="100%" 
                     height="100%" 
                     style={{ border: 0 }} 
                     loading="lazy"

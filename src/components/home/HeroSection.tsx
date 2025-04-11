@@ -22,9 +22,14 @@ const HeroSection = () => {
               </Button>
             </Link>
             <Link to="/announcements">
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-school-primary" size="lg">
-                Latest Updates
-              </Button>
+            <Button 
+  variant="outline" 
+  className="border-white text-blue-600 hover:bg-blue-100 hover:text-school-primary" 
+  size="lg"
+>
+  Latest Updates
+</Button>
+
             </Link>
           </div>
         </div>

@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
             <h3 className="mb-4 text-lg font-bold">Baliadanga High School</h3>
-            <p className="mb-2 text-sm">Educating and inspiring since 1965</p>
+            <p className="mb-2 text-sm">Educating and inspiring since 1963</p>
             <div className="flex items-center space-x-4">
               <a href="https://facebook.com" className="text-white hover:text-school-accent" aria-label="Facebook">
                 <Facebook size={20} />
