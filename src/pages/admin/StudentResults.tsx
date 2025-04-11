@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -17,20 +16,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
 import { Download, Search, Plus, GraduationCap } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, StudentResults as StudentResultsType } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
-interface StudentResult {
-  id: string;
-  student_name: string;
-  roll_number: string;
-  class_name: string;
-  subject: string;
-  marks: number;
-  total_marks: number;
-  exam_date: string;
-  term: string;
-  created_at: string;
+interface StudentResult extends StudentResultsType {}
+
+interface ClassSummary {
+  count: number;
+  totalPercentage: number;
 }
 
 const StudentResults = () => {
@@ -198,7 +191,7 @@ const StudentResults = () => {
   );
 
   // Data for the chart
-  const classSummary = results.reduce((acc: Record<string, { count: number, totalPercentage: number }>, result) => {
+  const classSummary = results.reduce((acc: Record<string, ClassSummary>, result) => {
     const percentage = (result.marks / result.total_marks) * 100;
     if (!acc[result.class_name]) {
       acc[result.class_name] = { count: 0, totalPercentage: 0 };

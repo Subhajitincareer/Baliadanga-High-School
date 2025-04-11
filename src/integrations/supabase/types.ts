@@ -147,6 +147,48 @@ export type Database = {
         }
         Relationships: []
       }
+      student_results: {
+        Row: {
+          class_name: string
+          created_at: string
+          exam_date: string
+          id: string
+          marks: number
+          roll_number: string
+          student_name: string
+          subject: string
+          term: string
+          total_marks: number
+          updated_at: string
+        }
+        Insert: {
+          class_name: string
+          created_at?: string
+          exam_date?: string
+          id?: string
+          marks: number
+          roll_number: string
+          student_name: string
+          subject: string
+          term?: string
+          total_marks?: number
+          updated_at?: string
+        }
+        Update: {
+          class_name?: string
+          created_at?: string
+          exam_date?: string
+          id?: string
+          marks?: number
+          roll_number?: string
+          student_name?: string
+          subject?: string
+          term?: string
+          total_marks?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
