@@ -11,7 +11,7 @@ import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementD
 import { useAnnouncements } from '@/hooks/use-announcements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StaffManagement } from '@/components/admin/StaffManagement';
-import { BellRing, Users, GraduationCap } from 'lucide-react';
+import { BellRing, Users, GraduationCap, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
@@ -80,6 +80,10 @@ const Dashboard = () => {
   const handleAdmissionsClick = () => {
     navigate('/admin/admissions');
   };
+  
+  const handleResultsClick = () => {
+    navigate('/admin/results');
+  };
 
   return (
     <div className="container py-8">
@@ -89,7 +93,7 @@ const Dashboard = () => {
         onLogout={handleLogout}
       />
 
-      <div className="mt-6 mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="mt-6 mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
         <Button
           variant="outline"
           className="h-24 flex flex-col items-center justify-center gap-2"
@@ -113,6 +117,14 @@ const Dashboard = () => {
         >
           <GraduationCap className="h-6 w-6 text-primary" />
           <span>Manage Admissions</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2"
+          onClick={handleResultsClick}
+        >
+          <Award className="h-6 w-6 text-primary" />
+          <span>Student Results</span>
         </Button>
       </div>
 
