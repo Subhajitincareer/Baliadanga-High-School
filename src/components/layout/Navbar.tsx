@@ -29,7 +29,7 @@ const navigationItems = [
     submenu: [
       {
         title: "Courses",
-        href: "/courses",
+        href: "/#/courses",
         description: "Explore our comprehensive academic curriculum"
       },
       {

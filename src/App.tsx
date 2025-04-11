@@ -1,3 +1,4 @@
+
 import React from "react";
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -20,7 +21,6 @@ import Gallery from "@/pages/Gallery";
 import AcademicCalendar from "@/pages/AcademicCalendar";
 import Admission from "@/pages/Admission";
 import AdmissionStatus from "@/pages/AdmissionStatus";
-import StudentResults from "@/pages/admin/StudentResults";
 
 // Create a ProtectedRoute component to guard admin routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -36,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AdminProvider>
-      <Router> {/* Changed from BrowserRouter to HashRouter */}
+      <Router basename="/">
         <Routes>
           <Route path="/admin" element={<AdminLogin />} />
           <Route
@@ -52,14 +52,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdmissionManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/results"
-            element={
-              <ProtectedRoute>
-                <StudentResults />
               </ProtectedRoute>
             }
           />
