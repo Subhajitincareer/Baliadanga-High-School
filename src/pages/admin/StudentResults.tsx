@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -15,9 +16,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
-import { Download, Search, Plus, GraduationCap } from 'lucide-react';
+import { Download, Search, Plus, GraduationCap, Filter } from 'lucide-react';
 import { supabase, StudentResults as StudentResultsType } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface StudentResult extends StudentResultsType {}
 
@@ -26,11 +35,17 @@ interface ClassSummary {
   totalPercentage: number;
 }
 
+const examTerms = ['1summit', '2summit', 'Final Exam', 'Midterm'] as const;
+type ExamTerm = typeof examTerms[number];
+
 const StudentResults = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<StudentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedTerm, setSelectedTerm] = useState<ExamTerm>('Midterm');
+  const [selectedClass, setSelectedClass] = useState<string>('');
+  const [classes, setClasses] = useState<string[]>([]);
   const [newResult, setNewResult] = useState({
     student_name: '',
     roll_number: '',
@@ -38,7 +53,7 @@ const StudentResults = () => {
     subject: '',
     marks: '',
     total_marks: '100',
-    term: 'Midterm',
+    term: 'Midterm' as ExamTerm,
     exam_date: new Date().toISOString().split('T')[0]
   });
   
@@ -65,6 +80,15 @@ const StudentResults = () => {
 
       if (error) throw error;
       setResults(data || []);
+      
+      // Extract unique class names
+      const uniqueClasses = Array.from(new Set(data?.map(result => result.class_name) || []));
+      setClasses(uniqueClasses);
+      
+      // Set default selected class if available
+      if (uniqueClasses.length > 0 && !selectedClass) {
+        setSelectedClass(uniqueClasses[0]);
+      }
     } catch (error) {
       console.error('Error fetching results:', error);
       toast({
@@ -83,6 +107,10 @@ const StudentResults = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    setNewResult(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setNewResult(prev => ({ ...prev, [name]: value }));
   };
 
@@ -153,8 +181,14 @@ const StudentResults = () => {
   };
 
   const downloadCSV = () => {
+    // Filter results based on selected term and class
+    const filteredForExport = results.filter(result => 
+      (selectedTerm === 'Midterm' || result.term === selectedTerm) &&
+      (selectedClass === '' || result.class_name === selectedClass)
+    );
+    
     const headers = ['Student Name', 'Roll Number', 'Class', 'Subject', 'Marks', 'Total Marks', 'Term', 'Exam Date'];
-    const dataRows = results.map(result => [
+    const dataRows = filteredForExport.map(result => [
       result.student_name,
       result.roll_number,
       result.class_name,
@@ -174,30 +208,44 @@ const StudentResults = () => {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `student_results_${new Date().toLocaleDateString()}.csv`);
+    link.setAttribute('download', `student_results_${selectedTerm}_${selectedClass}_${new Date().toLocaleDateString()}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Filter results based on search term
+  // Filter results based on search term, selected term and class
   const filteredResults = results.filter(
     result =>
-      result.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      result.roll_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      result.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      result.subject.toLowerCase().includes(searchTerm.toLowerCase())
+      (searchTerm === '' || 
+        result.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.roll_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.subject.toLowerCase().includes(searchTerm.toLowerCase())
+      ) &&
+      (selectedTerm === 'Midterm' || result.term === selectedTerm) &&
+      (selectedClass === '' || result.class_name === selectedClass)
   );
 
-  // Data for the chart
-  const classSummary = results.reduce((acc: Record<string, ClassSummary>, result) => {
-    const percentage = (result.marks / result.total_marks) * 100;
-    if (!acc[result.class_name]) {
-      acc[result.class_name] = { count: 0, totalPercentage: 0 };
+  // Group results by class for the selected term
+  const resultsByClass = results.reduce((acc: Record<string, StudentResult[]>, result) => {
+    if (selectedTerm === 'Midterm' || result.term === selectedTerm) {
+      if (!acc[result.class_name]) {
+        acc[result.class_name] = [];
+      }
+      acc[result.class_name].push(result);
     }
-    acc[result.class_name].count++;
-    acc[result.class_name].totalPercentage += percentage;
+    return acc;
+  }, {});
+
+  // Data for the chart - class performance summary
+  const classSummary = Object.entries(resultsByClass).reduce((acc: Record<string, ClassSummary>, [className, classResults]) => {
+    const totalPercentage = classResults.reduce((sum, result) => sum + (result.marks / result.total_marks) * 100, 0);
+    acc[className] = {
+      count: classResults.length,
+      totalPercentage: totalPercentage
+    };
     return acc;
   }, {});
 
@@ -248,15 +296,15 @@ const StudentResults = () => {
         <Card>
           <CardHeader>
             <CardTitle>Average Score</CardTitle>
-            <CardDescription>Average percentage across all results</CardDescription>
+            <CardDescription>Average percentage across selected results</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">
-              {results.length > 0 
+              {filteredResults.length > 0 
                 ? Math.round(
-                    results.reduce((sum, result) => 
+                    filteredResults.reduce((sum, result) => 
                       sum + (result.marks / result.total_marks) * 100, 0
-                    ) / results.length
+                    ) / filteredResults.length
                   ) 
                 : 0}%
             </p>
@@ -269,7 +317,9 @@ const StudentResults = () => {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Class Performance Overview</CardTitle>
-            <CardDescription>Average scores by class</CardDescription>
+            <CardDescription>
+              Average scores by class for {selectedTerm === 'Midterm' ? 'All Terms' : selectedTerm}
+            </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ChartContainer config={{}} className="h-full">
@@ -296,8 +346,9 @@ const StudentResults = () => {
         </Card>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <div className="relative w-full sm:w-64">
+      {/* Filtering and Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center mb-6">
+        <div className="relative sm:col-span-3">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search results..."
@@ -306,11 +357,30 @@ const StudentResults = () => {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        
+        <div className="sm:col-span-3">
+          <Select 
+            value={selectedClass} 
+            onValueChange={setSelectedClass}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by class" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Classes</SelectItem>
+              {classes.map(className => (
+                <SelectItem key={className} value={className}>
+                  {className}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="flex gap-2 sm:col-span-6 justify-end">
           <Button
             variant="outline"
             onClick={() => setShowAddForm(!showAddForm)}
-            className="w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Result
@@ -318,7 +388,6 @@ const StudentResults = () => {
           <Button 
             variant="secondary" 
             onClick={downloadCSV}
-            className="w-full sm:w-auto"
           >
             <Download className="mr-2 h-4 w-4" />
             Export CSV
@@ -407,13 +476,21 @@ const StudentResults = () => {
               
               <div className="space-y-2">
                 <label htmlFor="term" className="text-sm font-medium">Term</label>
-                <Input
-                  id="term"
-                  name="term"
+                <Select
                   value={newResult.term}
-                  onChange={handleInputChange}
-                  placeholder="Midterm"
-                />
+                  onValueChange={(value) => handleSelectChange('term', value)}
+                >
+                  <SelectTrigger id="term">
+                    <SelectValue placeholder="Select term" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {examTerms.map(term => (
+                      <SelectItem key={term} value={term}>
+                        {term}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
@@ -436,6 +513,7 @@ const StudentResults = () => {
         </Card>
       )}
 
+      {/* Results Display with Tabs for Different Exam Terms */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -445,6 +523,16 @@ const StudentResults = () => {
           <CardDescription>
             {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''} found
           </CardDescription>
+          
+          <Tabs defaultValue="Midterm" value={selectedTerm} onValueChange={(value) => setSelectedTerm(value as ExamTerm)} className="mt-4">
+            <TabsList className="grid grid-cols-4 w-full">
+              {examTerms.map(term => (
+                <TabsTrigger key={term} value={term}>
+                  {term}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -453,7 +541,7 @@ const StudentResults = () => {
             </div>
           ) : filteredResults.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No results found</p>
+              <p className="text-muted-foreground">No results found for {selectedTerm} term</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
