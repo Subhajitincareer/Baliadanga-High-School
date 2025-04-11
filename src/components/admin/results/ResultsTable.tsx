@@ -8,9 +8,10 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
 
 export const examTerms = ['1summit', '2summit', 'Final Exam', 'Midterm'] as const;
@@ -21,13 +22,15 @@ interface ResultsTableProps {
   selectedTerm: ExamTerm;
   setSelectedTerm: (term: ExamTerm) => void;
   isLoading: boolean;
+  onDeleteClick?: (result: StudentResultsType) => void;
 }
 
 const ResultsTable: React.FC<ResultsTableProps> = ({
   results,
   selectedTerm,
   setSelectedTerm,
-  isLoading
+  isLoading,
+  onDeleteClick
 }) => {
   const filteredResults = results.filter(
     result => (selectedTerm === 'Midterm' || result.term === selectedTerm)
@@ -75,6 +78,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
                   <TableHead className="text-right">Marks</TableHead>
                   <TableHead>Term</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -99,6 +103,19 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
                     </TableCell>
                     <TableCell>{result.term}</TableCell>
                     <TableCell>{new Date(result.exam_date).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      {onDeleteClick && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => onDeleteClick(result)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete result</span>
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

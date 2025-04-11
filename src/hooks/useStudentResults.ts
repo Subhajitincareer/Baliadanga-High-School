@@ -10,6 +10,7 @@ interface UseStudentResultsReturn {
   isLoading: boolean;
   fetchResults: () => Promise<void>;
   addResult: (newResult: NewResult) => Promise<boolean>;
+  deleteResult: (id: string) => Promise<boolean>;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedTerm: ExamTerm;
@@ -111,6 +112,34 @@ const useStudentResults = (): UseStudentResultsReturn => {
     }
   };
 
+  const deleteResult = async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('student_results')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Result deleted successfully'
+      });
+      
+      // Update results list after deletion
+      setResults(results.filter(result => result.id !== id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting result:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete result',
+        variant: 'destructive'
+      });
+      return false;
+    }
+  };
+
   // Filter results based on search term, selected term and class
   const filteredResults = results.filter(
     result =>
@@ -150,6 +179,7 @@ const useStudentResults = (): UseStudentResultsReturn => {
     isLoading,
     fetchResults,
     addResult,
+    deleteResult,
     searchTerm,
     setSearchTerm,
     selectedTerm,

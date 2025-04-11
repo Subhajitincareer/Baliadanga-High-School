@@ -10,9 +10,13 @@ import PerformanceChart from '@/components/admin/results/PerformanceChart';
 import ResultsFilter from '@/components/admin/results/ResultsFilter';
 import AddResultForm, { NewResult } from '@/components/admin/results/AddResultForm';
 import StatsSummary from '@/components/admin/results/StatsSummary';
+import { DeleteResultDialog } from '@/components/admin/results/DeleteResultDialog';
+import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
 
 const StudentResults = () => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedResult, setSelectedResult] = useState<StudentResultsType | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { isAdmin, logout } = useAdmin();
   const navigate = useNavigate();
 
@@ -20,6 +24,7 @@ const StudentResults = () => {
     results,
     isLoading,
     addResult,
+    deleteResult,
     searchTerm,
     setSearchTerm,
     selectedTerm,
@@ -54,6 +59,19 @@ const StudentResults = () => {
     const success = await addResult(newResult);
     if (success) {
       setShowAddForm(false);
+    }
+  };
+
+  const handleDeleteClick = (result: StudentResultsType) => {
+    setSelectedResult(result);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedResult) {
+      await deleteResult(selectedResult.id);
+      setShowDeleteDialog(false);
+      setSelectedResult(null);
     }
   };
 
@@ -146,6 +164,15 @@ const StudentResults = () => {
         selectedTerm={selectedTerm}
         setSelectedTerm={setSelectedTerm}
         isLoading={isLoading}
+        onDeleteClick={handleDeleteClick}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteResultDialog
+        isOpen={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        selectedResult={selectedResult}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
