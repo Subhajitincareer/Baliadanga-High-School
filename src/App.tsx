@@ -1,4 +1,3 @@
-
 import React from "react";
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -37,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AdminProvider>
-      <Router>
+      <Router> {/* Changed from BrowserRouter to HashRouter */}
         <Routes>
           <Route path="/admin" element={<AdminLogin />} />
           <Route

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
@@ -9,6 +8,9 @@ const Footer = () => {
       <div className="container py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
+            <Link to="/" className="mb-4 text-lg font-bold">
+              <img src="./logo.png" alt="School Logo" className="h-12" />
+            </Link>
             <h3 className="mb-4 text-lg font-bold">Baliadanga High School</h3>
             <p className="mb-2 text-sm">Educating and inspiring since 1963</p>
             <div className="flex items-center space-x-4">
