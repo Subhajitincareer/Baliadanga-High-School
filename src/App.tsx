@@ -36,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AdminProvider>
-      <Router basename="/">
+      <Router>
         <Routes>
           <Route path="/admin" element={<AdminLogin />} />
           <Route
