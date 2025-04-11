@@ -1,48 +1,55 @@
 # Baliadanga High School Hub
 
-A comprehensive web application for managing school information, staff, and resources.
+A modern web application for managing school information, built with React, TypeScript, and shadcn/ui.
 
-## Table of Contents
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Project Structure](#project-structure)
-- [Authentication](#authentication)
-- [Components](#components)
-- [Admin Panel](#admin-panel)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
+## 📚 Project Overview
 
-## Features
+This project serves as a comprehensive school management system with both public-facing pages and an admin dashboard.
 
-- 🏫 School Information Management
-- 👥 Staff Directory
-- 📢 Announcements & Events
-- 📚 Course Management
-- 🔐 Admin Dashboard
-- 📱 Responsive Design
-- 🎨 Modern UI with shadcn-ui
+### 🎯 Key Features
 
-## Tech Stack
+- Student & Staff Management
+- Course Catalog
+- Event Announcements
+- Resource Library
+- Protected Admin Dashboard
+- Responsive Design
 
-- **Frontend Framework**: React with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn-ui
-- **Routing**: React Router DOM
-- **State Management**: React Context
-- **Form Handling**: React Hook Form
-- **Icons**: Lucide React
+## 🛠 Tech Stack
 
-## Getting Started
+- **Framework:** React + TypeScript
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Routing:** React Router v6
+- **State Management:** React Context
+- **Icons:** Lucide React
+- **Building:** Vite
+- **Component Library:** Custom components with shadcn/ui
+
+## 🏗 Project Structure
+
+```
+baliadanga-high-hub/
+├── src/
+│   ├── components/
+│   │   ├── ui/          # shadcn/ui components
+│   │   ├── layout/      # Layout components
+│   │   └── admin/       # Admin dashboard components
+│   ├── contexts/        # React Context providers
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/            # Utility functions
+│   ├── pages/          # Page components
+│   └── types/          # TypeScript types
+├── public/             # Static assets
+├── components.json     # shadcn/ui configuration
+└── tailwind.config.ts # Tailwind configuration
+```
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js (v16 or higher)
 - npm or yarn
-- Git
 
 ### Installation
 
@@ -60,141 +67,88 @@ npm install
 npm run dev
 ```
 
-## Project Structure
+## 🔐 Authentication
 
-```
-baliadanga-high-hub/
-├── src/
-│   ├── components/         # Reusable UI components
-│   │   ├── ui/            # shadcn-ui components
-│   │   └── admin/         # Admin-specific components
-│   ├── contexts/          # React Context providers
-│   ├── hooks/             # Custom React hooks
-│   ├── pages/             # Page components
-│   ├── styles/            # Global styles
-│   └── types/             # TypeScript type definitions
-├── public/                # Static assets
-└── package.json          # Project dependencies
-```
-
-## Authentication
-
-The application uses a simple admin authentication system:
+The admin panel is protected by authentication:
 
 ```typescript
-// Default admin credentials
 username: "admin"
 password: "bali2025"
 ```
 
-Protected routes require authentication through the AdminContext provider.
+## 🎨 Component Configuration
 
-## Components
+The project uses shadcn/ui with custom configuration:
 
-### Core Components
+```json
+{
+  "style": "default",
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "src/index.css",
+    "baseColor": "slate",
+    "cssVariables": true
+  }
+}
+```
 
-1. **Layout Component**
-   - Main layout wrapper
-   - Navigation menu
-   - Footer
+## 📁 Key Components
 
-2. **Staff Directory**
-   - Staff listing
-   - Staff details
-   - Category filtering
+### Layout Components
 
-3. **Announcements**
-   - Event announcements
-   - School notices
-   - PDF attachments
+- `Header.tsx`: Main navigation header
+- `Footer.tsx`: Site footer with contact information
+- `Layout.tsx`: Main layout wrapper
 
 ### Admin Components
 
-1. **AdminDashboard**
-   - Overview statistics
-   - Quick actions
-   - Recent activities
+- `Dashboard.tsx`: Admin dashboard overview
+- `StaffManagement.tsx`: Staff CRUD operations
+- `AnnouncementEditor.tsx`: Announcement management
 
-2. **StaffForm**
-   - Add/Edit staff members
-   - Image upload
-   - Validation
+### Public Pages
 
-## Admin Panel
+- `Home.tsx`: Landing page
+- `Staff.tsx`: Staff directory
+- `Courses.tsx`: Course catalog
+- `Events.tsx`: School events and announcements
 
-Access the admin panel at `/admin/login`. Features include:
-
-- Staff management
-- Announcement creation
-- Resource updates
-- Event scheduling
-
-### Protected Routes
-
-```typescript
-/admin/dashboard  // Main admin dashboard
-/admin/staff      // Staff management
-/admin/resources  // Resource management
-```
-
-## Development
-
-### Running Tests
+## 🔧 Development
 
 ```bash
-# Run unit tests
-npm run test
+# Start development server
+npm run dev
 
-# Run e2e tests
-npm run test:e2e
-```
-
-### Building for Production
-
-```bash
-# Create production build
+# Build for production
 npm run build
 
 # Preview production build
 npm run preview
 ```
 
-## Deployment
+## 📦 Deployment
 
-The application can be deployed using:
+```bash
+# Build the project
+npm run build
 
-1. **Vercel**
-   - Connect GitHub repository
-   - Configure build settings
-   - Deploy
+# Deploy to GitHub Pages
+npm run deploy
+```
 
-2. **Manual Deployment**
-   ```bash
-   npm run build
-   # Deploy the dist folder to your hosting provider
-   ```
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-   ```bash
-   git checkout -b feature/YourFeature
-   ```
-3. Commit changes
-   ```bash
-   git commit -m 'Add some feature'
-   ```
+2. Create your feature branch
+3. Commit your changes
 4. Push to the branch
-   ```bash
-   git push origin feature/YourFeature
-   ```
-5. Open a Pull Request
+5. Create a Pull Request
 
-## License
+## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
+## 👥 Contact
 
-For support, email support@baliadangahs.edu or open an issue in the GitHub repository.
+- School Email: info@baliadangahs.edu
+- Admin Support: admin@baliadangahs.edu

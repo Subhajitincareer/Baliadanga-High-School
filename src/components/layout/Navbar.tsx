@@ -34,12 +34,12 @@ const navigationItems = [
       },
       {
         title: "Academic Calendar",
-        href: "/academic-calendar",
+        href: "/#/academic-calendar",
         description: "View important academic dates and events"
       },
       {
         title: "Resources",
-        href: "/resources",
+        href: "/#/resources",
         description: "Access learning materials and educational resources"
       }
     ]
@@ -49,17 +49,17 @@ const navigationItems = [
     submenu: [
       {
         title: "Events",
-        href: "/events",
+        href: "/#/events",
         description: "Stay updated with school events and activities"
       },
       {
         title: "Gallery",
-        href: "/gallery",
+        href: "/#/gallery",
         description: "Browse photos of our school and events"
       },
       {
         title: "Staff",
-        href: "/staff",
+        href: "/#/staff",
         description: "Meet our dedicated teachers and staff members"
       }
     ]
