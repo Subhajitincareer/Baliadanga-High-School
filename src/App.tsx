@@ -21,6 +21,7 @@ import Gallery from "@/pages/Gallery";
 import AcademicCalendar from "@/pages/AcademicCalendar";
 import Admission from "@/pages/Admission";
 import AdmissionStatus from "@/pages/AdmissionStatus";
+import StudentResults from "@/pages/admin/StudentResults";
 
 // Create a ProtectedRoute component to guard admin routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -52,6 +53,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdmissionManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/results"
+            element={
+              <ProtectedRoute>
+                <StudentResults />
               </ProtectedRoute>
             }
           />
