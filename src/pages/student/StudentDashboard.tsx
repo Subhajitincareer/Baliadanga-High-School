@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,8 @@ interface StudentProfile {
   roll_number: string;
   class_name: string;
   email: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const StudentDashboard = () => {
@@ -52,30 +53,56 @@ const StudentDashboard = () => {
     };
   }, [navigate]);
 
-  // Temporarily modify this function to work without the students table
   const fetchStudentData = async (userId: string) => {
     try {
-      // For now, we'll create a temporary profile since we don't have a students table yet
-      const tempProfile: StudentProfile = {
-        id: userId,
-        user_id: userId,
-        full_name: "Student User",
-        roll_number: "TEMP-001",
-        class_name: "Sample Class",
-        email: "student@example.com"
-      };
+      const { data: profileData, error: profileError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+        
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        toast({
+          variant: "destructive",
+          title: "Profile not found",
+          description: "Could not find your student profile. Please contact administration.",
+        });
+        
+        const { data: userData } = await supabase.auth.getUser();
+        const fallbackProfile: StudentProfile = {
+          id: userId,
+          user_id: userId,
+          full_name: userData.user?.user_metadata?.full_name || "Student User",
+          roll_number: "TEMP-001",
+          class_name: "Not Assigned",
+          email: userData.user?.email || ""
+        };
+        
+        setProfile(fallbackProfile);
+        
+        const { data: resultsData } = await supabase
+          .from('student_results')
+          .select('*')
+          .eq('roll_number', fallbackProfile.roll_number)
+          .order('exam_date', { ascending: false });
+          
+        setResults(resultsData || []);
+        
+        return;
+      }
       
-      setProfile(tempProfile);
+      setProfile(profileData);
       
-      // Fetch student results using the temporary roll number
       const { data: resultsData, error: resultsError } = await supabase
         .from('student_results')
         .select('*')
-        .eq('roll_number', tempProfile.roll_number)
+        .eq('roll_number', profileData.roll_number)
         .order('exam_date', { ascending: false });
         
       if (resultsError) throw resultsError;
       setResults(resultsData || []);
+      
     } catch (error) {
       toast({
         variant: "destructive",
