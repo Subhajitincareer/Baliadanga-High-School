@@ -25,11 +25,11 @@ export const StudentLoginForm = ({ onSubmit, loading, defaultEmail = "" }: Stude
 
   return (
     <>
-      <div className="flex items-center">
-        <LogIn className="mr-2 h-5 w-5" />
+      <div className="flex items-center mb-4">
+        <LogIn className="mr-2 h-5 w-5 text-school-primary" />
         <h2 className="text-xl font-semibold">Student Login</h2>
       </div>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-muted-foreground mb-6">
         Enter your credentials to access your student dashboard
       </p>
       
@@ -55,13 +55,13 @@ export const StudentLoginForm = ({ onSubmit, loading, defaultEmail = "" }: Stude
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" {...field} />
+                  <Input type="password" placeholder="••••••••" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full mt-2" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
