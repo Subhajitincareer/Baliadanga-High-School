@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
-import { Graduate, LogIn, UserPlus } from 'lucide-react';
+import { GraduationCap, LogIn, UserPlus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const loginSchema = z.object({
@@ -132,7 +132,7 @@ const StudentLogin = () => {
     <div className="container py-8 flex-1">
       <div className="flex flex-col items-center justify-center mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <Graduate className="h-6 w-6 text-school-primary" />
+          <GraduationCap className="h-6 w-6 text-school-primary" />
           <h1 className="text-3xl font-bold">Student Portal</h1>
         </div>
         <p className="text-muted-foreground text-center max-w-md">

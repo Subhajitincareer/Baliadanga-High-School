@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,29 +52,30 @@ const StudentDashboard = () => {
     };
   }, [navigate]);
 
+  // Temporarily modify this function to work without the students table
   const fetchStudentData = async (userId: string) => {
     try {
-      // Fetch student profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('students')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-        
-      if (profileError) throw profileError;
-      setProfile(profileData);
+      // For now, we'll create a temporary profile since we don't have a students table yet
+      const tempProfile: StudentProfile = {
+        id: userId,
+        user_id: userId,
+        full_name: "Student User",
+        roll_number: "TEMP-001",
+        class_name: "Sample Class",
+        email: "student@example.com"
+      };
       
-      // Fetch student results using roll number
-      if (profileData?.roll_number) {
-        const { data: resultsData, error: resultsError } = await supabase
-          .from('student_results')
-          .select('*')
-          .eq('roll_number', profileData.roll_number)
-          .order('exam_date', { ascending: false });
-          
-        if (resultsError) throw resultsError;
-        setResults(resultsData || []);
-      }
+      setProfile(tempProfile);
+      
+      // Fetch student results using the temporary roll number
+      const { data: resultsData, error: resultsError } = await supabase
+        .from('student_results')
+        .select('*')
+        .eq('roll_number', tempProfile.roll_number)
+        .order('exam_date', { ascending: false });
+        
+      if (resultsError) throw resultsError;
+      setResults(resultsData || []);
     } catch (error) {
       toast({
         variant: "destructive",
