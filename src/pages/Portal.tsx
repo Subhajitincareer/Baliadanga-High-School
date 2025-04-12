@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { School, FileText, Award, User, Users, Calendar } from 'lucide-react';
+import { School, FileText, Award, User, Users, Calendar, UserPlus, LogIn } from 'lucide-react';
 
 const Portal = () => {
   const portalLinks = [
@@ -15,6 +15,16 @@ const Portal = () => {
         { text: 'Check Status', url: '/admission-status' }
       ],
       color: 'bg-blue-50 border-blue-200'
+    },
+    {
+      title: 'Student Access',
+      description: 'Login or register to access your student dashboard',
+      icon: <User className="h-8 w-8 text-violet-500" />,
+      links: [
+        { text: 'Login', url: '/student/login' },
+        { text: 'Register', url: '/student/login?tab=register' }
+      ],
+      color: 'bg-violet-50 border-violet-200'
     },
     {
       title: 'Examination Results',
@@ -54,15 +64,6 @@ const Portal = () => {
       ],
       color: 'bg-indigo-50 border-indigo-200'
     },
-    {
-      title: 'Student Profile',
-      description: 'View and update your personal information',
-      icon: <User className="h-8 w-8 text-rose-500" />,
-      links: [
-        { text: 'Coming Soon', url: '#' }
-      ],
-      color: 'bg-rose-50 border-rose-200'
-    }
   ];
 
   return (
@@ -76,7 +77,7 @@ const Portal = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {portalLinks.map((portal, index) => (
-          <Card key={index} className={`${portal.color}`}>
+          <Card key={index} className={`${portal.color} transition-all hover:shadow-md`}>
             <CardHeader>
               <div className="flex items-center gap-3">
                 {portal.icon}

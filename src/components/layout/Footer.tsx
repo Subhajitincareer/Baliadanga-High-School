@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
@@ -5,54 +6,54 @@ import { Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
 const Footer = () => {
   return (
     <footer className="bg-school-dark text-white">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          <div>
-            <Link to="/" className="mb-4 text-lg font-bold">
-              <img src="./logo.png" alt="School Logo" className="h-12" />
+      <div className="container py-8 px-4 md:px-0">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
+          <div className="text-center sm:text-left">
+            <Link to="/" className="mb-4 inline-block">
+              <img src="./logo.png" alt="School Logo" className="h-10 md:h-12" />
             </Link>
             <h3 className="mb-4 text-lg font-bold">Baliadanga High School</h3>
             <p className="mb-2 text-sm">Educating and inspiring since 1963</p>
-            <div className="flex items-center space-x-4">
-              <a href="https://facebook.com" className="text-white hover:text-school-accent" aria-label="Facebook">
+            <div className="flex items-center justify-center sm:justify-start space-x-4">
+              <a href="https://facebook.com" className="text-white hover:text-school-accent transition-colors" aria-label="Facebook">
                 <Facebook size={20} />
               </a>
-              <a href="https://instagram.com" className="text-white hover:text-school-accent" aria-label="Instagram">
+              <a href="https://instagram.com" className="text-white hover:text-school-accent transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
-              <a href="mailto:info@baliadangahs.edu" className="text-white hover:text-school-accent" aria-label="Email">
+              <a href="mailto:info@baliadangahs.edu" className="text-white hover:text-school-accent transition-colors" aria-label="Email">
                 <Mail size={20} />
               </a>
             </div>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <h3 className="mb-4 text-lg font-bold">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/about" className="hover:text-school-accent">About Us</Link></li>
-              <li><Link to="/admissions" className="hover:text-school-accent">Admissions</Link></li>
-              <li><Link to="/academics" className="hover:text-school-accent">Academics</Link></li>
-              <li><Link to="/events" className="hover:text-school-accent">Events</Link></li>
-              <li><Link to="/portal" className="hover:text-school-accent">Student Portal</Link></li>
+              <li><Link to="/about" className="hover:text-school-accent transition-colors">About Us</Link></li>
+              <li><Link to="/admissions" className="hover:text-school-accent transition-colors">Admissions</Link></li>
+              <li><Link to="/academics" className="hover:text-school-accent transition-colors">Academics</Link></li>
+              <li><Link to="/events" className="hover:text-school-accent transition-colors">Events</Link></li>
+              <li><Link to="/portal" className="hover:text-school-accent transition-colors">Student Portal</Link></li>
             </ul>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <h3 className="mb-4 text-lg font-bold">Contact Us</h3>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-center">
-                <Phone size={16} className="mr-2" />
+              <li className="flex items-center justify-center sm:justify-start">
+                <Phone size={16} className="mr-2 flex-shrink-0" />
                 <span>+91 9876543210</span>
               </li>
-              <li className="flex items-center">
-                <Mail size={16} className="mr-2" />
+              <li className="flex items-center justify-center sm:justify-start">
+                <Mail size={16} className="mr-2 flex-shrink-0" />
                 <span>info@baliadangahs.edu</span>
               </li>
-              <li className="flex items-start">
-                <MapPin size={16} className="mr-2 mt-1" />
+              <li className="flex items-start justify-center sm:justify-start">
+                <MapPin size={16} className="mr-2 mt-1 flex-shrink-0" />
                 <span>123 Education Road, Baliadanga, West Bengal, India</span>
               </li>
             </ul>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <h3 className="mb-4 text-lg font-bold">School Hours</h3>
             <ul className="space-y-2 text-sm">
               <li>Monday - Friday: 8:00 AM - 3:30 PM</li>

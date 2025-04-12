@@ -23,6 +23,8 @@ import Gallery from "@/pages/Gallery";
 import AcademicCalendar from "@/pages/AcademicCalendar";
 import Admission from "@/pages/Admission";
 import AdmissionStatus from "@/pages/AdmissionStatus";
+import StudentLogin from "@/pages/student/StudentLogin";
+import StudentDashboard from "@/pages/student/StudentDashboard";
 
 // Create a ProtectedRoute component to guard admin routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -30,6 +32,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (!isAdmin) {
     return <Navigate to="/admin" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Create a ProtectedStudentRoute component to guard student routes
+const ProtectedStudentRoute = ({ children }: { children: React.ReactNode }) => {
+  const isLoggedIn = localStorage.getItem("supabase.auth.token") !== null;
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/student/login" replace />;
   }
   
   return <>{children}</>;
@@ -63,6 +76,15 @@ function App() {
               <ProtectedRoute>
                 <StudentResults />
               </ProtectedRoute>
+            }
+          />
+          <Route path="/student/login" element={<StudentLogin />} />
+          <Route
+            path="/student/dashboard"
+            element={
+              <ProtectedStudentRoute>
+                <StudentDashboard />
+              </ProtectedStudentRoute>
             }
           />
           <Route path="/" element={<Layout />}>
