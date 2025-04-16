@@ -1,11 +1,10 @@
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-school-dark text-white">
+    <footer className="bg-[#1B263B] text-white">
       <div className="container py-8 px-4 md:px-0">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div className="text-center sm:text-left">
@@ -64,7 +63,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-8 border-t border-gray-700 pt-6 text-center text-xs">
-          <p>&copy; {new Date().getFullYear()} Baliadanga High School. All rights reserved.</p>
+          <p >&copy; {new Date().getFullYear()} Baliadanga High School. All rights reserved.</p>
         </div>
       </div>
     </footer>

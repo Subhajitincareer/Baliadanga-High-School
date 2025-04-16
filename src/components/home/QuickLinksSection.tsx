@@ -53,12 +53,12 @@ const QuickLinksSection = () => {
           {links.map((link, index) => (
             <Link to={link.href} key={index}>
               <Card className="h-full cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                <CardContent className="flex items-center p-6">
+                <CardContent className="flex items-center p-6 ">
                   <div className="mr-4 rounded-full bg-school-light p-3 text-school-primary">
                     <link.icon size={24} />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">{link.title}</h3>
+                    <h3 className="font-medium text-gray-900 animate-ping ">{link.title}</h3>
                     <p className="text-sm text-gray-600">{link.description}</p>
                   </div>
                 </CardContent>
