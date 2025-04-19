@@ -2,7 +2,7 @@
 import { CalendarEvent } from './EventTypes';
 
 interface CalendarDayProps {
-  props: any;
+  props: { date?: Date; day?: { getDate?: () => number } };
   events: CalendarEvent[];
 }
 

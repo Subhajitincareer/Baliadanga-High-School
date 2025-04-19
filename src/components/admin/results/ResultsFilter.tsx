@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, Download, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -52,7 +51,7 @@ const ResultsFilter: React.FC<ResultsFilterProps> = ({
             <SelectValue placeholder="Filter by class" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Classes</SelectItem>
+            <SelectItem value="all">All Classes</SelectItem>
             {classes.map(className => (
               <SelectItem key={className} value={className}>
                 {className}

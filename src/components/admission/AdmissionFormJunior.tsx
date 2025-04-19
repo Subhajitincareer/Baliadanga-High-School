@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -36,7 +35,7 @@ const AdmissionFormJunior: React.FC<AdmissionFormJuniorProps> = ({ onSubmit, isS
     resolver: zodResolver(juniorFormSchema),
     defaultValues: {
       student_name: "",
-      gender: "",
+      gender: "male", // Set a default value
       date_of_birth: "",
       father_name: "",
       mother_name: "",
@@ -44,7 +43,7 @@ const AdmissionFormJunior: React.FC<AdmissionFormJuniorProps> = ({ onSubmit, isS
       guardian_email: "",
       address: "",
       previous_school: "",
-      previous_class: "",
+      previous_class: "4", // Set a default value
     }
   });
 
@@ -75,7 +74,10 @@ const AdmissionFormJunior: React.FC<AdmissionFormJuniorProps> = ({ onSubmit, isS
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Gender</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
@@ -208,7 +210,7 @@ const AdmissionFormJunior: React.FC<AdmissionFormJuniorProps> = ({ onSubmit, isS
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Previous Class</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select class" />

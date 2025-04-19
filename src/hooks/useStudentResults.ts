@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase, StudentResults as StudentResultsType } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { NewResult } from '@/components/admin/results/AddResultForm';
@@ -32,7 +31,7 @@ const useStudentResults = (): UseStudentResultsReturn => {
   const [classes, setClasses] = useState<string[]>([]);
   const { toast } = useToast();
 
-  const fetchResults = async () => {
+  const fetchResults = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -61,11 +60,11 @@ const useStudentResults = (): UseStudentResultsReturn => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedClass, toast]);
 
   useEffect(() => {
     fetchResults();
-  }, []);
+  }, [fetchResults]);
 
   const addResult = async (newResult: NewResult): Promise<boolean> => {
     try {
@@ -150,7 +149,7 @@ const useStudentResults = (): UseStudentResultsReturn => {
         result.subject.toLowerCase().includes(searchTerm.toLowerCase())
       ) &&
       (selectedTerm === 'Midterm' || result.term === selectedTerm) &&
-      (selectedClass === '' || result.class_name === selectedClass)
+      (selectedClass === 'all' || result.class_name === selectedClass)
   );
 
   // Group results by class for the selected term

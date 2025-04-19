@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -79,7 +78,7 @@ const StudentResults = () => {
     // Filter results based on selected term and class
     const filteredForExport = results.filter(result => 
       (selectedTerm === 'Midterm' || result.term === selectedTerm) &&
-      (selectedClass === '' || result.class_name === selectedClass)
+      (selectedClass === 'all' || result.class_name === selectedClass)
     );
     
     const headers = ['Student Name', 'Roll Number', 'Class', 'Subject', 'Marks', 'Total Marks', 'Term', 'Exam Date'];
