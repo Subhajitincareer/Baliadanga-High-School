@@ -58,7 +58,7 @@ const QuickLinksSection = () => {
                     <link.icon size={24} />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 animate-ping ">{link.title}</h3>
+                    <h3 className="font-medium text-gray-900 ">{link.title}</h3>
                     <p className="text-sm text-gray-600">{link.description}</p>
                   </div>
                 </CardContent>

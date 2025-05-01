@@ -143,7 +143,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
       setIsLoading(false);
     }
   };
-
+console.log("hello")
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">

@@ -1,5 +1,4 @@
 
-import React from 'react';
 
 export const Award = ({ className = "", size = 24, ...props }: { className?: string; size?: number; [key: string]: any }) => {
   return (
