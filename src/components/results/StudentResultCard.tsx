@@ -34,7 +34,7 @@ const StudentResultCard: React.FC<StudentResultCardProps> = ({ result }) => {
   };
 
   return (
-    <Card className={`overflow-hidden border shadow-sm transition-all hover:shadow-md ${getGradeColor()}`}>
+    <Card className={`overflow-hidden border ${getGradeColor()}`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
@@ -45,7 +45,7 @@ const StudentResultCard: React.FC<StudentResultCardProps> = ({ result }) => {
             </h3>
           </div>
           <div className="text-right">
-            <span className="text-xs text-muted-foreground font-medium">{result.term}</span>
+            <span className="text-xs text-muted-foreground">{result.term}</span>
             <div className="flex items-center mt-1">
               <Calendar className="h-3 w-3 mr-1" />
               <span className="text-xs">

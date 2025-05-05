@@ -90,18 +90,18 @@ const ResultDisplay = () => {
     <div className="container py-8 min-h-screen">
       <div className="flex flex-col items-center justify-center mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <BookOpen className="h-7 w-7 text-school-primary" />
-          <h1 className="text-2xl md:text-3xl font-bold">Student Result Portal</h1>
+          <BookOpen className="h-6 w-6 text-school-primary" />
+          <h1 className="text-3xl font-bold">Student Result Portal</h1>
         </div>
-        <p className="text-muted-foreground text-center max-w-md px-4">
+        <p className="text-muted-foreground text-center max-w-md">
           Enter your roll number or name to view your examination results
         </p>
       </div>
 
-      <Card className="mx-auto max-w-2xl mb-8 shadow-md">
+      <Card className="mx-auto max-w-2xl mb-8">
         <CardHeader>
-          <CardTitle className="flex items-center text-xl">
-            <Search className="mr-2 h-5 w-5 text-school-primary" />
+          <CardTitle className="flex items-center">
+            <Search className="mr-2 h-5 w-5" />
             Search Results
           </CardTitle>
           <CardDescription>
@@ -131,15 +131,11 @@ const ResultDisplay = () => {
               <p className="text-xs text-muted-foreground">At least one field is required</p>
             </div>
             
-            <div className="flex flex-wrap justify-end gap-2 mt-6">
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => navigate('/')}>
                 Back to Home
               </Button>
-              <Button 
-                type="submit" 
-                disabled={!rollNumber && !studentName}
-                className="bg-school-primary hover:bg-school-dark"
-              >
+              <Button type="submit" disabled={!rollNumber && !studentName}>
                 {loading ? 'Searching...' : 'Search Results'}
               </Button>
             </div>
@@ -148,23 +144,23 @@ const ResultDisplay = () => {
       </Card>
 
       {searched && (
-        <div className="animate-fade-in">
+        <>
           {results.length > 0 ? (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm">
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
                   <CardHeader className="pb-2">
                     <CardDescription>Student Name</CardDescription>
                     <CardTitle>{results[0].student_name}</CardTitle>
                   </CardHeader>
                 </Card>
-                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm">
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
                   <CardHeader className="pb-2">
                     <CardDescription>Roll Number</CardDescription>
                     <CardTitle>{results[0].roll_number}</CardTitle>
                   </CardHeader>
                 </Card>
-                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-sm">
+                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
                   <CardHeader className="pb-2">
                     <CardDescription>Average Performance</CardDescription>
                     <CardTitle className={getPerformanceColor(calculateAveragePerformance())}>
@@ -175,7 +171,7 @@ const ResultDisplay = () => {
               </div>
 
               <Tabs defaultValue="card" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="card">Card View</TabsTrigger>
                   <TabsTrigger value="table">Table View</TabsTrigger>
                 </TabsList>
@@ -187,27 +183,25 @@ const ResultDisplay = () => {
                   </div>
                 </TabsContent>
                 <TabsContent value="table" className="mt-6">
-                  <div className="overflow-x-auto">
-                    <ResultsTable 
-                      results={results}
-                      selectedTerm={selectedTerm}
-                      setSelectedTerm={setSelectedTerm}
-                      isLoading={loading}
-                    />
-                  </div>
+                  <ResultsTable 
+                    results={results}
+                    selectedTerm={selectedTerm}
+                    setSelectedTerm={setSelectedTerm}
+                    isLoading={loading}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Award className="mx-auto h-16 w-16 text-muted-foreground opacity-20" />
+            <div className="text-center py-8">
+              <Award className="mx-auto h-12 w-12 text-muted-foreground opacity-20" />
               <h3 className="mt-4 text-xl font-medium">No results found</h3>
               <p className="text-muted-foreground">
                 We couldn't find any results matching your search criteria.
               </p>
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

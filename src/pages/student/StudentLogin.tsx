@@ -7,7 +7,7 @@ import { GraduationCap } from 'lucide-react';
 import { StudentLoginForm } from '@/components/student/StudentLoginForm';
 import { StudentRegisterForm } from '@/components/student/StudentRegisterForm';
 import { useStudentAuth } from '@/hooks/useStudentAuth';
-import { RegisterFormValues } from '@/schemas/studentAuth';
+import { LoginFormValues, RegisterFormValues } from '@/schemas/studentAuth';
 
 const StudentLogin = () => {
   const { loading, handleLogin, handleRegister } = useStudentAuth();
@@ -21,10 +21,10 @@ const StudentLogin = () => {
   };
 
   return (
-    <div className="container py-8 flex-1 min-h-[calc(100vh-80px)]">
+    <div className="container py-8 flex-1">
       <div className="flex flex-col items-center justify-center mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <GraduationCap className="h-8 w-8 text-school-primary" />
+          <GraduationCap className="h-6 w-6 text-school-primary" />
           <h1 className="text-3xl font-bold">Student Portal</h1>
         </div>
         <p className="text-muted-foreground text-center max-w-md">
@@ -32,18 +32,18 @@ const StudentLogin = () => {
         </p>
       </div>
 
-      <Card className="mx-auto max-w-md shadow-md">
+      <Card className="mx-auto max-w-md">
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="login" className="p-1">
+          <TabsContent value="login">
             <CardHeader>
-              <CardTitle className="text-xl">Student Login</CardTitle>
+              <CardTitle>Student Login</CardTitle>
               <CardDescription>
-                Access your student dashboard with your credentials
+                Enter your credentials to access your student dashboard
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -55,9 +55,9 @@ const StudentLogin = () => {
             </CardContent>
           </TabsContent>
           
-          <TabsContent value="register" className="p-1">
+          <TabsContent value="register">
             <CardHeader>
-              <CardTitle className="text-xl">Student Registration</CardTitle>
+              <CardTitle>Student Registration</CardTitle>
               <CardDescription>
                 Create a new student account to access your academic information
               </CardDescription>
@@ -70,8 +70,8 @@ const StudentLogin = () => {
             </CardContent>
           </TabsContent>
         </Tabs>
-        <CardFooter className="flex justify-center border-t pt-4 pb-6">
-          <Link to="/" className="text-sm text-school-primary hover:underline transition-all">
+        <CardFooter className="flex justify-center border-t pt-4">
+          <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
             Back to School Homepage
           </Link>
         </CardFooter>

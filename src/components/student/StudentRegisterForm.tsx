@@ -27,11 +27,11 @@ export const StudentRegisterForm = ({ onSubmit, loading }: StudentRegisterFormPr
 
   return (
     <>
-      <div className="flex items-center mb-4">
-        <UserPlus className="mr-2 h-5 w-5 text-school-primary" />
+      <div className="flex items-center">
+        <UserPlus className="mr-2 h-5 w-5" />
         <h2 className="text-xl font-semibold">Student Registration</h2>
       </div>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-sm text-muted-foreground">
         Create a new student account to access your academic information
       </p>
       
@@ -70,7 +70,7 @@ export const StudentRegisterForm = ({ onSubmit, loading }: StudentRegisterFormPr
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
+                  <Input type="password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -104,7 +104,7 @@ export const StudentRegisterForm = ({ onSubmit, loading }: StudentRegisterFormPr
               )}
             />
           </div>
-          <Button type="submit" className="w-full mt-2" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Registering..." : "Register"}
           </Button>
         </form>

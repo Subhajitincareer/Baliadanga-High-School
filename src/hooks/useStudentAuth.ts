@@ -37,7 +37,7 @@ export const useStudentAuth = () => {
     }
   };
 
-  const handleRegister = async (data: RegisterFormValues): Promise<string | null> => {
+  const handleRegister = async (data: RegisterFormValues) => {
     setLoading(true);
     try {
       // Register user with Supabase Auth
