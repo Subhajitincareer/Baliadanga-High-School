@@ -1,73 +1,154 @@
-# Welcome to your Lovable project
+# Baliadanga High School Hub
 
-## Project info
+A modern web application for managing school information, built with React, TypeScript, and shadcn/ui.
 
-**URL**: https://lovable.dev/projects/3518b09d-7668-42e5-83de-82d48bac54ce
+## 📚 Project Overview
 
-## How can I edit this code?
+This project serves as a comprehensive school management system with both public-facing pages and an admin dashboard.
 
-There are several ways of editing your application.
+### 🎯 Key Features
 
-**Use Lovable**
+- Student & Staff Management
+- Course Catalog
+- Event Announcements
+- Resource Library
+- Protected Admin Dashboard
+- Responsive Design
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3518b09d-7668-42e5-83de-82d48bac54ce) and start prompting.
+## 🛠 Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Framework:** React + TypeScript
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Routing:** React Router v6
+- **State Management:** React Context
+- **Icons:** Lucide React
+- **Building:** Vite
+- **Component Library:** Custom components with shadcn/ui
 
-**Use your preferred IDE**
+## 🏗 Project Structure
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```
+baliadanga-high-hub/
+├── src/
+│   ├── components/
+│   │   ├── ui/          # shadcn/ui components
+│   │   ├── layout/      # Layout components
+│   │   └── admin/       # Admin dashboard components
+│   ├── contexts/        # React Context providers
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/            # Utility functions
+│   ├── pages/          # Page components
+│   └── types/          # TypeScript types
+├── public/             # Static assets
+├── components.json     # shadcn/ui configuration
+└── tailwind.config.ts # Tailwind configuration
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Getting Started
 
-Follow these steps:
+### Prerequisites
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Node.js (v16 or higher)
+- npm or yarn
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Installation
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/baliadanga-high-hub.git
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Navigate to project directory
+cd baliadanga-high-hub
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🔐 Authentication
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The admin panel is protected by authentication:
 
-**Use GitHub Codespaces**
+```typescript
+username: "admin"
+password: "bali2025"
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🎨 Component Configuration
 
-## What technologies are used for this project?
+The project uses shadcn/ui with custom configuration:
 
-This project is built with:
+```json
+{
+  "style": "default",
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "src/index.css",
+    "baseColor": "slate",
+    "cssVariables": true
+  }
+}
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📁 Key Components
 
-## How can I deploy this project?
+### Layout Components
 
-Simply open [Lovable](https://lovable.dev/projects/3518b09d-7668-42e5-83de-82d48bac54ce) and click on Share -> Publish.
+- `Header.tsx`: Main navigation header
+- `Footer.tsx`: Site footer with contact information
+- `Layout.tsx`: Main layout wrapper
 
-## Can I connect a custom domain to my Lovable project?
+### Admin Components
 
-Yes it is!
+- `Dashboard.tsx`: Admin dashboard overview
+- `StaffManagement.tsx`: Staff CRUD operations
+- `AnnouncementEditor.tsx`: Announcement management
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Public Pages
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- `Home.tsx`: Landing page
+- `Staff.tsx`: Staff directory
+- `Courses.tsx`: Course catalog
+- `Events.tsx`: School events and announcements
+
+## 🔧 Development
+
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## 📦 Deployment
+
+```bash
+# Build the project
+npm run build
+
+# Deploy to GitHub Pages
+npm run deploy
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👥 Contact
+
+- School Email: info@baliadangahs.edu
+- Admin Support: admin@baliadangahs.edu
