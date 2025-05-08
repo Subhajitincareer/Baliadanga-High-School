@@ -193,7 +193,7 @@ console.log("hello")
               mode="single"
               selected={date}
               onSelect={(date) => setDate(date || new Date())}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>
