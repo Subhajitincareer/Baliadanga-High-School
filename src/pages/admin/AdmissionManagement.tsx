@@ -1,13 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useAdmin } from '@/contexts/AdminContext'; // Assuming this manages admin context
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,14 +13,9 @@ import { supabase, Admissions } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { EyeIcon, CheckCircle, XCircle, SearchIcon } from 'lucide-react';
 import AdmissionDetail from '@/components/admission/AdmissionDetail';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 type Admission = Admissions;
-
-interface AdmissionStatusUpdateProps {
-  admissionId: string;
-  onClose: () => void;
-  onUpdate: () => void;
-}
 
 const AdmissionManagement = () => {
   const [admissions, setAdmissions] = useState<Admission[]>([]);
@@ -33,17 +26,30 @@ const AdmissionManagement = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [rollNumber, setRollNumber] = useState('');
   const [remarks, setRemarks] = useState('');
-	const [rejectRemarks, setRejectRemarks] = useState('');
+  const [rejectRemarks, setRejectRemarks] = useState('');
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { isAdmin } = useAdmin();
+  const { isAdmin} = useAdmin(); // Adjusted for login check
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // We're removing the checkAdminStatus call since we already have isAdmin from useAdmin()
-    fetchAdmissions();
-  }, []);
+    const verifyAccess = async () => {
+      if (!isAdmin) {
+        navigate('/login'); // Redirect to login if not logged in
+        return;
+      }
+
+      if (!isAdmin) {
+        navigate('/unauthorized'); // Redirect if the user is not an admin
+        return;
+      }
+
+      fetchAdmissions();
+    };
+
+    verifyAccess();
+  }, [ isAdmin, navigate]);
 
   const fetchAdmissions = async () => {
     setIsLoading(true);
@@ -78,7 +84,7 @@ const AdmissionManagement = () => {
     setRemarks('');
   };
 
-	const handleOpenRejectModal = (id: string) => {
+  const handleOpenRejectModal = (id: string) => {
     setSelectedAdmissionId(id);
     setShowRejectModal(true);
   };
@@ -176,22 +182,6 @@ const AdmissionManagement = () => {
     );
   });
 
-  if (!isAdmin) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Unauthorized Access</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>You do not have permission to view this page.</p>
-            <Button onClick={() => navigate('/')}>Go to Home</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="container py-8">
       <div className="mb-8">
@@ -228,7 +218,11 @@ const AdmissionManagement = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">Loading...</TableCell>
+                  <TableCell colSpan={6}>
+                    <div className="flex justify-center py-4">
+                      <LoadingSpinner text="Loading admissions..." />
+                    </div>
+                  </TableCell>
                 </TableRow>
               ) : filteredAdmissions.length === 0 ? (
                 <TableRow>
@@ -269,7 +263,7 @@ const AdmissionManagement = () => {
                             <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
                             Approve
                           </Button>
-													<Button
+                          <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleOpenRejectModal(admission.id)}
@@ -288,6 +282,7 @@ const AdmissionManagement = () => {
         </CardContent>
       </Card>
 
+      {/* Approval and Rejection Dialogs */}
       <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -331,7 +326,7 @@ const AdmissionManagement = () => {
         </DialogContent>
       </Dialog>
 
-			<Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Reject Admission</DialogTitle>

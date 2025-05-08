@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { SearchInput } from '@/components/ui/search-input';
@@ -6,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Mail, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { StaffMember } from '@/hooks/use-staff';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { PostgrestError } from '@supabase/supabase-js';
 
 type StaffByDepartment = {
   administration: StaffMember[];
@@ -69,7 +70,7 @@ const Staff = () => {
         const { data, error } = await supabase
           .from("staff")
           .select('*')
-          .order('name') as { data: StaffMember[] | null; error: any };
+          .order('name') as { data: StaffMember[] | null; error: PostgrestError | null };
           
         if (error) throw error;
         
@@ -210,7 +211,7 @@ const Staff = () => {
                 email: "library@baliadangahs.edu",
                 phone: "+91 9876543221",
                 bio: "Mrs. Nair manages our extensive library and promotes reading through various initiatives. She helps students develop research skills and a love for literature.",
-                image_url: "https://images.unsplash.com/photo-1563620915-8478239e9aab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80"
+                image_url: "https://images.unsplash.com/photo-1563620915-8478239e9aab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80"
               }
             ]
           };
@@ -354,6 +355,16 @@ const Staff = () => {
   const filteredTeaching = filterStaff(staffMembers.teaching);
   const filteredSupport = filterStaff(staffMembers.support);
   
+  if (isLoading) {
+    return (
+      <div className="container py-12">
+        <div className="flex justify-center">
+          <LoadingSpinner text="Loading staff directory..." />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8">
       <div className="mb-8">

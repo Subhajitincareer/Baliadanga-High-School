@@ -20,3 +20,4 @@ export type UserRoles = Tables['user_roles']['Row'];
 export type StudentResults = Tables['student_results']['Row'];
 export type StudentResultsInsert = Tables['student_results']['Insert'];
 export type StudentResultsUpdate = Tables['student_results']['Update'];
+export type whitelist = Tables['whitelist']['Row'];

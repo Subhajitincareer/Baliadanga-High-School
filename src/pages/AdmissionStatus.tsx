@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Search, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, Admissions } from "@/integrations/supabase/client";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const accessCodeSchema = z.object({
   accessCode: z.string().min(6, { message: "Please enter a valid access code" }).max(10),
@@ -111,10 +112,7 @@ const AdmissionStatus = () => {
                 />
                 <Button type="submit" className="w-full" disabled={isSearching}>
                   {isSearching ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Checking...
-                    </>
+                    <LoadingSpinner text="Checking status..." />
                   ) : (
                     'Check Status'
                   )}
@@ -144,7 +142,9 @@ const AdmissionStatus = () => {
                   </>
                 ) : (
                   <>
-                    <Loader2 className="h-5 w-5 text-yellow-600" />
+                    <div className="h-5 w-5 text-yellow-600">
+                      <LoadingSpinner text="" />
+                    </div>
                     <span className="text-yellow-600">Application Under Review</span>
                   </>
                 )}

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase, Admissions } from '@/integrations/supabase/client';
-import { Loader2, FileText, ExternalLink } from 'lucide-react';
+import { FileText, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface AdmissionDetailProps {
   admissionId: string;
@@ -22,14 +23,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (isOpen && admissionId) {
-      fetchAdmissionDetails();
-    }
-  }, [isOpen, admissionId]);
-
-  const fetchAdmissionDetails = async () => {
-    setIsLoading(true);
+  const fetchAdmissionDetails = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('admissions')
@@ -38,19 +32,24 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
         .single();
 
       if (error) throw error;
-      
-      setAdmission(data as AdmissionFullDetails);
+      setAdmission(data);
     } catch (error) {
       console.error('Error fetching admission details:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch admission details.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load admission details",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [admissionId, toast]);
+
+  useEffect(() => {
+    if (isOpen && admissionId) {
+      fetchAdmissionDetails();
+    }
+  }, [isOpen, admissionId, fetchAdmissionDetails]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -65,7 +64,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
         
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <LoadingSpinner text="Loading application details..." />
           </div>
         ) : admission ? (
           <div className="space-y-6 pt-4">

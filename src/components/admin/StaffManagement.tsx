@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
@@ -14,6 +13,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerTrigger, DrawerClose } from '@/components/ui/drawer';
 import { StaffCardMobile } from './StaffCardMobile';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export function StaffManagement() {
   const { staffMembers, isLoading, fetchStaffMembers, addStaffMember, updateStaffMember, deleteStaffMember } = useStaff();
@@ -185,7 +185,9 @@ export function StaffManagement() {
         </div>
         
         {isLoading ? (
-          <p>Loading staff...</p>
+          <div className="flex justify-center py-8">
+            <LoadingSpinner text="Loading staff directory..." />
+          </div>
         ) : (
           <div className="space-y-4">
             {staffMembers.length === 0 ? (
@@ -248,7 +250,9 @@ export function StaffManagement() {
       </div>
       
       {isLoading ? (
-        <p>Loading staff directory...</p>
+        <div className="flex justify-center py-8">
+          <LoadingSpinner text="Loading staff directory..." />
+        </div>
       ) : (
         <div className="border rounded-md">
           <Table>

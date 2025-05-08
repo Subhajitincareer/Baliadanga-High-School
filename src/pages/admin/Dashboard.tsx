@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StaffManagement } from '@/components/admin/StaffManagement';
 import { BellRing, Users, GraduationCap, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,17 +20,15 @@ const Dashboard = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const [activeTab, setActiveTab] = useState('announcements');
-  const { isAdmin, logout } = useAdmin();
+  const {  isAdmin, logout } = useAdmin(); // Use admin context directly
   const navigate = useNavigate();
   const { announcements, isLoading, fetchAnnouncements, handleDeleteAnnouncement } = useAnnouncements();
 
   useEffect(() => {
-    // Redirect if not admin
     if (!isAdmin) {
-      navigate('/admin');
-      return;
+      navigate('/'); // Redirect to login page if not authenticated or not admin
     }
-  }, [isAdmin, navigate]);
+  }, [ isAdmin, navigate]);
 
   const filteredAnnouncements = announcements.filter((announcement) =>
     announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,12 +67,11 @@ const Dashboard = () => {
 
   const handleFormSuccess = () => {
     setIsFormOpen(false);
-    fetchAnnouncements(); // Refresh announcements from the server
+    fetchAnnouncements(); // Re-fetch announcements after form submission
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/admin');
   };
 
   const handleAdmissionsClick = () => {
@@ -84,6 +81,10 @@ const Dashboard = () => {
   const handleResultsClick = () => {
     navigate('/admin/results');
   };
+
+  if (isLoading) {
+    return <LoadingSpinner text="Loading announcements..." />;
+  }
 
   return (
     <div className="container py-8">
@@ -147,17 +148,11 @@ const Dashboard = () => {
             onCreateClick={handleCreateClick}
           />
 
-          {isLoading ? (
-            <div className="flex h-32 items-center justify-center">
-              <p>Loading announcements...</p>
-            </div>
-          ) : (
-            <AnnouncementTable 
-              announcements={filteredAnnouncements} 
-              onEdit={handleEditClick}
-              onDelete={handleDeleteClick}
-            />
-          )}
+          <AnnouncementTable 
+            announcements={filteredAnnouncements} 
+            onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
+          />
         </TabsContent>
         
         <TabsContent value="staff" className="mt-0">
@@ -165,7 +160,6 @@ const Dashboard = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Announcement Form Dialog */}
       <AnnouncementDialog
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}
@@ -173,7 +167,6 @@ const Dashboard = () => {
         onSuccess={handleFormSuccess}
       />
 
-      {/* Delete Confirmation Dialog */}
       <DeleteAnnouncementDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

@@ -50,10 +50,12 @@ const ProtectedStudentRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <AdminProvider>
-      <Router basename="/">
+    <Router basename="/">
+      <AdminProvider>
         <Routes>
           <Route path="/admin" element={<AdminLogin />} />
+          
+          {/* Admin Routes */}
           <Route
             path="/admin/dashboard"
             element={
@@ -78,6 +80,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          {/* Student Routes */}
           <Route path="/student/login" element={<StudentLogin />} />
           <Route
             path="/student/dashboard"
@@ -87,6 +91,8 @@ function App() {
               </ProtectedStudentRoute>
             }
           />
+          
+          {/* Public Routes */}
           <Route path="/" element={<Layout />}>
             <Route index element={<Index />} />
             <Route path="announcements" element={<Announcements />} />
@@ -105,10 +111,11 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
-      </Router>
+      </AdminProvider>
       <Toaster />
-    </AdminProvider>
+    </Router>
   );
 }
 
 export default App;
+

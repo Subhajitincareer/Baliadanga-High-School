@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { BookOpen, GraduationCap, LogOut, Bell, UserCircle, Clock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StudentResultCard from '@/components/results/StudentResultCard';
-import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
+import type { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
 import { Award } from '@/components/ui/award-icon';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface StudentProfile {
   id: string;
@@ -21,12 +23,52 @@ interface StudentProfile {
   updated_at?: string;
 }
 
+interface Database {
+  public: {
+    Tables: {
+      student_results: {
+        Row: StudentResultsType;
+      };
+    };
+  };
+}
+
 const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [results, setResults] = useState<StudentResultsType[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const fetchStudentData = useCallback(async (userId: string) => {
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const client = supabase as SupabaseClient<Database>;
+      const { data: resultsData } = await client
+        .from('student_results')
+        .select('*')
+        .eq('student_id', profileData.id);
+
+      setProfile(profileData);
+      setResults(resultsData || []);
+    } catch (error) {
+      console.error('Error fetching student data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load student data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -51,68 +93,7 @@ const StudentDashboard = () => {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [navigate]);
-
-  const fetchStudentData = async (userId: string) => {
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('students')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-        
-      if (profileError) {
-        console.error("Error fetching profile:", profileError);
-        toast({
-          variant: "destructive",
-          title: "Profile not found",
-          description: "Could not find your student profile. Please contact administration.",
-        });
-        
-        const { data: userData } = await supabase.auth.getUser();
-        const fallbackProfile: StudentProfile = {
-          id: userId,
-          user_id: userId,
-          full_name: userData.user?.user_metadata?.full_name || "Student User",
-          roll_number: "TEMP-001",
-          class_name: "Not Assigned",
-          email: userData.user?.email || ""
-        };
-        
-        setProfile(fallbackProfile);
-        
-        const { data: resultsData } = await supabase
-          .from('student_results')
-          .select('*')
-          .eq('roll_number', fallbackProfile.roll_number)
-          .order('exam_date', { ascending: false });
-          
-        setResults(resultsData || []);
-        
-        return;
-      }
-      
-      setProfile(profileData);
-      
-      const { data: resultsData, error: resultsError } = await supabase
-        .from('student_results')
-        .select('*')
-        .eq('roll_number', profileData.roll_number)
-        .order('exam_date', { ascending: false });
-        
-      if (resultsError) throw resultsError;
-      setResults(resultsData || []);
-      
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error loading data",
-        description: error.message || "Could not load your student information",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [navigate, fetchStudentData]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -139,11 +120,7 @@ const StudentDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="container py-12 flex justify-center items-center">
-        <p>Loading student data...</p>
-      </div>
-    );
+    return <LoadingSpinner text="Loading student data..." />;
   }
 
   return (

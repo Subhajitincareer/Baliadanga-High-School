@@ -1,4 +1,3 @@
-
 import{ useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import { StudentResults as StudentResultsType } from '@/integrations/supabase/cl
 import ResultsTable, { ExamTerm } from '@/components/admin/results/ResultsTable';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import StudentResultCard from '@/components/results/StudentResultCard';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const ResultDisplay = () => {
   const [rollNumber, setRollNumber] = useState('');
@@ -136,7 +136,11 @@ const ResultDisplay = () => {
                 Back to Home
               </Button>
               <Button type="submit" disabled={!rollNumber && !studentName}>
-                {loading ? 'Searching...' : 'Search Results'}
+                {loading ? (
+                  <LoadingSpinner text="Searching..." />
+                ) : (
+                  'Search Results'
+                )}
               </Button>
             </div>
           </form>
@@ -202,6 +206,12 @@ const ResultDisplay = () => {
             </div>
           )}
         </>
+      )}
+
+      {loading && (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner text="Loading results..." />
+        </div>
       )}
     </div>
   );
