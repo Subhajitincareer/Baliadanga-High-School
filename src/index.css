@@ -1,31 +1,46 @@
 @import "tailwindcss";
-@theme{
-  /* School Colors */
-  --color-school-primary: hsl(210, 60%, 30%);
-  --color-school-secondary: hsl(120, 40%, 50%);
-  --color-school-accent: hsl(45, 90%, 60%);
-  --color-school-light: hsl(210, 20%, 90%);
-  --color-school-dark: hsl(210, 60%, 10%);
 
-  /* Basic Colors */
-  --color-muted: hsl(210, 10%, 25%);
-  --color-muted-foreground: hsl(210, 20%, 60%);
-  --color-border: hsl(0, 0%, 90%);
-  --color-input: hsl(0, 0%, 90%);
-  --color-ring: hsl(0, 0%, 80%);
+
+@theme {
+  --radius: 0.5rem;
+  --font-sans: "Inter", sans-serif;
+  --font-heading: "Montserrat", sans-serif;
+
+  /* রঙের ভ্যারিয়েবলগুলি */
+  --color-border: hsl(220, 14%, 96%);
+  --color-input: hsl(220, 14%, 96%);
+  --color-ring: hsl(220, 14%, 96%);
   --color-background: hsl(0, 0%, 100%);
-  --color-foreground: hsl(0, 0%, 0%);
-  --color-primary: hsl(0, 0%, 10%);
+  --color-foreground: hsl(222, 47%, 11%);
+  --color-primary: hsl(222, 47%, 11%);
   --color-primary-foreground: hsl(0, 0%, 100%);
-  --color-secondary: hsl(0, 0%, 95%);
-  --color-secondary-foreground: hsl(0, 0%, 10%);
-  --color-destructive: hsl(0, 80%, 50%);
+  --color-secondary: hsl(210, 40%, 96%);
+  --color-secondary-foreground: hsl(222, 47%, 11%);
+  --color-destructive: hsl(0, 84.2%, 60.2%);
   --color-destructive-foreground: hsl(0, 0%, 100%);
-  --color-accent: hsl(0, 0%, 95%);
-  --color-accent-foreground: hsl(0, 0%, 10%);
+  --color-muted: hsl(210, 40%, 96%);
+  --color-muted-foreground: hsl(215, 20.2%, 65.1%);
+  --color-accent: hsl(210, 40%, 96%);
+  --color-accent-foreground: hsl(222, 47%, 11%);
   --color-popover: hsl(0, 0%, 100%);
-  --color-popover-foreground: hsl(0, 0%, 0%);
+  --color-popover-foreground: hsl(222, 47%, 11%);
   --color-card: hsl(0, 0%, 100%);
-  --color-card-foreground: hsl(0, 0%, 0%);
-}
+  --color-card-foreground: hsl(222, 47%, 11%);
 
+  /* সাইডবার থিম */
+  --color-sidebar-background: hsl(210, 40%, 96%);
+  --color-sidebar-foreground: hsl(222, 47%, 11%);
+  --color-sidebar-primary: hsl(222, 47%, 11%);
+  --color-sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --color-sidebar-accent: hsl(210, 40%, 96%);
+  --color-sidebar-accent-foreground: hsl(222, 47%, 11%);
+  --color-sidebar-border: hsl(220, 14%, 96%);
+  --color-sidebar-ring: hsl(220, 14%, 96%);
+
+  /* স্কুল থিম */
+  --color-school-primary: #1a4d7c;
+  --color-school-secondary: #4b9560;
+  --color-school-accent: #f0b429;
+  --color-school-light: #e8f4f8;
+  --color-school-dark: #0f2942;
+}

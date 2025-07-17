@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { registerSchema, RegisterFormValues } from '@/schemas/studentAuth';
 import { UserPlus } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface StudentRegisterFormProps {
   onSubmit: (data: RegisterFormValues) => Promise<string | null>;
@@ -34,7 +34,9 @@ export const StudentRegisterForm = ({ onSubmit, loading }: StudentRegisterFormPr
       <p className="text-sm text-muted-foreground">
         Create a new student account to access your academic information
       </p>
-      
+
+      {loading && <LoadingSpinner text="Registering..." />}
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
