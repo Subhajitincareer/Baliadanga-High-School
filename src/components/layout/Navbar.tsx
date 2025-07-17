@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useState } from 'react';
 
 const navigationItems = [
   {
@@ -68,7 +67,7 @@ const navigationItems = [
     href: "/contact"
   },
   {
-   title: "Admin",
+    title: "Admin",
     href: "/admin"
   }
 ];
@@ -120,7 +119,7 @@ const Navbar = () => {
           {isMobileMenuOpen && (
             <div className="absolute left-0 right-0 top-16 z-50 animate-fade-in bg-white p-4 shadow-md">
               <div className="flex flex-col space-y-2">
-                {navigationItems.map((item) => 
+                {navigationItems.map((item) =>
                   item.submenu ? (
                     <div key={item.title} className="space-y-1">
                       <div className="px-4 py-2 font-medium text-gray-900">{item.title}</div>
@@ -147,35 +146,20 @@ const Navbar = () => {
                       {item.title}
                     </Link>
                   )
-<<<<<<< Updated upstream
-
-                )}  <Link
-                to="/admin"
-                className="mt-2 block w-full rounded-md bg-school-primary px-4 py-2 text-center text-white hover:bg-school-dark"
-              >
-                Admin Portal
-              </Link>
-              
-                <Link to="/portal" className="mt-2">
-                  <Button className="w-full bg-school-primary hover:bg-school-dark">
-                    Student portal
-=======
                 )}
                 <Link to="/admin" className="mt-2">
-                  <Button className=" bg-school-primary hover:bg-school-dark">
+                  <Button className="w-full bg-school-primary hover:bg-school-dark">
                     Admin Portal
                   </Button>
                 </Link>
-                
+
                 <Link to="/portal" className="mt-2">
                   <Button className="w-full bg-school-primary hover:bg-school-dark">
-                    
->>>>>>> Stashed changes
+                    Student Portal
                   </Button>
                 </Link>
               </div>
             </div>
-
           )}
         </div>
       </nav>
@@ -190,7 +174,7 @@ const Navbar = () => {
         </Link>
         <NavigationMenu>
           <NavigationMenuList>
-            {navigationItems.map((item) => 
+            {navigationItems.map((item) =>
               item.submenu ? (
                 <NavigationMenuItem key={item.title}>
                   <NavigationMenuTrigger className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
@@ -211,7 +195,7 @@ const Navbar = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ) : (
-                <NavigationMenuItem key={item.href || item.title}>
+                <NavigationMenuItem key={item.href}>
                   <Link to={item.href}>
                     <NavigationMenuLink className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
                       {item.title}
