@@ -147,6 +147,7 @@ const Navbar = () => {
                       {item.title}
                     </Link>
                   )
+<<<<<<< Updated upstream
 
                 )}  <Link
                 to="/admin"
@@ -158,6 +159,18 @@ const Navbar = () => {
                 <Link to="/portal" className="mt-2">
                   <Button className="w-full bg-school-primary hover:bg-school-dark">
                     Student portal
+=======
+                )}
+                <Link to="/admin" className="mt-2">
+                  <Button className=" bg-school-primary hover:bg-school-dark">
+                    Admin Portal
+                  </Button>
+                </Link>
+                
+                <Link to="/portal" className="mt-2">
+                  <Button className="w-full bg-school-primary hover:bg-school-dark">
+                    
+>>>>>>> Stashed changes
                   </Button>
                 </Link>
               </div>
