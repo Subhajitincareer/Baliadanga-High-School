@@ -1,14 +1,16 @@
-
-import React from "react";
+import React, { FC } from "react";
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
 import Layout from "@/components/layout/Layout";
 import Index from "@/pages/Index";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { Toaster } from "@/components/ui/toaster";
+
 import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/admin/Dashboard";
 import AdmissionManagement from "@/pages/admin/AdmissionManagement";
 import StudentResults from "@/pages/admin/StudentResults";
+
 import ResultDisplay from "@/pages/ResultDisplay";
 import Announcements from "@/pages/Announcements";
 import AnnouncementDetail from "@/pages/AnnouncementDetail";
@@ -23,39 +25,32 @@ import Gallery from "@/pages/Gallery";
 import AcademicCalendar from "@/pages/AcademicCalendar";
 import Admission from "@/pages/Admission";
 import AdmissionStatus from "@/pages/AdmissionStatus";
+
 import StudentLogin from "@/pages/student/StudentLogin";
 import StudentDashboard from "@/pages/student/StudentDashboard";
 
-// Create a ProtectedRoute component to guard admin routes
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+// ProtectedRoute for Admin routes
+const ProtectedRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAdmin = localStorage.getItem("isAdmin") === "true";
-  
-  if (!isAdmin) {
-    return <Navigate to="/admin" replace />;
-  }
-  
-  return <>{children}</>;
+  return isAdmin ? <>{children}</> : <Navigate to="/admin" replace />;
 };
 
-// Create a ProtectedStudentRoute component to guard student routes
-const ProtectedStudentRoute = ({ children }: { children: React.ReactNode }) => {
+// ProtectedRoute for Student routes
+const ProtectedStudentRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Check if Supabase auth token exists (adjust as per your exact auth implementation)
   const isLoggedIn = localStorage.getItem("supabase.auth.token") !== null;
-  
-  if (!isLoggedIn) {
-    return <Navigate to="/student/login" replace />;
-  }
-  
-  return <>{children}</>;
+  return isLoggedIn ? <>{children}</> : <Navigate to="/student/login" replace />;
 };
 
-function App() {
+const App: FC = () => {
   return (
     <Router basename="/">
       <AdminProvider>
         <Routes>
+          {/* Admin login */}
           <Route path="/admin" element={<AdminLogin />} />
           
-          {/* Admin Routes */}
+          {/* Admin protected routes */}
           <Route
             path="/admin/dashboard"
             element={
@@ -80,8 +75,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
-          {/* Student Routes */}
+
+          {/* Student routes */}
           <Route path="/student/login" element={<StudentLogin />} />
           <Route
             path="/student/dashboard"
@@ -91,8 +86,8 @@ function App() {
               </ProtectedStudentRoute>
             }
           />
-          
-          {/* Public Routes */}
+
+          {/* Public routes nested inside Layout */}
           <Route path="/" element={<Layout />}>
             <Route index element={<Index />} />
             <Route path="announcements" element={<Announcements />} />
@@ -115,7 +110,6 @@ function App() {
       <Toaster />
     </Router>
   );
-}
+};
 
 export default App;
-

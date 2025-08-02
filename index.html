@@ -1,22 +1,47 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Baliadanga-high-School (H.S)</title>
-    <meta name="description" content="Baliadanga High School — Educating and inspiring students since 1963. Stay informed about admissions, academics, events, and latest school updates." />
-    <meta name="author" content="Subhajit Pal" />
 
-    <meta property="og:title" content="Baliadanga-high-School" />
-    <meta property="og:description" content="Baliadanga High School — Educating and Inspiring since 1963. Stay updated with school events, notices, and academic information." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://yourdomain.com/images/baliadanga-og.png" />
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Baliadanga-high-School (H.S)</title>
+  <!-- Important: base href set to match Vite base config -->
+  <base href="/Baliadanga-High-School/" />
 
-  </head>
+  <!-- Meta tags -->
+  <meta name="description"
+    content="Baliadanga High School — Educating and inspiring students since 1963. Stay informed about admissions, academics, events, and latest school updates." />
+  <meta name="author" content="Subhajit Pal" />
+  <meta name="robots" content="index, follow" />
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- Open Graph tags -->
+  <meta property="og:title" content="Baliadanga-high-School" />
+  <meta property="og:description"
+    content="Baliadanga High School — Educating and Inspiring since 1963. Stay updated with school events, notices, and academic information." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://yourdomain.com/images/baliadanga-og.png" />
+
+  <!-- Twitter card (optional) -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Baliadanga-high-School" />
+  <meta name="twitter:description"
+    content="Baliadanga High School — Educating and Inspiring since 1963. Stay updated with school events, notices, and academic information." />
+  <meta name="twitter:image" content="https://yourdomain.com/images/baliadanga-og.png" />
+
+  <!-- Favicon and icons -->
+  <link rel="icon" href="/Baliadanga-High-School/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/Baliadanga-High-School/apple-touch-icon.png" />
+  <link rel="manifest" href="/Baliadanga-High-School/site.webmanifest" />
+</head>
+
+<body>
+  <div id="root">Loading...</div>
+  <!--
+      Fix: Remove base path prefix from src,
+      Vite will handle base paths automatically based on `base` config.
+    -->
+  <script type="module" src="/src/main.tsx" defer></script>
+</body>
+
 </html>
