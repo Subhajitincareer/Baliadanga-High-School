@@ -1,30 +1,23 @@
-
 import React, { useState } from 'react';
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, FileText, Upload, GraduationCap } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdmissionFormJunior from "@/components/admission/AdmissionFormJunior";
 import AdmissionFormSenior from "@/components/admission/AdmissionFormSenior";
 import AdmissionSuccessDialog from "@/components/admission/AdmissionSuccessDialog";
-import { supabase } from "@/integrations/supabase/client";
+import apiService from '@/services/api';
 
 const classOptions = [
   { value: "5", label: "Class 5" },
   { value: "6", label: "Class 6" },
   { value: "7", label: "Class 7" },
   { value: "8", label: "Class 8" },
-   { value: "9", label: "Class 9" },
+  { value: "9", label: "Class 9" },
   { value: "10", label: "Class 10" },
-  
 ];
 
 const Admission = () => {
@@ -39,59 +32,42 @@ const Admission = () => {
     setSelectedClass(value);
   };
 
+  // Accepts data from AdmissionFormJunior/AdmissionFormSenior
   const handleFormSubmit = async (formData: any) => {
     setIsSubmitting(true);
-
     try {
-      const documentsUrls = [];
-      
+      let documentsUrls: string[] = [];
       if (formData.documents && formData.documents.length > 0) {
         for (const file of formData.documents) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-          const filePath = `documents/${fileName}`;
-          
-          const { data, error } = await supabase.storage
-            .from('admission-documents')
-            .upload(filePath, file);
-            
-          if (error) throw error;
-          
-          const fileUrl = supabase.storage
-            .from('admission-documents')
-            .getPublicUrl(filePath).data.publicUrl;
-            
-          documentsUrls.push(fileUrl);
+          // Upload each document via /upload endpoint, returns { url }
+          const result = await apiService.uploadFile(file, 'admission-documents');
+          documentsUrls.push(result.url);
         }
       }
+      // Send form and document URLs to /admissions endpoint
+      const payload = {
+        ...formData,
+        documents_url: documentsUrls,
+        class_applying_for: selectedClass,
+        status: 'pending'
+      };
 
-      const { data, error } = await supabase
-        .from('admissions')
-        .insert({
-          ...formData,
-          documents_url: documentsUrls,
-          class_applying_for: selectedClass,
-          status: 'pending'
-        })
-        .select('access_code')
-        .single();
+      // Example expects { access_code: '...' } in response
+      const data = await apiService.createAdmission(payload);
 
-      if (error) throw error;
-
-      if (data && data.access_code) {
-        setAccessCode(data.access_code);
+      if (data && (data.access_code || data.accessCode)) {
+        setAccessCode(data.access_code || data.accessCode);
         setShowSuccessDialog(true);
       }
-      
       toast({
         title: "Application submitted successfully",
         description: "Your admission application has been received.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting form:", error);
       toast({
         title: "Error submitting application",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -107,7 +83,6 @@ const Admission = () => {
           Fill out the form below to apply for admission to Baliadanga High School
         </p>
       </div>
-
       <Card className="max-w-3xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -134,7 +109,6 @@ const Admission = () => {
                 </SelectContent>
               </Select>
             </div>
-
             {selectedClass && (
               <div className="mt-4">
                 {selectedClass === "5" ? (
@@ -147,8 +121,7 @@ const Admission = () => {
           </div>
         </CardContent>
       </Card>
-
-      <AdmissionSuccessDialog 
+      <AdmissionSuccessDialog
         open={showSuccessDialog}
         onOpenChange={setShowSuccessDialog}
         accessCode={accessCode}

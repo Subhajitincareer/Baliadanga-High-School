@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import apiService from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Announcement } from '@/components/admin/AnnouncementForm';
 
@@ -11,38 +10,33 @@ export function useAnnouncements() {
 
   const fetchAnnouncements = async () => {
     try {
-      const { data, error } = await supabase
-        .from("announcements")
-        .select('*')
-        .order('created_at', { ascending: false });
+      const data = await apiService.getAnnouncements();
 
-      if (error) throw error;
+      // Optional: Process the data if your MongoDB model uses _id
+      const processedData: Announcement[] = data.map((item: any) => ({
+        ...item,
+        id: item._id || item.id, // Compatible with both id and _id
+        pdfFile:
+          item.pdf_url || item.pdfFile
+            ? typeof item.pdf_url === 'string'
+              ? JSON.parse(item.pdf_url)
+              : item.pdfFile
+            : undefined,
+      }));
 
-      if (data) {
-        // Process data to match our Announcement interface
-        const processedData = data.map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          type: item.type,
-          date: item.date,
-          pdfFile: item.pdf_url ? JSON.parse(item.pdf_url) : undefined
-        }));
+      setAnnouncements(processedData);
 
-        setAnnouncements(processedData);
-        
-        // Also update localStorage for the frontend components
-        localStorage.setItem('announcements', JSON.stringify(processedData));
-      }
-    } catch (error) {
+      // Update localStorage for offline fallback
+      localStorage.setItem('announcements', JSON.stringify(processedData));
+    } catch (error: any) {
       console.error('Error fetching announcements:', error);
       toast({
         title: 'Error',
         description: 'Failed to load announcements.',
         variant: 'destructive',
       });
-      
-      // Fallback to localStorage if supabase fails
+
+      // Fallback to localStorage if fetch fails
       const storedAnnouncements = localStorage.getItem('announcements');
       if (storedAnnouncements) {
         setAnnouncements(JSON.parse(storedAnnouncements));
@@ -54,28 +48,24 @@ export function useAnnouncements() {
 
   const handleDeleteAnnouncement = async (announcement: Announcement) => {
     try {
-      const { error } = await supabase
-        .from("announcements")
-        .delete()
-        .eq("id", announcement.id); // Using string ID
-
-      if (error) throw error;
+      await apiService.deleteAnnouncement(announcement.id || announcement._id);
 
       // Update local state
-      setAnnouncements(announcements.filter(a => a.id !== announcement.id));
-      
-      // Update localStorage
-      localStorage.setItem('announcements', JSON.stringify(
-        announcements.filter(a => a.id !== announcement.id)
-      ));
+      const updated = announcements.filter(
+        a => (a.id || a._id) !== (announcement.id || announcement._id)
+      );
+      setAnnouncements(updated);
+
+      // Update localStorage for offline cache
+      localStorage.setItem('announcements', JSON.stringify(updated));
 
       toast({
         title: 'Announcement deleted',
         description: 'The announcement has been deleted successfully.',
       });
-      
+
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting announcement:', error);
       toast({
         title: 'Error',
@@ -94,6 +84,6 @@ export function useAnnouncements() {
     announcements,
     isLoading,
     fetchAnnouncements,
-    handleDeleteAnnouncement
+    handleDeleteAnnouncement,
   };
 }

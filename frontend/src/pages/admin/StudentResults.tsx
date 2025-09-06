@@ -10,7 +10,8 @@ import ResultsFilter from '@/components/admin/results/ResultsFilter';
 import AddResultForm, { NewResult } from '@/components/admin/results/AddResultForm';
 import StatsSummary from '@/components/admin/results/StatsSummary';
 import { DeleteResultDialog } from '@/components/admin/results/DeleteResultDialog';
-import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
+// Import your backend StudentResultsType if needed
+import { StudentResultsType } from '@/schemas/studentResult';
 
 const StudentResults = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -68,19 +69,19 @@ const StudentResults = () => {
 
   const handleConfirmDelete = async () => {
     if (selectedResult) {
-      await deleteResult(selectedResult.id);
+      // Use _id for delete in MERN (adjust if your id field is named differently)
+      await deleteResult(selectedResult._id || selectedResult.id);
       setShowDeleteDialog(false);
       setSelectedResult(null);
     }
   };
 
   const downloadCSV = () => {
-    // Filter results based on selected term and class
-    const filteredForExport = results.filter(result => 
+    const filteredForExport = results.filter(result =>
       (selectedTerm === 'Midterm' || result.term === selectedTerm) &&
       (selectedClass === 'all' || result.class_name === selectedClass)
     );
-    
+
     const headers = ['Student Name', 'Roll Number', 'Class', 'Subject', 'Marks', 'Total Marks', 'Term', 'Exam Date'];
     const dataRows = filteredForExport.map(result => [
       result.student_name,
@@ -92,12 +93,12 @@ const StudentResults = () => {
       result.term,
       new Date(result.exam_date).toLocaleDateString()
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...dataRows.map(row => row.join(','))
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -111,14 +112,14 @@ const StudentResults = () => {
 
   return (
     <div className="container py-8">
-      <DashboardHeader 
-        title="Student Results Management" 
-        subtitle="View and manage student examination results" 
+      <DashboardHeader
+        title="Student Results Management"
+        subtitle="View and manage student examination results"
         onLogout={handleLogout}
       />
 
       <div className="my-6">
-        <Button 
+        <Button
           variant="outline"
           onClick={handleBackToDashboard}
           className="mb-4"
@@ -127,20 +128,18 @@ const StudentResults = () => {
         </Button>
       </div>
 
-      <StatsSummary 
+      <StatsSummary
         results={results}
         filteredResults={filteredResults}
         classSummary={classSummary}
       />
 
-      {/* Chart for class performance */}
-      <PerformanceChart 
-        results={results} 
-        selectedTerm={selectedTerm} 
+      <PerformanceChart
+        results={results}
+        selectedTerm={selectedTerm}
       />
 
-      {/* Filtering and Actions */}
-      <ResultsFilter 
+      <ResultsFilter
         searchTerm={searchTerm}
         selectedClass={selectedClass}
         classes={classes}
@@ -151,14 +150,13 @@ const StudentResults = () => {
       />
 
       {showAddForm && (
-        <AddResultForm 
+        <AddResultForm
           onSubmit={handleAddResult}
           onCancel={() => setShowAddForm(false)}
         />
       )}
 
-      {/* Results Display with Tabs for Different Exam Terms */}
-      <ResultsTable 
+      <ResultsTable
         results={filteredResults}
         selectedTerm={selectedTerm}
         setSelectedTerm={setSelectedTerm}
@@ -166,7 +164,6 @@ const StudentResults = () => {
         onDeleteClick={handleDeleteClick}
       />
 
-      {/* Delete Confirmation Dialog */}
       <DeleteResultDialog
         isOpen={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}

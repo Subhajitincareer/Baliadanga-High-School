@@ -5,11 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase, Admissions } from "@/integrations/supabase/client";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import apiService from "@/services/api"; // <-- MERN API import
 
 const accessCodeSchema = z.object({
   accessCode: z.string().min(6, { message: "Please enter a valid access code" }).max(10),
@@ -17,10 +17,16 @@ const accessCodeSchema = z.object({
 
 type AccessCodeFormValues = z.infer<typeof accessCodeSchema>;
 
-type AdmissionStatusProps = Pick<
-  Admissions,
-  'id' | 'student_name' | 'class_applying_for' | 'status' | 'access_code' | 'roll_number' | 'remarks' | 'created_at'
->;
+type AdmissionStatusProps = {
+  _id?: string;
+  student_name: string;
+  class_applying_for: string;
+  status: string;
+  access_code: string;
+  roll_number?: string;
+  remarks?: string;
+  created_at: string;
+};
 
 const AdmissionStatus = () => {
   const [isSearching, setIsSearching] = useState(false);
@@ -36,35 +42,29 @@ const AdmissionStatus = () => {
 
   const onSubmit = async (data: AccessCodeFormValues) => {
     setIsSearching(true);
-    
-    try {
-      const { data: admissionData, error } = await supabase
-        .from('admissions')
-        .select('id, student_name, class_applying_for, status, access_code, roll_number, remarks, created_at')
-        .eq('access_code', data.accessCode)
-        .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          toast({
-            title: "Access Code Not Found",
-            description: "No application found with the provided access code.",
-            variant: "destructive",
-          });
-        } else {
-          throw error;
-        }
+    try {
+      // Use MERN API call
+      const result = await apiService.getAdmissionByAccessCode(data.accessCode);
+
+      if (!result) {
+        toast({
+          title: "Access Code Not Found",
+          description: "No application found with the provided access code.",
+          variant: "destructive",
+        });
         setAdmissionStatus(null);
       } else {
-        setAdmissionStatus(admissionData as AdmissionStatusProps);
+        setAdmissionStatus(result);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching admission status:', error);
       toast({
         title: "Error",
-        description: "Failed to check admission status. Please try again.",
+        description: error.message || "Failed to check admission status. Please try again.",
         variant: "destructive",
       });
+      setAdmissionStatus(null);
     } finally {
       setIsSearching(false);
     }
@@ -82,7 +82,6 @@ const AdmissionStatus = () => {
           Enter your access code to check the status of your admission application
         </p>
       </div>
-
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
@@ -125,9 +124,9 @@ const AdmissionStatus = () => {
         {admissionStatus && (
           <Card className="mt-6">
             <CardHeader className={`
-              ${admissionStatus.status === 'approved' ? 'bg-green-50' : 
+              ${admissionStatus.status === 'approved' ? 'bg-green-50' :
                 admissionStatus.status === 'rejected' ? 'bg-red-50' :
-                'bg-yellow-50'} rounded-t-lg
+                  'bg-yellow-50'} rounded-t-lg
             `}>
               <CardTitle className="flex items-center gap-2">
                 {admissionStatus.status === 'approved' ? (
@@ -172,28 +171,25 @@ const AdmissionStatus = () => {
                     </div>
                   )}
                 </div>
-                
                 {admissionStatus.remarks && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Remarks</p>
                     <p>{admissionStatus.remarks}</p>
                   </div>
                 )}
-                
                 {admissionStatus.status === 'approved' && (
                   <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-4">
                     <p className="text-sm">
-                      Congratulations! Your application has been approved. Please visit the school office with your 
-                      original documents and admission fees. Use your access code and assigned roll number 
+                      Congratulations! Your application has been approved. Please visit the school office with your
+                      original documents and admission fees. Use your access code and assigned roll number
                       for all future communications.
                     </p>
                   </div>
                 )}
-                
                 {admissionStatus.status === 'pending' && (
                   <div className="bg-yellow-50 border border-yellow-100 rounded-md p-4 mt-4">
                     <p className="text-sm">
-                      Your application is currently being reviewed by our admissions team. 
+                      Your application is currently being reviewed by our admissions team.
                       Please check back later for updates. This process typically takes 5-7 working days.
                     </p>
                   </div>

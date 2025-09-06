@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
+// Update this import to the actual backend schema!
+import { StudentResultsType } from '@/schemas/studentResult';
 
 interface StatsSummaryProps {
   results: StudentResultsType[];

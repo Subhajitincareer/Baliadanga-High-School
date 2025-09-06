@@ -1,8 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, StudentResults as StudentResultsType } from '@/integrations/supabase/client';
+import apiService from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 import { NewResult } from '@/components/admin/results/AddResultForm';
 import { ExamTerm } from '@/components/admin/results/ResultsTable';
+
+// Update to match your backend's result model
+export interface StudentResultsType {
+  _id: string;
+  studentName: string;
+  rollNumber: string;
+  class: string;
+  subject: string;
+  marks: number;
+  totalMarks: number;
+  term: ExamTerm;
+  examDate: string;
+  createdAt?: string;
+}
 
 interface UseStudentResultsReturn {
   results: StudentResultsType[];
@@ -34,28 +48,22 @@ const useStudentResults = (): UseStudentResultsReturn => {
   const fetchResults = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('student_results')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await apiService.getStudentResults('all'); // Or pass studentId/classId as needed
       setResults(data || []);
-      
+
       // Extract unique class names
-      const uniqueClasses = Array.from(new Set(data?.map(result => result.class_name) || []));
+      const uniqueClasses = Array.from(new Set((data || []).map(result => result.class)));
       setClasses(uniqueClasses);
-      
+
       // Set default selected class if available
       if (uniqueClasses.length > 0 && !selectedClass) {
         setSelectedClass(uniqueClasses[0]);
       }
-    } catch (error) {
-      console.error('Error fetching results:', error);
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to fetch student results',
-        variant: 'destructive'
+        description: error.message || 'Failed to fetch student results',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -68,44 +76,45 @@ const useStudentResults = (): UseStudentResultsReturn => {
 
   const addResult = async (newResult: NewResult): Promise<boolean> => {
     try {
-      if (!newResult.student_name || !newResult.roll_number || !newResult.class_name || 
-          !newResult.subject || !newResult.marks || !newResult.total_marks) {
+      if (
+        !newResult.studentName ||
+        !newResult.rollNumber ||
+        !newResult.class ||
+        !newResult.subject ||
+        !newResult.marks ||
+        !newResult.totalMarks
+      ) {
         toast({
           title: 'Missing Information',
           description: 'Please fill in all required fields',
-          variant: 'destructive'
+          variant: 'destructive',
         });
         return false;
       }
 
-      const { error } = await supabase
-        .from('student_results')
-        .insert({
-          student_name: newResult.student_name,
-          roll_number: newResult.roll_number,
-          class_name: newResult.class_name,
-          subject: newResult.subject,
-          marks: parseInt(newResult.marks),
-          total_marks: parseInt(newResult.total_marks),
-          term: newResult.term,
-          exam_date: newResult.exam_date
-        });
-
-      if (error) throw error;
+      await apiService.createStudentResult({
+        studentName: newResult.studentName,
+        rollNumber: newResult.rollNumber,
+        class: newResult.class,
+        subject: newResult.subject,
+        marks: parseInt(newResult.marks),
+        totalMarks: parseInt(newResult.totalMarks),
+        term: newResult.term,
+        examDate: newResult.examDate,
+      });
 
       toast({
         title: 'Success',
-        description: 'Result added successfully'
+        description: 'Result added successfully',
       });
-      
+
       await fetchResults();
       return true;
-    } catch (error) {
-      console.error('Error adding result:', error);
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to add result',
-        variant: 'destructive'
+        description: error.message || 'Failed to add result',
+        variant: 'destructive',
       });
       return false;
     }
@@ -113,65 +122,57 @@ const useStudentResults = (): UseStudentResultsReturn => {
 
   const deleteResult = async (id: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('student_results')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await apiService.deleteStudentResult(id);
 
       toast({
         title: 'Success',
-        description: 'Result deleted successfully'
+        description: 'Result deleted successfully',
       });
-      
-      // Update results list after deletion
-      setResults(results.filter(result => result.id !== id));
+
+      setResults(results.filter(result => result._id !== id));
       return true;
-    } catch (error) {
-      console.error('Error deleting result:', error);
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to delete result',
-        variant: 'destructive'
+        description: error.message || 'Failed to delete result',
+        variant: 'destructive',
       });
       return false;
     }
   };
 
-  // Filter results based on search term, selected term and class
+  // Filtering for search/term/class
   const filteredResults = results.filter(
     result =>
-      (searchTerm === '' || 
-        result.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        result.roll_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        result.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        result.subject.toLowerCase().includes(searchTerm.toLowerCase())
-      ) &&
+      (searchTerm === '' ||
+        result.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.class.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.subject.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (selectedTerm === 'Midterm' || result.term === selectedTerm) &&
-      (selectedClass === 'all' || result.class_name === selectedClass)
+      (selectedClass === 'all' || result.class === selectedClass)
   );
 
-  // Group results by class for the selected term
+  // Grouped by class and class performance summary
   const resultsByClass = results.reduce((acc: Record<string, StudentResultsType[]>, result) => {
     if (selectedTerm === 'Midterm' || result.term === selectedTerm) {
-      if (!acc[result.class_name]) {
-        acc[result.class_name] = [];
-      }
-      acc[result.class_name].push(result);
+      if (!acc[result.class]) acc[result.class] = [];
+      acc[result.class].push(result);
     }
     return acc;
   }, {});
 
-  // Data for the chart - class performance summary
-  const classSummary = Object.entries(resultsByClass).reduce((acc: Record<string, { count: number; totalPercentage: number }>, [className, classResults]) => {
-    const totalPercentage = classResults.reduce((sum, result) => sum + (result.marks / result.total_marks) * 100, 0);
-    acc[className] = {
-      count: classResults.length,
-      totalPercentage: totalPercentage
-    };
-    return acc;
-  }, {});
+  const classSummary = Object.entries(resultsByClass).reduce(
+    (acc: Record<string, { count: number; totalPercentage: number }>, [className, classResults]) => {
+      const totalPercentage = classResults.reduce((sum, result) => sum + (result.marks / result.totalMarks) * 100, 0);
+      acc[className] = {
+        count: classResults.length,
+        totalPercentage: totalPercentage,
+      };
+      return acc;
+    },
+    {}
+  );
 
   return {
     results,
@@ -188,7 +189,7 @@ const useStudentResults = (): UseStudentResultsReturn => {
     classes,
     filteredResults,
     resultsByClass,
-    classSummary
+    classSummary,
   };
 };
 

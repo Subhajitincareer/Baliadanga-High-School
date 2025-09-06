@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,11 +11,7 @@ import {
 } from '@/components/ui/select';
 import { examTerms, ExamTerm } from './ResultsTable';
 
-interface AddResultFormProps {
-  onSubmit: (values: NewResult) => Promise<void>;
-  onCancel: () => void;
-}
-
+// Define the structure for a new result entry (snake_case, backend compatible)
 export interface NewResult {
   student_name: string;
   roll_number: string;
@@ -28,6 +23,11 @@ export interface NewResult {
   exam_date: string;
 }
 
+interface AddResultFormProps {
+  onSubmit: (values: NewResult) => Promise<void>;
+  onCancel: () => void;
+}
+
 const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => {
   const [newResult, setNewResult] = useState<NewResult>({
     student_name: '',
@@ -37,7 +37,7 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
     marks: '',
     total_marks: '100',
     term: 'Midterm',
-    exam_date: new Date().toISOString().split('T')[0]
+    exam_date: new Date().toISOString().split('T')[0],
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,9 +70,10 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               value={newResult.student_name}
               onChange={handleInputChange}
               placeholder="John Doe"
+              required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="roll_number" className="text-sm font-medium">Roll Number</label>
             <Input
@@ -81,9 +82,10 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               value={newResult.roll_number}
               onChange={handleInputChange}
               placeholder="R-12345"
+              required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="class_name" className="text-sm font-medium">Class</label>
             <Input
@@ -92,9 +94,10 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               value={newResult.class_name}
               onChange={handleInputChange}
               placeholder="Grade 10"
+              required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="subject" className="text-sm font-medium">Subject</label>
             <Input
@@ -103,9 +106,10 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               value={newResult.subject}
               onChange={handleInputChange}
               placeholder="Mathematics"
+              required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="marks" className="text-sm font-medium">Marks Obtained</label>
             <Input
@@ -117,9 +121,10 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               value={newResult.marks}
               onChange={handleInputChange}
               placeholder="85"
+              required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="total_marks" className="text-sm font-medium">Total Marks</label>
             <Input
@@ -130,14 +135,15 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               value={newResult.total_marks}
               onChange={handleInputChange}
               placeholder="100"
+              required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="term" className="text-sm font-medium">Term</label>
             <Select
               value={newResult.term}
-              onValueChange={(value) => handleSelectChange('term', value)}
+              onValueChange={value => handleSelectChange('term', value)}
             >
               <SelectTrigger id="term">
                 <SelectValue placeholder="Select term" />
@@ -151,7 +157,7 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="exam_date" className="text-sm font-medium">Exam Date</label>
             <Input
@@ -160,9 +166,10 @@ const AddResultForm: React.FC<AddResultFormProps> = ({ onSubmit, onCancel }) => 
               type="date"
               value={newResult.exam_date}
               onChange={handleInputChange}
+              required
             />
           </div>
-          
+
           <div className="md:col-span-2 flex justify-end gap-2 mt-4">
             <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
             <Button type="submit">Save Result</Button>

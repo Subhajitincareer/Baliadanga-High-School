@@ -31,14 +31,17 @@ import StudentDashboard from "@/pages/student/StudentDashboard";
 
 // ProtectedRoute for Admin routes
 const ProtectedRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const isAdmin = localStorage.getItem("token") !== null && 
+                  localStorage.getItem("userRole") === "admin";
   return isAdmin ? <>{children}</> : <Navigate to="/admin" replace />;
 };
 
 // ProtectedRoute for Student routes
 const ProtectedStudentRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Check if Supabase auth token exists (adjust as per your exact auth implementation)
-  const isLoggedIn = localStorage.getItem("supabase.auth.token") !== null;
+  // Check if JWT token exists and user is a student
+  const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("userRole");
+  const isLoggedIn = token !== null && userRole === "student";
   return isLoggedIn ? <>{children}</> : <Navigate to="/student/login" replace />;
 };
 

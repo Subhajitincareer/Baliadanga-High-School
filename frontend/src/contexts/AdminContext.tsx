@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import apiService from '@/services/api';
 import { useNavigate } from 'react-router-dom';
 
 type AdminContextType = {
@@ -16,21 +16,12 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Check if email is in the whitelist (admin check)
+  // Whitelist/admin check (API endpoint or local check)
   const checkAdminStatus = async (email: string): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
-        .from('whitelist')
-        .select('email')
-        .eq('email', email.toLocaleLowerCase())
-        .single(); // Use single() for only one result.
-
-      if (error) {
-        console.error('Error checking admin status:', error);
-        return false;
-      }
-
-      return data !== null;
+      // Call backend to check if the email exists in admin whitelist
+      const result = await apiService.checkAdminWhitelist(email);
+      return !!result?.isAdmin; // backend: { isAdmin: true/false }
     } catch (error) {
       console.error('Error checking admin status:', error);
       return false;
@@ -40,9 +31,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Login handler
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Check if email is in the whitelist
+      // Check admin whitelist
       const isWhitelisted = await checkAdminStatus(email);
-      console.log('Is Whitelisted:', isWhitelisted);
       if (!isWhitelisted) {
         toast({
           title: 'Access Denied',
@@ -52,34 +42,36 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return false;
       }
 
-      // Sign in if email is whitelisted
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      console.log('Sign-in Error:', signInError); // Log here
-      if (signInError) {
+      // Now try login
+      const resp = await apiService.adminLogin(email, password);
+      if (!resp?.token || !resp?.user) {
         toast({
           title: 'Login Failed',
-          description: signInError.message,
+          description: resp?.message || 'Invalid admin credentials.',
           variant: 'destructive',
         });
         return false;
       }
 
+      // Store tokens/admin info for session
+      localStorage.setItem('token', resp.token);
+      localStorage.setItem('userRole', resp.user.role || 'admin');
+      localStorage.setItem('userId', resp.user._id || resp.user.id);
+      localStorage.setItem('user', JSON.stringify(resp.user));
       setIsAdmin(true);
+
       toast({
         title: 'Login Successful',
-        description: 'You are now logged in as an admin.',
+        description: 'You are now logged in as an admin.'
       });
 
-      navigate('/admin/dashboard'); // Navigate to the admin dashboard
+      navigate('/admin/dashboard');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred during login. Please try again.',
+        description: error.message || 'An unexpected error occurred during login. Please try again.',
         variant: 'destructive',
       });
       return false;
@@ -89,8 +81,13 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Logout handler
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Optionally call backend logout endpoint
+      await apiService.logout();
       setIsAdmin(false);
+      localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('user');
       navigate('/');
       toast({
         title: 'Logged Out',
@@ -106,21 +103,16 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Restore session and check if the current user is admin
+  // Restore session from localStorage (on mount/reload)
   useEffect(() => {
-    const restoreSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const email = session?.user?.email;
-
-      if (email) {
-        const isWhitelisted = await checkAdminStatus(email);
-        if (isWhitelisted) {
-          setIsAdmin(true);
-        }
+    const maybeSession = () => {
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('userRole');
+      if (token && role === 'admin') {
+        setIsAdmin(true);
       }
     };
-
-    restoreSession();
+    maybeSession();
   }, []);
 
   return (

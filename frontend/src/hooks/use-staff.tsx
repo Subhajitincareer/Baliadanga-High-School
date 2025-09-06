@@ -1,18 +1,27 @@
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import apiService from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
+// Updated interface to match MongoDB schema
 export type StaffMember = {
-  id: string;
-  name: string;
-  position: string;
-  email?: string;
-  phone?: string;
-  bio?: string;
-  image_url?: string;
-  created_at?: string;
-  updated_at?: string;
+  _id?: string;
+  employeeId: string;
+  fullName: string;
+  email: string;
+  position: 'Teacher' | 'Admin' | 'Principal' | 'Vice Principal' | 'Coordinator';
+  department: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  gender?: 'Male' | 'Female' | 'Other';
+  address?: string;
+  joiningDate?: string;
+  salary?: number;
+  subjects?: string[];
+  classes?: string[];
+  isActive?: boolean;
+  profileImage?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export function useStaff() {
@@ -23,17 +32,8 @@ export function useStaff() {
   const fetchStaffMembers = async () => {
     try {
       setIsLoading(true);
-      // Use type assertion to specify the return type
-      const { data, error } = await supabase
-        .from("staff")
-        .select('*')
-        .order('name') as { data: StaffMember[] | null; error: any };
-
-      if (error) throw error;
-
-      if (data) {
-        setStaffMembers(data);
-      }
+      const data = await apiService.getStaff();
+      setStaffMembers(data || []);
     } catch (error: any) {
       console.error('Error fetching staff:', error);
       toast({
@@ -46,29 +46,23 @@ export function useStaff() {
     }
   };
 
-  const addStaffMember = async (staffMember: Omit<StaffMember, 'id'>) => {
+  const addStaffMember = async (staffMember: Omit<StaffMember, '_id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      // Use type assertion for the Supabase query
-      const { data, error } = await supabase
-        .from("staff")
-        .insert([staffMember])
-        .select() as { data: StaffMember[] | null; error: any };
-
-      if (error) throw error;
-
-      if (data) {
-        toast({
-          title: 'Staff member added',
-          description: `${staffMember.name} has been added successfully.`,
-        });
-        return true;
-      }
-      return false;
+      const newStaff = await apiService.createStaff(staffMember);
+      
+      toast({
+        title: 'Staff member added',
+        description: `${staffMember.fullName} has been added successfully.`,
+      });
+      
+      // Refresh the staff list
+      await fetchStaffMembers();
+      return newStaff;
     } catch (error: any) {
       console.error('Error adding staff member:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add staff member.',
+        description: error.message || 'Failed to add staff member.',
         variant: 'destructive',
       });
       return false;
@@ -77,28 +71,25 @@ export function useStaff() {
 
   const updateStaffMember = async (staffMember: StaffMember) => {
     try {
-      // Use type assertion for the Supabase query
-      const { data, error } = await supabase
-        .from("staff")
-        .update(staffMember)
-        .eq("id", staffMember.id)
-        .select() as { data: StaffMember[] | null; error: any };
-
-      if (error) throw error;
-
-      if (data) {
-        toast({
-          title: 'Staff member updated',
-          description: `${staffMember.name}'s information has been updated.`,
-        });
-        return true;
+      if (!staffMember._id) {
+        throw new Error('Staff member ID is required for update');
       }
-      return false;
+
+      const updatedStaff = await apiService.updateStaff(staffMember._id, staffMember);
+      
+      toast({
+        title: 'Staff member updated',
+        description: `${staffMember.fullName}'s information has been updated.`,
+      });
+      
+      // Refresh the staff list
+      await fetchStaffMembers();
+      return updatedStaff;
     } catch (error: any) {
       console.error('Error updating staff member:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update staff member.',
+        description: error.message || 'Failed to update staff member.',
         variant: 'destructive',
       });
       return false;
@@ -107,28 +98,51 @@ export function useStaff() {
 
   const deleteStaffMember = async (id: string) => {
     try {
-      // Use type assertion for the Supabase query
-      const { error } = await supabase
-        .from("staff")
-        .delete()
-        .eq("id", id) as { error: any };
-
-      if (error) throw error;
-
+      await apiService.deleteStaff(id);
+      
       toast({
         title: 'Staff member deleted',
         description: 'The staff member has been removed successfully.',
       });
+      
+      // Refresh the staff list
+      await fetchStaffMembers();
       return true;
     } catch (error: any) {
       console.error('Error deleting staff member:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete staff member.',
+        description: error.message || 'Failed to delete staff member.',
         variant: 'destructive',
       });
       return false;
     }
+  };
+
+  const getStaffByDepartment = (department: string) => {
+    return staffMembers.filter(staff => 
+      staff.department.toLowerCase() === department.toLowerCase()
+    );
+  };
+
+  const getStaffByPosition = (position: string) => {
+    return staffMembers.filter(staff => 
+      staff.position.toLowerCase() === position.toLowerCase()
+    );
+  };
+
+  const getActiveStaff = () => {
+    return staffMembers.filter(staff => staff.isActive !== false);
+  };
+
+  const searchStaff = (query: string) => {
+    const searchTerm = query.toLowerCase();
+    return staffMembers.filter(staff => 
+      staff.fullName.toLowerCase().includes(searchTerm) ||
+      staff.email.toLowerCase().includes(searchTerm) ||
+      staff.employeeId.toLowerCase().includes(searchTerm) ||
+      staff.department.toLowerCase().includes(searchTerm)
+    );
   };
 
   useEffect(() => {
@@ -141,6 +155,10 @@ export function useStaff() {
     fetchStaffMembers,
     addStaffMember,
     updateStaffMember,
-    deleteStaffMember
+    deleteStaffMember,
+    getStaffByDepartment,
+    getStaffByPosition,
+    getActiveStaff,
+    searchStaff
   };
 }

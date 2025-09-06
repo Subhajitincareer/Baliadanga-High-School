@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
 
 interface ResultsFilterProps {
   searchTerm: string;

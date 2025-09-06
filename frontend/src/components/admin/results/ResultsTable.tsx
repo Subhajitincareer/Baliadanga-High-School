@@ -1,18 +1,18 @@
-
 import React from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
 import { GraduationCap, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
+// Update this line to import your backend's schema:
+import { StudentResultsType } from '@/schemas/studentResult';
 
 export const examTerms = ['1summit', '2summit', 'Final Exam', 'Midterm'] as const;
 export type ExamTerm = typeof examTerms[number];
@@ -46,7 +46,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
         <CardDescription>
           {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''} found
         </CardDescription>
-        
         <Tabs defaultValue="Midterm" value={selectedTerm} onValueChange={(value) => setSelectedTerm(value as ExamTerm)} className="mt-4">
           <TabsList className="grid grid-cols-4 w-full">
             {examTerms.map(term => (
@@ -83,17 +82,19 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
               </TableHeader>
               <TableBody>
                 {filteredResults.map((result) => (
-                  <TableRow key={result.id}>
+                  <TableRow key={result._id || result.id}>
                     <TableCell className="font-medium">{result.student_name}</TableCell>
                     <TableCell>{result.roll_number}</TableCell>
                     <TableCell>{result.class_name}</TableCell>
                     <TableCell>{result.subject}</TableCell>
                     <TableCell className="text-right">
-                      <span 
+                      <span
                         className={
-                          (result.marks / result.total_marks) >= 0.7 ? "text-green-600 font-semibold" :
-                          (result.marks / result.total_marks) >= 0.5 ? "text-amber-600 font-semibold" :
-                          "text-red-600 font-semibold"
+                          (result.marks / result.total_marks) >= 0.7
+                            ? "text-green-600 font-semibold"
+                            : (result.marks / result.total_marks) >= 0.5
+                            ? "text-amber-600 font-semibold"
+                            : "text-red-600 font-semibold"
                         }
                       >
                         {result.marks}/{result.total_marks}

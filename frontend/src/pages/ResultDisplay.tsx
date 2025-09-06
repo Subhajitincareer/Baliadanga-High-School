@@ -1,12 +1,12 @@
-import{ useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Award, BookOpen } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import apiService from '@/services/api'; // <-- MERN API!
 import { useToast } from '@/components/ui/use-toast';
-import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
+import { StudentResultsType } from '@/schemas/studentResult'; // Adjust to your types!
 import ResultsTable, { ExamTerm } from '@/components/admin/results/ResultsTable';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import StudentResultCard from '@/components/results/StudentResultCard';
@@ -26,45 +26,35 @@ const ResultDisplay = () => {
     e.preventDefault();
     setLoading(true);
     setSearched(true);
-    
+
     try {
-      let query = supabase
-        .from('student_results')
-        .select('*')
-        .order('subject', { ascending: true });
-        
-      if (rollNumber) {
-        query = query.eq('roll_number', rollNumber);
-      }
-      
-      if (studentName) {
-        query = query.ilike('student_name', `%${studentName}%`);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
+      // You may want to change the endpoint or body logic as per your backend!
+      const params: Record<string, string> = {};
+      if (rollNumber) params.roll_number = rollNumber;
+      if (studentName) params.student_name = studentName;
+
+      // Example: your backend should support these queries: /student-results?roll_number=...&student_name=...
+      const data = await apiService.searchStudentResults(params);
+
       if (data && data.length > 0) {
         setResults(data);
         toast({
-          title: "Results found",
+          title: 'Results found',
           description: `Found ${data.length} results for the student`,
         });
       } else {
         setResults([]);
         toast({
-          title: "No results found",
-          description: "Please check the roll number or student name and try again",
-          variant: "destructive",
+          title: 'No results found',
+          description: 'Please check the roll number or student name and try again',
+          variant: 'destructive',
         });
       }
-    } catch (error) {
-      console.error('Error fetching results:', error);
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to fetch results. Please try again later.",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to fetch results. Please try again later.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -73,16 +63,14 @@ const ResultDisplay = () => {
 
   const calculateAveragePerformance = () => {
     if (!results.length) return 0;
-    
-    const totalPercentage = results.reduce((sum, result) => 
+    const totalPercentage = results.reduce((sum, result) =>
       sum + (result.marks / result.total_marks) * 100, 0);
-    
     return Math.round(totalPercentage / results.length);
   };
-  
+
   const getPerformanceColor = (percentage: number) => {
     if (percentage >= 70) return 'text-green-600';
-    if (percentage >= 50) return 'text-amber-600'; 
+    if (percentage >= 50) return 'text-amber-600';
     return 'text-red-600';
   };
 
@@ -119,7 +107,7 @@ const ResultDisplay = () => {
                 placeholder="Enter your roll number"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="student_name" className="text-sm font-medium">Student Name</label>
               <Input
@@ -130,7 +118,7 @@ const ResultDisplay = () => {
               />
               <p className="text-xs text-muted-foreground">At least one field is required</p>
             </div>
-            
+
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => navigate('/')}>
                 Back to Home
@@ -182,12 +170,12 @@ const ResultDisplay = () => {
                 <TabsContent value="card" className="mt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {results.map(result => (
-                      <StudentResultCard key={result.id} result={result} />
+                      <StudentResultCard key={result._id || result.id} result={result} />
                     ))}
                   </div>
                 </TabsContent>
                 <TabsContent value="table" className="mt-6">
-                  <ResultsTable 
+                  <ResultsTable
                     results={results}
                     selectedTerm={selectedTerm}
                     setSelectedTerm={setSelectedTerm}

@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { BookOpen, Calendar, Award } from 'lucide-react';
-import { StudentResults as StudentResultsType } from '@/integrations/supabase/client';
+// Replace this import with your actual backend results type!
+import { StudentResultsType } from '@/schemas/studentResult';
 
 interface StudentResultCardProps {
   result: StudentResultsType;
@@ -10,7 +10,7 @@ interface StudentResultCardProps {
 
 const StudentResultCard: React.FC<StudentResultCardProps> = ({ result }) => {
   const percentage = Math.round((result.marks / result.total_marks) * 100);
-  
+
   const getGradeColor = () => {
     if (percentage >= 80) return 'text-green-600 bg-green-50 border-green-200';
     if (percentage >= 70) return 'text-emerald-600 bg-emerald-50 border-emerald-200';

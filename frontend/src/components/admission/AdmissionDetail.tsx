@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { supabase, Admissions } from '@/integrations/supabase/client';
 import { FileText, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import apiService from '@/services/api';
 
 interface AdmissionDetailProps {
   admissionId: string;
@@ -12,12 +12,32 @@ interface AdmissionDetailProps {
   onClose: () => void;
 }
 
-type AdmissionFullDetails = Admissions;
+type AdmissionFullDetails = {
+  _id: string;
+  access_code: string;
+  status: string;
+  created_at: string;
+  student_name: string;
+  gender: string;
+  date_of_birth: string;
+  class_applying_for: string;
+  father_name?: string;
+  mother_name?: string;
+  guardian_phone?: string;
+  guardian_email?: string;
+  address?: string;
+  previous_school?: string;
+  previous_class?: string;
+  previous_marks?: string;
+  documents_url?: string[]; // array of document URLs
+  roll_number?: string;
+  remarks?: string;
+};
 
 const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
   admissionId,
   isOpen,
-  onClose
+  onClose,
 }) => {
   const [admission, setAdmission] = useState<AdmissionFullDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,19 +45,13 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
 
   const fetchAdmissionDetails = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('admissions')
-        .select('*')
-        .eq('id', admissionId)
-        .single();
-
-      if (error) throw error;
+      const data = await apiService.getAdmissionById(admissionId);
       setAdmission(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching admission details:', error);
       toast({
         title: "Error",
-        description: "Failed to load admission details",
+        description: error.message || "Failed to load admission details",
         variant: "destructive",
       });
     } finally {
@@ -47,6 +61,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
 
   useEffect(() => {
     if (isOpen && admissionId) {
+      setIsLoading(true);
       fetchAdmissionDetails();
     }
   }, [isOpen, admissionId, fetchAdmissionDetails]);
@@ -61,7 +76,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
         <DialogHeader>
           <DialogTitle>Admission Application Details</DialogTitle>
         </DialogHeader>
-        
+
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <LoadingSpinner text="Loading application details..." />
@@ -76,13 +91,12 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
                 <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                  ${admission.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                    admission.status === 'rejected' ? 'bg-red-100 text-red-800' : 
-                    'bg-yellow-100 text-yellow-800'}`
-                }>
-                  {admission.status === 'approved' ? 'Approved' : 
-                   admission.status === 'rejected' ? 'Rejected' : 
-                   'Pending'}
+                  ${admission.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    admission.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'}`}>
+                  {admission.status === 'approved' ? 'Approved' :
+                    admission.status === 'rejected' ? 'Rejected' :
+                      'Pending'}
                 </div>
               </div>
               <div>
@@ -90,7 +104,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
                 <p>{formatDate(admission.created_at)}</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Student Information</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -112,7 +126,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Parent/Guardian Information</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -133,13 +147,12 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
                   <p>{admission.guardian_email || 'Not provided'}</p>
                 </div>
               </div>
-              
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Address</p>
                 <p>{admission.address}</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Previous Education</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -159,13 +172,13 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
                 )}
               </div>
             </div>
-            
+
             {admission.documents_url && admission.documents_url.length > 0 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Uploaded Documents</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {admission.documents_url.map((url, index) => (
-                    <a 
+                    <a
                       key={index}
                       href={url}
                       target="_blank"
@@ -180,7 +193,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
                 </div>
               </div>
             )}
-            
+
             {admission.status !== 'pending' && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Decision</h3>
@@ -206,7 +219,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
             <p>No admission details found.</p>
           </div>
         )}
-        
+
         <div className="flex justify-end pt-4">
           <Button onClick={onClose}>Close</Button>
         </div>
