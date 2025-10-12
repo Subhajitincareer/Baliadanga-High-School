@@ -1,41 +1,49 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import tailwindcss from "@tailwindcss/vite";
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  base: "/Baliadanga-High-School/", // Important for GitHub Pages under subpath
+  base: '/Baliadanga-High-School/',
   server: {
-    host: "::", // Bind to all IPv6 and IPv4 interfaces for local network access
+    host: '::',
     port: 8080,
   },
-  plugins: [
-    react(),       // React SWC plugin for fast builds
-    tailwindcss(), // Tailwind CSS plugin
-  ],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"), // Alias "@" to "./src"
+      '@': path.resolve(__dirname, './src'),
     },
   },
   build: {
-    target: "esnext", // Modern JS output, suitable for evergreen browsers
+    target: 'esnext',
     commonjsOptions: {
-      transformMixedEsModules: true, // Handle mixed ESM and CommonJS modules
+      transformMixedEsModules: true,
     },
-    // Optional: You can add rollupOptions if needed for advanced tweaking
   },
   optimizeDeps: {
-    include: ["@supabase/supabase-js"], // Pre-bundle Supabase for faster dev
+    include: ['@supabase/supabase-js'],
     esbuildOptions: {
       define: {
-        global: "globalThis", // Fix "global" not defined errors in some dependencies
+        global: 'globalThis',
       },
-      target: "esnext", // Keep optimized deps targeting modern JS
+      target: 'esnext',
     },
   },
   define: {
-    // Inject environment variable WS_TOKEN or default to 'development'
-    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN ?? "development"),
+    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN ?? 'development'),
+  },
+  
+  // Vitest Configuration
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts', // .ts extension
+    css: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
   },
 });
