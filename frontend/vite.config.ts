@@ -5,7 +5,7 @@ import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  base: '/Baliadanga-High-School/',
+  base: '/',
   server: {
     host: '::',
     port: 8080,
