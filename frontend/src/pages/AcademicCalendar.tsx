@@ -16,7 +16,7 @@ import MonthlyEventsList from '@/components/calendar/MonthlyEventsList';
 import AcademicYearDates from '@/components/calendar/AcademicYearDates';
 
 // Import DayPickerDayProps type if possible from react-day-picker for better typing
-import type { DayPickerDayProps } from 'react-day-picker';
+import type { DayProps } from 'react-day-picker';
 
 const AcademicCalendar: React.FC = () => {
   const events = generateEvents();
@@ -33,9 +33,9 @@ const AcademicCalendar: React.FC = () => {
 
   // Use useCallback to memoize the custom day render function
   const customDayRender = useCallback(
-    (props: DayPickerDayProps) => {
+    (dayProps: DayProps) => {
       // Pass the props and your events to your custom day component
-      return <CalendarDayComponent props={props} events={events} />;
+      return <CalendarDayComponent props={dayProps} events={events} />;
     },
     [events]
   );

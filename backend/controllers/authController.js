@@ -71,13 +71,49 @@ export const login = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
-// @access  Private
+// @desc    Get current logged in user
+// @route   GET /api/auth/me
+// @access  Private
 export const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
   res.json({
     success: true,
     data: user
   });
+});
+
+// @desc    Login admin
+// @route   POST /api/auth/admin-login
+// @access  Public
+export const adminLogin = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  // Check for user
+  const user = await User.findOne({ email }).select('+password');
+
+  if (user && (await user.comparePassword(password))) {
+    // Check if user is admin
+    if (user.role !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized as an admin'
+      });
+    }
+
+    res.json({
+      success: true,
+      token: generateToken(user._id),
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } else {
+    res.status(401).json({
+      success: false,
+      message: 'Invalid credentials'
+    });
+  }
 });

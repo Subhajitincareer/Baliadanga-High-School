@@ -1,28 +1,24 @@
 import React, { useMemo } from 'react';
 import { CalendarEvent } from './EventTypes';
+import { cn } from '@/lib/utils';
+import { DayProps } from 'react-day-picker';
 
 interface CalendarDayProps {
-  props: {
-    date?: Date;
-    day?: {
-      getDate?: () => number;
-    };
-  };
+  props: DayProps;
   events: CalendarEvent[];
 }
 
 const CalendarDayComponent: React.FC<CalendarDayProps> = ({ props, events }) => {
-  const { date, day } = props || {};
+  // @ts-ignore - DayProps type definition seems to differ from runtime or expected v9 interface
+  const { day, modifiers, className, style, ...restProps } = props;
 
-  // Fallback: Show day number if `date` is not available
+  // Extract date from 'day' object if available, otherwise it might be directly on props (but lint says no)
+  // In v9, it seems 'day' holds the date info.
+  const date = day?.date || (props as any).date;
+
   if (!date) {
-    return (
-      <div className="relative" aria-label={`Day ${day?.getDate?.() ?? ''}`}>
-        <time dateTime="" aria-hidden="true">
-          {day?.getDate?.() ?? ''}
-        </time>
-      </div>
-    );
+    console.warn("CalendarDayComponent: date is undefined", props);
+    return <div />;
   }
 
   // Memoize filtering events for this date to optimize performance
@@ -35,21 +31,38 @@ const CalendarDayComponent: React.FC<CalendarDayProps> = ({ props, events }) => 
     );
   }, [events, date]);
 
-  // Accessibility: aria-label with event count (or zero)
-  const ariaLabel = `Day ${date.getDate()} with ${dayEvents.length} event${dayEvents.length !== 1 ? 's' : ''}`;
+  // If outside current month and hidden, return empty
+  if (props.hidden) {
+    return <div />;
+  }
+
+  // Accessibility: aria-label with event count
+  const eventLabel = dayEvents.length > 0 ? `${dayEvents.length} event${dayEvents.length !== 1 ? 's' : ''}` : '';
+  const ariaLabel = props['aria-label'] ? `${props['aria-label']} ${eventLabel}` : `Day ${date.getDate()} ${eventLabel}`;
 
   return (
-    <div className="relative" aria-label={ariaLabel}>
-      <time dateTime={date.toISOString()}>{date.getDate()}</time>
+    <td className="p-0 relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md">
+      <button
+        {...restProps as any}
+        className={cn(
+          // shadcn calendar styles usually applied via props.className
+          className,
+          "relative flex items-center justify-center h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+        )}
+        style={style}
+        type="button"
+        aria-label={ariaLabel}
+      >
+        <time dateTime={date.toISOString()}>{date.getDate()}</time>
 
-      {dayEvents.length > 0 && (
-        <div
-          className="absolute bottom-0 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-school-primary"
-          aria-hidden="true"
-          title={`${dayEvents.length} event${dayEvents.length !== 1 ? 's' : ''}`}
-        />
-      )}
-    </div>
+        {dayEvents.length > 0 && (
+          <span
+            className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-school-primary"
+            aria-hidden="true"
+          />
+        )}
+      </button>
+    </td>
   );
 };
 

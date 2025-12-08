@@ -8,6 +8,7 @@ import errorHandler from './middlewares/errorHandler.js';
 // Route files
 import auth from './routes/auth.js';
 import items from './routes/items.js';
+import admin from './routes/admin.js';
 
 // Load env vars
 dotenv.config();
@@ -35,6 +36,7 @@ if (process.env.NODE_ENV === 'development') {
 // Mount routers
 app.use('/api/auth', auth);
 app.use('/api/items', items);
+app.use('/api/admin', admin);
 
 // Health check route
 app.get('/health', (req, res) => {

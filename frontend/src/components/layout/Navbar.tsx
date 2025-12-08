@@ -196,11 +196,14 @@ const Navbar = () => {
                 </NavigationMenuItem>
               ) : (
                 <NavigationMenuItem key={item.href}>
-                  <Link to={item.href}>
-                    <NavigationMenuLink className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
+                  <NavigationMenuLink asChild>
+                    <Link
+                      to={item.href}
+                      className="block px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary"
+                    >
                       {item.title}
-                    </NavigationMenuLink>
-                  </Link>
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               )
             )}

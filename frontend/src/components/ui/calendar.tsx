@@ -46,6 +46,7 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  components,
   ...props
 }: CalendarProps) {
   // Merge default classNames with any overrides provided via props
@@ -61,6 +62,7 @@ function Calendar({
       components={{
         IconLeft: () => <ChevronLeft className="h-4 w-4" aria-label="Previous month" />,
         IconRight: () => <ChevronRight className="h-4 w-4" aria-label="Next month" />,
+        ...components, // Correctly merge external components
       }}
       {...props}
     />
