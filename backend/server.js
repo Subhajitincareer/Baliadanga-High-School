@@ -9,6 +9,9 @@ import errorHandler from './middlewares/errorHandler.js';
 import auth from './routes/auth.js';
 import items from './routes/items.js';
 import admin from './routes/admin.js';
+import resources from './routes/resources.js';
+import admissions from './routes/admissions.js';
+import announcements from './routes/announcements.js';
 
 // Load env vars
 dotenv.config();
@@ -37,6 +40,16 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/auth', auth);
 app.use('/api/items', items);
 app.use('/api/admin', admin);
+app.use('/api/resources', resources);
+app.use('/api/admissions', admissions);
+app.use('/api/announcements', announcements);
+
+// Serve static assets (uploads)
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check route
 app.get('/health', (req, res) => {

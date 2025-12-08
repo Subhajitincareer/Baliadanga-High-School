@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
 import StudentResults from '@/pages/admin/StudentResults';
+import { ResourceManagement } from '@/components/admin/ResourceManagement';
+import { FileText } from 'lucide-react'; // Import icon for sidebar
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,6 +128,13 @@ const Dashboard = () => {
                 <Award className="mr-2 h-4 w-4" />
                 Student Results
               </TabsTrigger>
+              <TabsTrigger
+                value="resources"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Resources
+              </TabsTrigger>
             </TabsList>
 
             {/* Hidden content area in sidebar - we render content in main area */}
@@ -155,13 +164,15 @@ const Dashboard = () => {
               activeTab === 'announcements' ? 'Manage Announcements' :
                 activeTab === 'staff' ? 'Manage Staff' :
                   activeTab === 'admissions' ? 'Admission Applications' :
-                    'Student Results'
+                    activeTab === 'resources' ? 'Resource Management' :
+                      'Student Results'
             }
             subtitle={
               activeTab === 'announcements' ? 'Create and manage school announcements' :
                 activeTab === 'staff' ? 'Manage teacher and staff profiles' :
                   activeTab === 'admissions' ? 'Review and process admission requests' :
-                    'Manage examination results and reports'
+                    activeTab === 'resources' ? 'Upload policies, forms, and other documents' :
+                      'Manage examination results and reports'
             }
             showLogout={false} // We have logout in sidebar
           />
@@ -192,6 +203,10 @@ const Dashboard = () => {
             <TabsContent value="results" className="space-y-4 border-none p-0 outline-none">
               {/* @ts-ignore */}
               <StudentResults hideHeader={true} />
+            </TabsContent>
+
+            <TabsContent value="resources" className="space-y-4 border-none p-0 outline-none">
+              <ResourceManagement hideHeader={true} />
             </TabsContent>
           </Tabs>
         </main>

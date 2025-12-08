@@ -155,10 +155,22 @@ export interface Notification {
   updatedAt?: string;
 }
 
+// Resource Interface
+export interface Resource {
+  _id: string;
+  title: string;
+  description: string;
+  type: 'policy' | 'form' | 'other';
+  filePath: string;
+  fileName: string;
+  fileSize?: number;
+  createdAt?: string;
+}
+
 // API Service Class
 class ApiService {
   private async request<T = unknown>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestOptions = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -286,7 +298,7 @@ class ApiService {
     });
   }
 
-  // Student Methods (Fixed duplicate method issue)
+  // Student Methods
   async getStudentProfile(userId: string): Promise<StudentProfile> {
     return this.request<StudentProfile>(`/students/profile/${userId}`);
   }
@@ -298,7 +310,7 @@ class ApiService {
     });
   }
 
-  // Student Results Methods (Removed duplicate)
+  // Student Results Methods
   async getStudentResults(studentId: string): Promise<StudentResult[]> {
     return this.request<StudentResult[]>(`/student-results/student/${studentId}`);
   }
@@ -358,24 +370,58 @@ class ApiService {
   }
 
   async updateAdmission(id: string, admissionData: Partial<Admission>): Promise<Admission> {
-  return this.request<Admission>(`/admissions/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(admissionData),
-  });
-}
-// Check if email is admin (whitelist)
-async checkAdminWhitelist(email: string): Promise<{ isAdmin: boolean }> {
-  return this.request(`/admin/whitelist/${encodeURIComponent(email)}`);
-}
+    return this.request<Admission>(`/admissions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(admissionData),
+    });
+  }
 
-// Admin login (returns token & user)
-async adminLogin(email: string, password: string) {
-  return this.request('/auth/admin-login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
+  // Check if email is admin (whitelist)
+  async checkAdminWhitelist(email: string): Promise<{ isAdmin: boolean }> {
+    return this.request(`/admin/whitelist/${encodeURIComponent(email)}`);
+  }
 
+  // Resource Methods
+  async getResources(): Promise<{ success: boolean; data: Resource[] }> {
+    return this.request<{ success: boolean; data: Resource[] }>('/resources');
+  }
+
+  async createResource(formData: FormData): Promise<{ success: boolean; data: Resource }> {
+    const url = `${API_BASE_URL}/resources`;
+    const token = localStorage.getItem('token');
+
+    // Manual fetch to handle FormData properly (no Content-Type header)
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: formData
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Upload failed');
+    }
+    return data;
+  }
+
+  async deleteResource(id: string): Promise<ApiResponse> {
+    return this.request<ApiResponse>(`/resources/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Admin login (returns token & user)
+  async adminLogin(email: string, password: string) {
+    return this.request('/auth/admin-login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
 }
 
 export default new ApiService();
