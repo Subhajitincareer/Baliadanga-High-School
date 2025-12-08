@@ -297,6 +297,20 @@ class ApiService {
     });
   }
 
+  // Staff Self-Service
+  async getMyStaffProfile(): Promise<Staff> {
+    const response = await this.request<{ success: boolean; data: Staff }>('/staff/profile');
+    return response.data;
+  }
+
+  async updateMyStaffProfile(staffData: Partial<Staff>): Promise<Staff> {
+    const response = await this.request<{ success: boolean; data: Staff }>('/staff/profile', {
+      method: 'PUT',
+      body: JSON.stringify(staffData),
+    });
+    return response.data;
+  }
+
   // Announcement Methods
   async getAnnouncements(): Promise<Announcement[]> {
     return this.request<Announcement[]>('/announcements');
@@ -462,6 +476,13 @@ class ApiService {
     return this.request('/auth/admin-login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    });
+  }
+
+  async updatePassword(passwordData: any): Promise<ApiResponse> {
+    return this.request<ApiResponse>('/auth/updatepassword', {
+      method: 'PUT',
+      body: JSON.stringify(passwordData),
     });
   }
 }

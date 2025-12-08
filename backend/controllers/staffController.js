@@ -78,6 +78,7 @@ export const createStaff = async (req, res, next) => {
                 password: 'changeme123', // Default password
                 role
             });
+            console.log(`Created new User for staff: ${email} with role: ${role}`);
         }
         userId = user._id;
 
@@ -152,6 +153,51 @@ export const deleteStaff = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: {}
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Get current staff profile
+// @route   GET /api/staff/profile
+// @access  Private (Staff/Admin)
+export const getStaffByUserId = async (req, res, next) => {
+    try {
+        const staff = await Staff.findOne({ userId: req.user.id });
+
+        if (!staff) {
+            return res.status(404).json({ success: false, message: 'Staff profile not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: staff
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+// @desc    Update current staff profile
+// @route   PUT /api/staff/profile
+// @access  Private (Staff/Admin)
+export const updateStaffProfile = async (req, res, next) => {
+    try {
+        const staff = await Staff.findOne({ userId: req.user.id });
+
+        if (!staff) {
+            return res.status(404).json({ success: false, message: 'Staff profile not found' });
+        }
+
+        const updatedStaff = await Staff.findByIdAndUpdate(staff._id, req.body, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({
+            success: true,
+            data: updatedStaff
         });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

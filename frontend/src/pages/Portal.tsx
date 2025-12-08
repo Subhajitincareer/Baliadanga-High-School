@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { School, FileText, Award, User, Users, Calendar, UserPlus, LogIn } from 'lucide-react';
+import { School, FileText, Award, User, Users, Calendar, UserPlus, LogIn, GraduationCap } from 'lucide-react';
 
 const Portal = () => {
   const portalLinks = [
@@ -64,6 +64,15 @@ const Portal = () => {
       ],
       color: 'bg-indigo-50 border-indigo-200'
     },
+    {
+      title: 'Faculty & Staff',
+      description: 'Log in to the staff dashboard',
+      icon: <GraduationCap className="h-8 w-8 text-rose-500" />,
+      links: [
+        { text: 'Staff Login', url: '/staff/login' }
+      ],
+      color: 'bg-rose-50 border-rose-200'
+    },
   ];
 
   return (
@@ -93,7 +102,7 @@ const Portal = () => {
                       {link.text} <span className="text-xs ml-1 px-1 bg-gray-100 rounded">Soon</span>
                     </div>
                   ) : (
-                    <Link 
+                    <Link
                       key={linkIndex}
                       to={link.url}
                       className="bg-white p-2 rounded border hover:shadow-sm transition-shadow text-center"

@@ -28,11 +28,14 @@ import AdmissionStatus from "@/pages/AdmissionStatus";
 
 import StudentLogin from "@/pages/student/StudentLogin";
 import StudentDashboard from "@/pages/student/StudentDashboard";
+import StaffLogin from "@/pages/StaffLogin";
+import StaffDashboard from "@/pages/StaffDashboard";
+import { StaffProvider } from "@/contexts/StaffContext";
 
 // ProtectedRoute for Admin routes
 const ProtectedRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAdmin = localStorage.getItem("token") !== null && 
-                  localStorage.getItem("userRole") === "admin";
+  const isAdmin = localStorage.getItem("token") !== null &&
+    localStorage.getItem("userRole") === "admin";
   return isAdmin ? <>{children}</> : <Navigate to="/admin" replace />;
 };
 
@@ -45,73 +48,95 @@ const ProtectedStudentRoute: FC<{ children: React.ReactNode }> = ({ children }) 
   return isLoggedIn ? <>{children}</> : <Navigate to="/student/login" replace />;
 };
 
+// ProtectedRoute for Staff routes
+const ProtectedStaffRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
+  const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("userRole");
+  const STAFF_ROLES = ['teacher', 'principal', 'vice_principal', 'coordinator', 'staff', 'admin'];
+  const isLoggedIn = token !== null && STAFF_ROLES.includes(userRole || '');
+  return isLoggedIn ? <>{children}</> : <Navigate to="/staff/login" replace />;
+};
+
 const App: FC = () => {
   return (
     <Router basename="/">
-      <AdminProvider>
-        <Routes>
-          {/* Admin login */}
-          <Route path="/admin" element={<AdminLogin />} />
-          
-          {/* Admin protected routes */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/admissions"
-            element={
-              <ProtectedRoute>
-                <AdmissionManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/results"
-            element={
-              <ProtectedRoute>
-                <StudentResults />
-              </ProtectedRoute>
-            }
-          />
+      <StaffProvider>
+        <AdminProvider>
+          <Routes>
+            {/* Admin login */}
+            <Route path="/admin" element={<AdminLogin />} />
 
-          {/* Student routes */}
-          <Route path="/student/login" element={<StudentLogin />} />
-          <Route
-            path="/student/dashboard"
-            element={
-              <ProtectedStudentRoute>
-                <StudentDashboard />
-              </ProtectedStudentRoute>
-            }
-          />
+            {/* Admin protected routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/admissions"
+              element={
+                <ProtectedRoute>
+                  <AdmissionManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/results"
+              element={
+                <ProtectedRoute>
+                  <StudentResults />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Public routes nested inside Layout */}
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Index />} />
-            <Route path="announcements" element={<Announcements />} />
-            <Route path="announcements/:id" element={<AnnouncementDetail />} />
-            <Route path="courses" element={<Courses />} />
-            <Route path="resources" element={<Resources />} />
-            <Route path="events" element={<Events />} />
-            <Route path="staff" element={<Staff />} />
-            <Route path="portal" element={<Portal />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="gallery" element={<Gallery />} />
-            <Route path="academic-calendar" element={<AcademicCalendar />} />
-            <Route path="admission" element={<Admission />} />
-            <Route path="admission-status" element={<AdmissionStatus />} />
-            <Route path="results" element={<ResultDisplay />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </AdminProvider>
+            {/* Student routes */}
+            <Route path="/student/login" element={<StudentLogin />} />
+            <Route
+              path="/student/dashboard"
+              element={
+                <ProtectedStudentRoute>
+                  <StudentDashboard />
+                </ProtectedStudentRoute>
+              }
+            />
+
+            {/* Staff routes */}
+            <Route path="/staff/login" element={<StaffLogin />} />
+            <Route
+              path="/staff/dashboard"
+              element={
+                <ProtectedStaffRoute>
+                  <StaffDashboard />
+                </ProtectedStaffRoute>
+              }
+            />
+
+            {/* Public routes nested inside Layout */}
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Index />} />
+              <Route path="announcements" element={<Announcements />} />
+              <Route path="announcements/:id" element={<AnnouncementDetail />} />
+              <Route path="courses" element={<Courses />} />
+              <Route path="resources" element={<Resources />} />
+              <Route path="events" element={<Events />} />
+              <Route path="staff" element={<Staff />} />
+              <Route path="portal" element={<Portal />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="gallery" element={<Gallery />} />
+              <Route path="academic-calendar" element={<AcademicCalendar />} />
+              <Route path="admission" element={<Admission />} />
+              <Route path="admission-status" element={<AdmissionStatus />} />
+              <Route path="results" element={<ResultDisplay />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </AdminProvider>
+      </StaffProvider>
       <Toaster />
-    </Router>
+    </Router >
   );
 };
 

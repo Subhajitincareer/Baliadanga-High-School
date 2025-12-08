@@ -11,8 +11,17 @@ import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// All staff routes are protected and for admins only
+// Protect all routes
 router.use(protect);
+
+// Staff Profile Routes (Authenticated Staff can access these)
+import { getStaffByUserId, updateStaffProfile } from '../controllers/staffController.js';
+
+router.get('/profile', getStaffByUserId);
+router.put('/profile', updateStaffProfile);
+
+
+// Admin Management Routes (Admin Only)
 router.use(authorize('admin'));
 
 router

@@ -52,23 +52,38 @@ export const login = asyncHandler(async (req, res) => {
   // Check for user
   const user = await User.findOne({ email }).select('+password');
 
-  if (user && (await user.comparePassword(password))) {
-    res.json({
-      success: true,
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: generateToken(user._id)
-      }
-    });
+  if (user) {
+    console.log(`Login attempt for: ${email}`);
+    console.log(`User found. Role: ${user.role}`);
+    const isMatch = await user.comparePassword(password);
+    console.log(`Password match: ${isMatch}`);
+
+    if (isMatch) {
+      res.json({
+        success: true,
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token: generateToken(user._id)
+        }
+      });
+      return;
+    }
   } else {
+    console.log(`Login failed: User not found for ${email}`);
     res.status(401).json({
       success: false,
-      message: 'Invalid credentials'
+      message: 'Invalid credentials - User not found'
     });
+    return;
   }
+
+  res.status(401).json({
+    success: false,
+    message: 'Invalid credentials - Password mismatch'
+  });
 });
 
 // @desc    Get current logged in user
@@ -116,4 +131,29 @@ export const adminLogin = asyncHandler(async (req, res) => {
       message: 'Invalid credentials'
     });
   }
+});
+
+// @desc    Update password (authenticated user)
+// @route   PUT /api/auth/updatepassword
+// @access  Private
+export const updatePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user.id).select('+password');
+
+  // Check current password
+  if (!(await user.comparePassword(currentPassword))) {
+    return res.status(401).json({
+      success: false,
+      message: 'Incorrect current password'
+    });
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Password updated successfully'
+  });
 });
