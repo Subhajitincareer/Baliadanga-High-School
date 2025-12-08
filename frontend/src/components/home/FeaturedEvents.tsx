@@ -36,24 +36,24 @@ const events = [
 
 const FeaturedEvents = () => {
   return (
-    <section className="py-12 md:py-16">
+    <section className="py-12 md:py-16 bg-gray-50">
       <div className="container">
-        <div className="mb-8 flex items-center justify-between">
-          <h2 className="font-heading text-3xl font-bold text-school-primary">Upcoming Events</h2>
+        <div className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold text-school-primary text-center md:text-left">Upcoming Events</h2>
           <Link to="/events">
             <Button variant="outline" className="border-school-primary text-school-primary hover:bg-school-primary hover:text-white">
               View All Events
             </Button>
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
             <Card key={event.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg">
               <div className="h-48 overflow-hidden">
-                <img 
-                  src={event.image} 
-                  alt={event.title} 
+                <img
+                  src={event.image}
+                  alt={event.title}
                   className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                 />
               </div>
@@ -65,10 +65,10 @@ const FeaturedEvents = () => {
                   <div className="flex items-center">
                     <Calendar size={16} className="mr-2" />
                     <time dateTime={event.date}>
-                      {new Date(event.date).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+                      {new Date(event.date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
                       })}
                     </time>
                   </div>

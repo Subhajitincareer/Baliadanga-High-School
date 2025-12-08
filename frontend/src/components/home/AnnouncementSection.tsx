@@ -44,17 +44,17 @@ const AnnouncementSection = () => {
   }, []);
 
   return (
-    <section className="py-12 md:py-16">
+    <section className="py-12 md:py-16 bg-gray-50">
       <div className="container">
-        <div className="mb-8 flex items-center justify-between">
-          <h2 className="font-heading text-3xl font-bold text-school-primary">Latest Announcements</h2>
+        <div className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold text-school-primary text-center md:text-left">Latest Announcements</h2>
           <Link to="/announcements">
             <Button variant="outline" className="border-school-primary text-school-primary hover:bg-school-primary hover:text-white">
               View All
             </Button>
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {announcements.map((announcement) => (
             <Card key={announcement.id} className="border-t-4 border-t-school-primary transition-all duration-300 hover:shadow-lg">
@@ -62,10 +62,10 @@ const AnnouncementSection = () => {
                 <div className="mb-2 flex items-center text-sm text-muted-foreground">
                   <Calendar size={16} className="mr-1" />
                   <time dateTime={announcement.date}>
-                    {new Date(announcement.date).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date(announcement.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </time>
                 </div>
@@ -76,13 +76,13 @@ const AnnouncementSection = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{announcement.content.length > 120 ? 
+                <p className="text-muted-foreground">{announcement.content.length > 120 ?
                   `${announcement.content.substring(0, 120)}...` : announcement.content}
                 </p>
-                
+
                 {announcement.pdfFile && (
                   <div className="mt-4">
-                    <a 
+                    <a
                       href={announcement.pdfFile.data}
                       download={announcement.pdfFile.name}
                       className="inline-flex items-center rounded-md bg-school-light px-3 py-2 text-sm font-medium text-school-primary hover:bg-school-light/80"

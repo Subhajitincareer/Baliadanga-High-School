@@ -45,10 +45,10 @@ const links = [
 
 const QuickLinksSection = () => {
   return (
-    <section className="bg-gray-50 py-12 md:py-16">
+    <section className="py-12 md:py-16">
       <div className="container">
-        <h2 className="font-heading mb-8 text-center text-3xl font-bold text-school-primary">Quick Links</h2>
-        
+        <h2 className="font-heading mb-8 text-center text-2xl md:text-3xl font-bold text-school-primary">Quick Links</h2>
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {links.map((link, index) => (
             <Link to={link.href} key={index}>

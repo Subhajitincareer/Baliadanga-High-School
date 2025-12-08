@@ -106,8 +106,8 @@ const Navbar = () => {
     return (
       <nav className="sticky top-0 z-50 bg-white shadow-md">
         <div className="container flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-school-primary">Baliadanga High School</span>
+          <Link to="/" className="flex items-center space-x-2 overflow-hidden">
+            <span className="text-lg md:text-xl font-bold text-school-primary truncate">Baliadanga High School</span>
           </Link>
           <Button
             variant="ghost"
@@ -117,18 +117,18 @@ const Navbar = () => {
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </Button>
           {isMobileMenuOpen && (
-            <div className="absolute left-0 right-0 top-16 z-50 animate-fade-in bg-white p-4 shadow-md">
-              <div className="flex flex-col space-y-2">
+            <div className="fixed inset-0 top-16 z-50 animate-in slide-in-from-top-5 bg-white p-4 shadow-md overflow-y-auto">
+              <div className="flex flex-col space-y-4 pb-20">
                 {navigationItems.map((item) =>
                   item.submenu ? (
-                    <div key={item.title} className="space-y-1">
-                      <div className="px-4 py-2 font-medium text-gray-900">{item.title}</div>
-                      <div className="ml-4 border-l border-gray-200 pl-2">
+                    <div key={item.title} className="space-y-2">
+                      <div className="px-4 py-2 font-bold text-lg text-school-primary border-b">{item.title}</div>
+                      <div className="ml-4 grid grid-cols-1 gap-2 pl-2">
                         {item.submenu.map((subItem) => (
                           <Link
                             key={subItem.href}
                             to={subItem.href}
-                            className="block rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                            className="block rounded-md px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-school-primary"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
                             {subItem.title}
@@ -140,24 +140,26 @@ const Navbar = () => {
                     <Link
                       key={item.href}
                       to={item.href}
-                      className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                      className="block rounded-md px-4 py-3 text-lg font-bold text-gray-900 hover:bg-gray-100"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {item.title}
                     </Link>
                   )
                 )}
-                <Link to="/admin" className="mt-2">
-                  <Button className="w-full bg-school-primary hover:bg-school-dark">
-                    Admin Portal
-                  </Button>
-                </Link>
+                <div className="pt-4 space-y-3 px-4">
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="w-full bg-school-primary hover:bg-school-dark py-6 text-lg">
+                      Admin Portal
+                    </Button>
+                  </Link>
 
-                <Link to="/portal" className="mt-2">
-                  <Button className="w-full bg-school-primary hover:bg-school-dark">
-                    Student Portal
-                  </Button>
-                </Link>
+                  <Link to="/portal" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full border-school-primary text-school-primary hover:bg-school-light py-6 text-lg">
+                      Student Portal
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           )}

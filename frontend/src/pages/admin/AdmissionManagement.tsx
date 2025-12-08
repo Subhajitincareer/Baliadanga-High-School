@@ -308,91 +308,93 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
           <CardTitle>Admission Applications</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student Name</TableHead>
-                <TableHead>Applied On</TableHead>
-                <TableHead>Class</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Guardian</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7}>
-                    <div className="flex justify-center py-8">
-                      <LoadingSpinner text="Loading admissions..." />
-                    </div>
-                  </TableCell>
+                  <TableHead>Student Name</TableHead>
+                  <TableHead>Applied On</TableHead>
+                  <TableHead>Class</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Guardian</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : filteredAdmissions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    {searchTerm ? 'No admissions found matching your search.' : 'No admissions found.'}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredAdmissions.map((admission) => (
-                  <TableRow key={admission._id}>
-                    <TableCell className="font-medium">{admission.studentName}</TableCell>
-                    <TableCell>{formatDate(admission.createdAt)}</TableCell>
-                    <TableCell>Class {admission.class}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div>{admission.phoneNumber}</div>
-                        <div className="text-sm text-muted-foreground">{admission.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div>{admission.guardianName}</div>
-                        <div className="text-sm text-muted-foreground">{admission.guardianPhone}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(admission.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleViewDetails(admission._id)}
-                        >
-                          <EyeIcon className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                        {admission.status === 'Pending' && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleOpenApproveModal(admission._id)}
-                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleOpenRejectModal(admission._id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </Button>
-                          </>
-                        )}
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7}>
+                      <div className="flex justify-center py-8">
+                        <LoadingSpinner text="Loading admissions..." />
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : filteredAdmissions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      {searchTerm ? 'No admissions found matching your search.' : 'No admissions found.'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAdmissions.map((admission) => (
+                    <TableRow key={admission._id}>
+                      <TableCell className="font-medium">{admission.studentName}</TableCell>
+                      <TableCell>{formatDate(admission.createdAt)}</TableCell>
+                      <TableCell>Class {admission.class}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div>{admission.phoneNumber}</div>
+                          <div className="text-sm text-muted-foreground">{admission.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div>{admission.guardianName}</div>
+                          <div className="text-sm text-muted-foreground">{admission.guardianPhone}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(admission.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleViewDetails(admission._id)}
+                          >
+                            <EyeIcon className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                          {admission.status === 'Pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleOpenApproveModal(admission._id)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleOpenRejectModal(admission._id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
