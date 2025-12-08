@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import AnnouncementForm, { Announcement } from '@/components/admin/AnnouncementForm';
 
 interface AnnouncementDialogProps {
@@ -9,22 +9,25 @@ interface AnnouncementDialogProps {
   onSuccess: () => void;
 }
 
-export function AnnouncementDialog({ 
-  isOpen, 
-  onOpenChange, 
-  selectedAnnouncement, 
-  onSuccess 
+export function AnnouncementDialog({
+  isOpen,
+  onOpenChange,
+  selectedAnnouncement,
+  onSuccess
 }: AnnouncementDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md md:max-w-lg">
+      <DialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {selectedAnnouncement ? 'Edit Announcement' : 'Create Announcement'}
           </DialogTitle>
+          <DialogDescription>
+            {selectedAnnouncement ? 'Modify the details of the existing announcement below.' : 'Fill in the form below to create a new announcement.'}
+          </DialogDescription>
         </DialogHeader>
-        <AnnouncementForm 
-          announcement={selectedAnnouncement || undefined} 
+        <AnnouncementForm
+          announcement={selectedAnnouncement || undefined}
           onSuccess={onSuccess}
           onCancel={() => onOpenChange(false)}
         />

@@ -13,6 +13,15 @@ export const getAnnouncements = asyncHandler(async (req, res, next) => {
 // @route   POST /api/announcements
 // @access  Private (Admin/Staff)
 export const createAnnouncement = asyncHandler(async (req, res, next) => {
+    // CLOUD STORAGE SETUP GUIDE (Cloudinary Example):
+    // 1. Install 'cloudinary' and 'multer-storage-cloudinary'.
+    // 2. Configure cloudinary in config/cloudinary.js with cloud_name, api_key, api_secret.
+    // 3. Update routes/announcements.js to use the cloud storage engine for multer.
+    // 4. In this controller, if req.file is present::
+    //    // const result = await cloudinary.uploader.upload(req.file.path);
+    //    // req.body.attachments = [{ url: result.secure_url, ... }];
+    // For now, we are using local storage or base64 data string passed in req.body.attachments.
+
     // Add user to body
     req.body.authorId = req.user.id;
     req.body.authorName = req.user.fullName || req.user.name; // Handle potential naming diff

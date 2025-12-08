@@ -23,7 +23,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['@supabase/supabase-js'],
+    include: ['react-is', 'recharts'],
     esbuildOptions: {
       define: {
         global: 'globalThis',
@@ -34,7 +34,7 @@ export default defineConfig({
   define: {
     __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN ?? 'development'),
   },
-  
+
   // Vitest Configuration
   test: {
     globals: true,
