@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { Menu, X } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const navigationItems = [
   {
@@ -99,126 +99,123 @@ const ListItem = React.forwardRef<
 ListItem.displayName = "ListItem";
 
 const Navbar = () => {
-  const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  if (isMobile) {
-    return (
-      <nav className="sticky top-0 z-50 bg-white shadow-md">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center space-x-2 overflow-hidden">
-            <span className="text-lg md:text-xl font-bold text-school-primary truncate">Baliadanga High School</span>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </Button>
-          {isMobileMenuOpen && (
-            <div className="fixed inset-0 top-16 z-50 animate-in slide-in-from-top-5 bg-white p-4 shadow-md overflow-y-auto">
-              <div className="flex flex-col space-y-4 pb-20">
-                {navigationItems.map((item) =>
-                  item.submenu ? (
-                    <div key={item.title} className="space-y-2">
-                      <div className="px-4 py-2 font-bold text-lg text-school-primary border-b">{item.title}</div>
-                      <div className="ml-4 grid grid-cols-1 gap-2 pl-2">
-                        {item.submenu.map((subItem) => (
-                          <Link
-                            key={subItem.href}
-                            to={subItem.href}
-                            className="block rounded-md px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-school-primary"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            {subItem.title}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className="block rounded-md px-4 py-3 text-lg font-bold text-gray-900 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.title}
-                    </Link>
-                  )
-                )}
-                <div className="pt-4 space-y-3 px-4">
-                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-school-primary hover:bg-school-dark py-6 text-lg">
-                      Admin Portal
-                    </Button>
-                  </Link>
-
-                  <Link to="/portal" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full border-school-primary text-school-primary hover:bg-school-light py-6 text-lg">
-                      Student Portal
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
-    );
-  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold text-school-primary">Baliadanga High School</span>
+      <div className="container flex h-16 items-center justify-between px-4">
+        <Link to="/" className="flex items-center space-x-2 overflow-hidden">
+          <span className="text-lg md:text-xl font-bold text-school-primary truncate">Baliadanga High School</span>
         </Link>
-        <NavigationMenu>
-          <NavigationMenuList>
-            {navigationItems.map((item) =>
-              item.submenu ? (
-                <NavigationMenuItem key={item.title}>
-                  <NavigationMenuTrigger className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
-                    {item.title}
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
-                      {item.submenu.map((subItem) => (
-                        <ListItem
-                          key={subItem.href}
-                          title={subItem.title}
-                          href={subItem.href}
-                        >
-                          {subItem.description}
-                        </ListItem>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              ) : (
-                <NavigationMenuItem key={item.href}>
-                  <NavigationMenuLink asChild>
-                    <Link
-                      to={item.href}
-                      className="block px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary"
-                    >
+
+        {/* Mobile Menu Toggle Button - Visible only on mobile */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </Button>
+
+        {/* Desktop Navigation - Hidden on mobile, Flex on Desktop */}
+        <div className="hidden md:flex items-center gap-4">
+          <NavigationMenu>
+            <NavigationMenuList>
+              {navigationItems.map((item) =>
+                item.submenu ? (
+                  <NavigationMenuItem key={item.title}>
+                    <NavigationMenuTrigger className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary">
                       {item.title}
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              )
-            )}
-          </NavigationMenuList>
-        </NavigationMenu>
-        <Link to="/portal">
-          <Button className="bg-school-primary hover:bg-school-dark">
-            Student Portal
-          </Button>
-        </Link>
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
+                        {item.submenu.map((subItem) => (
+                          <ListItem
+                            key={subItem.href}
+                            title={subItem.title}
+                            href={subItem.href}
+                          >
+                            {subItem.description}
+                          </ListItem>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                ) : (
+                  <NavigationMenuItem key={item.href}>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to={item.href}
+                        className="block px-4 py-2 text-sm font-medium text-gray-700 hover:text-school-primary"
+                      >
+                        {item.title}
+                      </Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                )
+              )}
+            </NavigationMenuList>
+          </NavigationMenu>
+          <Link to="/portal">
+            <Button className="bg-school-primary hover:bg-school-dark">
+              Student Portal
+            </Button>
+          </Link>
+        </div>
+
+        {/* Mobile Menu Overlay - conditionally rendered but styled for mobile */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 top-16 z-50 animate-in slide-in-from-top-5 bg-white p-4 shadow-md overflow-y-auto">
+            <div className="flex flex-col space-y-4 pb-20">
+              {navigationItems.map((item) =>
+                item.submenu ? (
+                  <div key={item.title} className="space-y-2">
+                    <div className="px-4 py-2 font-bold text-lg text-school-primary border-b">{item.title}</div>
+                    <div className="ml-4 grid grid-cols-1 gap-2 pl-2">
+                      {item.submenu.map((subItem) => (
+                        <Link
+                          key={subItem.href}
+                          to={subItem.href}
+                          className="block rounded-md px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-school-primary"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          {subItem.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className="block rounded-md px-4 py-3 text-lg font-bold text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.title}
+                  </Link>
+                )
+              )}
+              <div className="pt-4 space-y-3 px-4">
+                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button className="w-full bg-school-primary hover:bg-school-dark py-6 text-lg">
+                    Admin Portal
+                  </Button>
+                </Link>
+
+                <Link to="/portal" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full border-school-primary text-school-primary hover:bg-school-light py-6 text-lg">
+                    Student Portal
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
 };
 
 export default Navbar;
+
