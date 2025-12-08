@@ -494,7 +494,8 @@ class ApiService {
   // Exam & Result Methods
   async getExams(filters?: any): Promise<any[]> {
     // Construct query string if filters exist
-    return this.request<any[]>('/exams');
+    const response = await this.request<{ success: boolean; data: any[] }>('/exams');
+    return response.data;
   }
 
   async getStudents(): Promise<User[]> {
