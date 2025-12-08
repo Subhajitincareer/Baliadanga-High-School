@@ -40,7 +40,11 @@ interface Admission {
   updatedAt: string;
 }
 
-const AdmissionManagement = () => {
+interface AdmissionManagementProps {
+  hideHeader?: boolean;
+}
+
+const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = false }) => {
   const [admissions, setAdmissions] = useState<Admission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAdmissionId, setSelectedAdmissionId] = useState<string | null>(null);
@@ -52,7 +56,7 @@ const AdmissionManagement = () => {
   const [rejectRemarks, setRejectRemarks] = useState('');
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const { isAuthenticated } = useAdmin();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -61,7 +65,7 @@ const AdmissionManagement = () => {
     const verifyAccess = () => {
       const token = localStorage.getItem('token');
       const userRole = localStorage.getItem('userRole');
-      
+
       if (!token || !isAuthenticated) {
         navigate('/admin');
         return;
@@ -120,11 +124,11 @@ const AdmissionManagement = () => {
 
   const handleApproveAdmission = async () => {
     if (!selectedAdmissionId) return;
-    
+
     setIsProcessing(true);
     try {
       await apiService.updateAdmissionStatus(selectedAdmissionId, 'Approved');
-      
+
       // If roll number and remarks are provided, update them too
       if (rollNumber || remarks) {
         const admission = admissions.find(a => a._id === selectedAdmissionId);
@@ -137,12 +141,12 @@ const AdmissionManagement = () => {
           });
         }
       }
-      
+
       toast({
         title: 'Admission Approved',
         description: 'The admission has been successfully approved.',
       });
-      
+
       handleCloseApproveModal();
       await fetchAdmissions();
     } catch (error: any) {
@@ -159,11 +163,11 @@ const AdmissionManagement = () => {
 
   const handleRejectAdmission = async () => {
     if (!selectedAdmissionId) return;
-    
+
     setIsProcessing(true);
     try {
       await apiService.updateAdmissionStatus(selectedAdmissionId, 'Rejected');
-      
+
       // If reject remarks are provided, update them
       if (rejectRemarks) {
         const admission = admissions.find(a => a._id === selectedAdmissionId);
@@ -175,12 +179,12 @@ const AdmissionManagement = () => {
           });
         }
       }
-      
+
       toast({
         title: 'Admission Rejected',
         description: 'The admission has been rejected.',
       });
-      
+
       handleCloseRejectModal();
       await fetchAdmissions();
     } catch (error: any) {
@@ -241,10 +245,12 @@ const AdmissionManagement = () => {
 
   return (
     <div className="container py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Admission Management</h1>
-        <p className="text-muted-foreground">Manage student admission applications</p>
-      </div>
+      {!hideHeader && (
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Admission Management</h1>
+          <p className="text-muted-foreground">Manage student admission applications</p>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -430,9 +436,9 @@ const AdmissionManagement = () => {
             <Button type="button" variant="outline" onClick={handleCloseApproveModal}>
               Cancel
             </Button>
-            <Button 
-              type="button" 
-              onClick={handleApproveAdmission} 
+            <Button
+              type="button"
+              onClick={handleApproveAdmission}
               disabled={isProcessing}
               className="bg-green-600 hover:bg-green-700"
             >
@@ -471,9 +477,9 @@ const AdmissionManagement = () => {
             <Button type="button" variant="outline" onClick={handleCloseRejectModal}>
               Cancel
             </Button>
-            <Button 
-              type="button" 
-              onClick={handleRejectAdmission} 
+            <Button
+              type="button"
+              onClick={handleRejectAdmission}
               disabled={isProcessing || !rejectRemarks.trim()}
               className="bg-red-600 hover:bg-red-700"
             >

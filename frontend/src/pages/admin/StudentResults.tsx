@@ -13,7 +13,11 @@ import { DeleteResultDialog } from '@/components/admin/results/DeleteResultDialo
 // Import your backend StudentResultsType if needed
 import { StudentResultsType } from '@/schemas/studentResult';
 
-const StudentResults = () => {
+interface StudentResultsProps {
+  hideHeader?: boolean;
+}
+
+const StudentResults: React.FC<StudentResultsProps> = ({ hideHeader = false }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedResult, setSelectedResult] = useState<StudentResultsType | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -112,21 +116,25 @@ const StudentResults = () => {
 
   return (
     <div className="container py-8">
-      <DashboardHeader
-        title="Student Results Management"
-        subtitle="View and manage student examination results"
-        onLogout={handleLogout}
-      />
+      {!hideHeader && (
+        <DashboardHeader
+          title="Student Results Management"
+          subtitle="View and manage student examination results"
+          onLogout={handleLogout}
+        />
+      )}
 
-      <div className="my-6">
-        <Button
-          variant="outline"
-          onClick={handleBackToDashboard}
-          className="mb-4"
-        >
-          Back to Dashboard
-        </Button>
-      </div>
+      {!hideHeader && (
+        <div className="my-6">
+          <Button
+            variant="outline"
+            onClick={handleBackToDashboard}
+            className="mb-4"
+          >
+            Back to Dashboard
+          </Button>
+        </div>
+      )}
 
       <StatsSummary
         results={results}

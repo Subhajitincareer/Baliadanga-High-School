@@ -13,6 +13,8 @@ import { StaffManagement } from '@/components/admin/StaffManagement';
 import { BellRing, Users, GraduationCap, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import AdmissionManagement from '@/pages/admin/AdmissionManagement';
+import StudentResults from '@/pages/admin/StudentResults';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,7 +22,7 @@ const Dashboard = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const [activeTab, setActiveTab] = useState('announcements');
-  const {  isAdmin, logout } = useAdmin(); // Use admin context directly
+  const { isAdmin, logout } = useAdmin(); // Use admin context directly
   const navigate = useNavigate();
   const { announcements, isLoading, fetchAnnouncements, handleDeleteAnnouncement } = useAnnouncements();
 
@@ -28,7 +30,7 @@ const Dashboard = () => {
     if (!isAdmin) {
       navigate('/'); // Redirect to login page if not authenticated or not admin
     }
-  }, [ isAdmin, navigate]);
+  }, [isAdmin, navigate]);
 
   const filteredAnnouncements = announcements.filter((announcement) =>
     announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,7 +59,7 @@ const Dashboard = () => {
 
   const handleDeleteConfirm = async () => {
     if (!selectedAnnouncement) return;
-    
+
     const success = await handleDeleteAnnouncement(selectedAnnouncement);
     if (success) {
       setIsDeleteDialogOpen(false);
@@ -77,7 +79,7 @@ const Dashboard = () => {
   const handleAdmissionsClick = () => {
     navigate('/admin/admissions');
   };
-  
+
   const handleResultsClick = () => {
     navigate('/admin/results');
   };
@@ -87,78 +89,113 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container py-8">
-      <DashboardHeader 
-        title="School Administration" 
-        subtitle="Manage content for the school website" 
-        onLogout={handleLogout}
-      />
+    <div className="flex h-screen bg-gray-100/40">
+      {/* Sidebar - using TabsList logic but purely visual here as part of main layout */}
+      <div className="hidden border-r bg-white md:block md:w-64 lg:w-72">
+        <div className="flex h-16 items-center border-b px-6">
+          <span className="font-bold text-lg text-school-primary">Admin Portal</span>
+        </div>
+        <div className="flex-1 overflow-auto py-4">
+          <Tabs defaultValue="announcements" value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="w-full">
+            <TabsList className="flex h-full flex-col items-start justify-start space-y-1 bg-transparent p-4">
+              <TabsTrigger
+                value="announcements"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <BellRing className="mr-2 h-4 w-4" />
+                Announcements
+              </TabsTrigger>
+              <TabsTrigger
+                value="staff"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Staff Directory
+              </TabsTrigger>
+              <TabsTrigger
+                value="admissions"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <GraduationCap className="mr-2 h-4 w-4" />
+                Admissions
+              </TabsTrigger>
+              <TabsTrigger
+                value="results"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <Award className="mr-2 h-4 w-4" />
+                Student Results
+              </TabsTrigger>
+            </TabsList>
 
-      <div className="mt-6 mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Button
-          variant="outline"
-          className="h-24 flex flex-col items-center justify-center gap-2"
-          onClick={() => setActiveTab('announcements')}
-        >
-          <BellRing className="h-6 w-6 text-primary" />
-          <span>Manage Announcements</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-24 flex flex-col items-center justify-center gap-2"
-          onClick={() => setActiveTab('staff')}
-        >
-          <Users className="h-6 w-6 text-primary" />
-          <span>Manage Staff</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-24 flex flex-col items-center justify-center gap-2"
-          onClick={handleAdmissionsClick}
-        >
-          <GraduationCap className="h-6 w-6 text-primary" />
-          <span>Manage Admissions</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-24 flex flex-col items-center justify-center gap-2"
-          onClick={handleResultsClick}
-        >
-          <Award className="h-6 w-6 text-primary" />
-          <span>Student Results</span>
-        </Button>
+            {/* Hidden content area in sidebar - we render content in main area */}
+          </Tabs>
+        </div>
+        <div className="border-t p-4">
+          <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
+            Log out
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="announcements" value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="mb-8 grid w-full grid-cols-2">
-          <TabsTrigger value="announcements" className="flex items-center justify-center">
-            <BellRing className="mr-2 h-4 w-4" />
-            <span>Announcements</span>
-          </TabsTrigger>
-          <TabsTrigger value="staff" className="flex items-center justify-center">
-            <Users className="mr-2 h-4 w-4" />
-            <span>Staff Directory</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="announcements" className="mt-0">
-          <AnnouncementToolbar 
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-            onCreateClick={handleCreateClick}
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Mobile Header */}
+        <header className="flex h-16 items-center border-b bg-white px-6 md:hidden">
+          <span className="font-bold text-lg">Admin Portal</span>
+          <div className="ml-auto">
+            {/* Mobile menu could go here */}
+          </div>
+        </header>
+
+        {/* Scrollable Content */}
+        <main className="flex-1 overflow-y-auto p-8">
+          <DashboardHeader
+            title={
+              activeTab === 'announcements' ? 'Manage Announcements' :
+                activeTab === 'staff' ? 'Manage Staff' :
+                  activeTab === 'admissions' ? 'Admission Applications' :
+                    'Student Results'
+            }
+            subtitle={
+              activeTab === 'announcements' ? 'Create and manage school announcements' :
+                activeTab === 'staff' ? 'Manage teacher and staff profiles' :
+                  activeTab === 'admissions' ? 'Review and process admission requests' :
+                    'Manage examination results and reports'
+            }
+            showLogout={false} // We have logout in sidebar
           />
 
-          <AnnouncementTable 
-            announcements={filteredAnnouncements} 
-            onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
-          />
-        </TabsContent>
-        
-        <TabsContent value="staff" className="mt-0">
-          <StaffManagement />
-        </TabsContent>
-      </Tabs>
+          <Tabs value={activeTab} className="mt-6 space-y-4 border-none">
+            <TabsContent value="announcements" className="space-y-4 border-none p-0 outline-none">
+              <AnnouncementToolbar
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                onCreateClick={handleCreateClick}
+              />
+              <AnnouncementTable
+                announcements={filteredAnnouncements}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+              />
+            </TabsContent>
+
+            <TabsContent value="staff" className="space-y-4 border-none p-0 outline-none">
+              <StaffManagement />
+            </TabsContent>
+
+            <TabsContent value="admissions" className="space-y-4 border-none p-0 outline-none">
+              {/* @ts-ignore */}
+              <AdmissionManagement hideHeader={true} />
+            </TabsContent>
+
+            <TabsContent value="results" className="space-y-4 border-none p-0 outline-none">
+              {/* @ts-ignore */}
+              <StudentResults hideHeader={true} />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
 
       <AnnouncementDialog
         isOpen={isFormOpen}
