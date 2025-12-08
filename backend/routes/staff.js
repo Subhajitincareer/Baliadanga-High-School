@@ -11,6 +11,10 @@ import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
+
+// Public Staff Directory Route
+router.get('/directory', getStaff);
+
 // Protect all routes
 router.use(protect);
 
@@ -20,10 +24,6 @@ import { getStaffByUserId, updateStaffProfile } from '../controllers/staffContro
 router.get('/profile', getStaffByUserId);
 router.put('/profile', updateStaffProfile);
 
-
-// Public Staff Directory Route
-import { getStaff } from '../controllers/staffController.js';
-router.get('/directory', getStaff);
 
 // Admin Management Routes (Admin Only)
 router.use(authorize('admin'));

@@ -1,25 +1,28 @@
 import User from '../models/User.js';
+import AdminWhitelist from '../models/AdminWhitelist.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 
 // @desc    Check if email is in whitelist (is an admin)
 // @route   GET /api/admin/whitelist/:email
-// @access  Public (Used for pre-login check)
+// @access  Public
 export const checkWhitelist = asyncHandler(async (req, res) => {
-    const email = req.params.email;
-
-    const user = await User.findOne({ email });
-
-    if (user && user.role === 'admin') {
-        res.json({
-            success: true,
-            isAdmin: true
-        });
-    } else {
-        // Return success: true but isAdmin: false so frontend knows it's not an admin
-        // This isn't an error, just a negative result
-        res.json({
-            success: true,
-            isAdmin: false
-        });
+    try {
+        const { email } = req.params;
+        const entry = await AdminWhitelist.findOne({ email: email.toLowerCase() });
+        res.status(200).json({ isAdmin: !!entry });
+    } catch (error) {
+        res.status(500).json({ message: 'Server check failed' });
     }
 });
+
+// @desc    Get all students
+// @route   GET /api/admin/students
+// @access  Private (Admin/Teacher)
+export const getStudents = async (req, res) => {
+    try {
+        const users = await User.find({ role: 'student' }).select('-password');
+        res.status(200).json({ success: true, count: users.length, data: users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};

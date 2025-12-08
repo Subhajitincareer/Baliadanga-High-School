@@ -414,7 +414,7 @@ class ApiService {
 
   // Check if email is admin (whitelist)
   async checkAdminWhitelist(email: string): Promise<{ isAdmin: boolean }> {
-    return this.request(`/admin/whitelist/${encodeURIComponent(email)}`);
+    return this.request(`/admin/whitelist/${encodeURIComponent(email)}?_t=${Date.now()}`);
   }
 
   // Resource Methods
@@ -488,6 +488,41 @@ class ApiService {
     return this.request<ApiResponse>('/auth/updatepassword', {
       method: 'PUT',
       body: JSON.stringify(passwordData),
+    });
+  }
+
+  // Exam & Result Methods
+  async getExams(filters?: any): Promise<any[]> {
+    // Construct query string if filters exist
+    return this.request<any[]>('/exams');
+  }
+
+  async getStudents(): Promise<User[]> {
+    const response = await this.request<{ success: boolean; data: User[] }>('/admin/students');
+    return response.data;
+  }
+
+  async createExam(examData: any): Promise<any> {
+    return this.request<any>('/exams', {
+      method: 'POST',
+      body: JSON.stringify(examData),
+    });
+  }
+
+  async updateMarks(data: { studentId: string; examId: string; marks: any }): Promise<any> {
+    return this.request<any>('/results/marks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getExamResults(examId: string): Promise<any[]> {
+    return this.request<any[]>(`/results/exam/${examId}`);
+  }
+
+  async publishResult(examId: string): Promise<any> {
+    return this.request<any>(`/results/publish/${examId}`, {
+      method: 'POST'
     });
   }
 }

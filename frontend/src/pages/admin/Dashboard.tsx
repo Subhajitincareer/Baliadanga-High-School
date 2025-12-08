@@ -10,11 +10,13 @@ import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementD
 import { useAnnouncements } from '@/hooks/use-announcements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StaffManagement } from '@/components/admin/StaffManagement';
-import { BellRing, Users, GraduationCap, Award } from 'lucide-react';
+import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
 import StudentResults from '@/pages/admin/StudentResults';
+import ExamManagement from '@/pages/admin/ExamManagement';
+import MarksEntry from '@/pages/admin/MarksEntry';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
 import { EventManagement } from '@/components/admin/EventManagement';
 import { FileText, Calendar as CalendarIcon } from 'lucide-react'; // Import icon for sidebar
@@ -130,6 +132,20 @@ const Dashboard = () => {
                 Student Results
               </TabsTrigger>
               <TabsTrigger
+                value="exams"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                Manage Exams
+              </TabsTrigger>
+              <TabsTrigger
+                value="marks"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <PenTool className="mr-2 h-4 w-4" />
+                Marks Entry
+              </TabsTrigger>
+              <TabsTrigger
                 value="calendar"
                 className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
               >
@@ -213,6 +229,14 @@ const Dashboard = () => {
             <TabsContent value="results" className="space-y-4 border-none p-0 outline-none">
               {/* @ts-ignore */}
               <StudentResults hideHeader={true} />
+            </TabsContent>
+
+            <TabsContent value="exams" className="space-y-4 border-none p-0 outline-none">
+              <ExamManagement />
+            </TabsContent>
+
+            <TabsContent value="marks" className="space-y-4 border-none p-0 outline-none">
+              <MarksEntry />
             </TabsContent>
 
             <TabsContent value="calendar" className="space-y-4 border-none p-0 outline-none">

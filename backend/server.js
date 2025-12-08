@@ -6,14 +6,16 @@ import connectDB from './config/db.js';
 import errorHandler from './middlewares/errorHandler.js';
 
 // Route files
-import auth from './routes/auth.js';
+import authRoutes from './routes/auth.js';
 import items from './routes/items.js';
 import admin from './routes/admin.js';
-import resources from './routes/resources.js';
-import admissions from './routes/admissions.js';
-import announcements from './routes/announcements.js';
+import resourceRoutes from './routes/resources.js';
+import admissionRoutes from './routes/admissions.js';
+import announcementRoutes from './routes/announcements.js';
 import calendar from './routes/calendar.js'; // Import calendar routes
-import staff from './routes/staff.js'; // Import staff routes
+import staffRoutes from './routes/staff.js'; // Import staff routes
+import examRoutes from './routes/exam.js';
+import resultRoutes from './routes/results.js';
 
 // Load env vars
 dotenv.config();
@@ -39,14 +41,17 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Mount routers
-app.use('/api/auth', auth);
+// Mount routers
+app.use('/api/auth', authRoutes);
 app.use('/api/items', items);
 app.use('/api/admin', admin);
-app.use('/api/resources', resources);
-app.use('/api/admissions', admissions);
-app.use('/api/announcements', announcements);
-app.use('/api/calendar', calendar); // Mount calendar routes
-app.use('/api/staff', staff); // Mount staff routes
+app.use('/api/resources', resourceRoutes);
+app.use('/api/admissions', admissionRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/calendar', calendar);
+app.use('/api/staff', staffRoutes);
+app.use('/api/exams', examRoutes);
+app.use('/api/results', resultRoutes);
 
 // Serve static assets (uploads)
 import path from 'path';
