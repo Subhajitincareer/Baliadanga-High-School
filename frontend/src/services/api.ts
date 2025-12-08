@@ -277,6 +277,11 @@ class ApiService {
     return response.data;
   }
 
+  async getPublicStaffDirectory(): Promise<Staff[]> {
+    const response = await this.request<{ success: boolean; data: Staff[] }>('/staff/directory');
+    return response.data;
+  }
+
   async createStaff(staffData: Staff): Promise<Staff> {
     return this.request<Staff>('/staff', {
       method: 'POST',

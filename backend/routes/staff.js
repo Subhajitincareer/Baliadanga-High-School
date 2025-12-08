@@ -21,6 +21,10 @@ router.get('/profile', getStaffByUserId);
 router.put('/profile', updateStaffProfile);
 
 
+// Public Staff Directory Route
+import { getStaff } from '../controllers/staffController.js';
+router.get('/directory', getStaff);
+
 // Admin Management Routes (Admin Only)
 router.use(authorize('admin'));
 
