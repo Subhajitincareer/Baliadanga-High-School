@@ -16,7 +16,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
 import StudentResults from '@/pages/admin/StudentResults';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
-import { FileText } from 'lucide-react'; // Import icon for sidebar
+import { EventManagement } from '@/components/admin/EventManagement';
+import { FileText, Calendar as CalendarIcon } from 'lucide-react'; // Import icon for sidebar
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -129,6 +130,13 @@ const Dashboard = () => {
                 Student Results
               </TabsTrigger>
               <TabsTrigger
+                value="calendar"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                Academic Calendar
+              </TabsTrigger>
+              <TabsTrigger
                 value="resources"
                 className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
               >
@@ -163,7 +171,7 @@ const Dashboard = () => {
             title={
               activeTab === 'announcements' ? 'Manage Announcements' :
                 activeTab === 'staff' ? 'Manage Staff' :
-                  activeTab === 'admissions' ? 'Admission Applications' :
+                  activeTab === 'calendar' ? 'Calendar Events' :
                     activeTab === 'resources' ? 'Resource Management' :
                       'Student Results'
             }
@@ -171,9 +179,11 @@ const Dashboard = () => {
               activeTab === 'announcements' ? 'Create and manage school announcements' :
                 activeTab === 'staff' ? 'Manage teacher and staff profiles' :
                   activeTab === 'admissions' ? 'Review and process admission requests' :
-                    activeTab === 'resources' ? 'Upload policies, forms, and other documents' :
-                      'Manage examination results and reports'
+                    activeTab === 'calendar' ? 'Manage academic calendar events and holidays' :
+                      activeTab === 'resources' ? 'Upload policies, forms, and other documents' :
+                        'Manage examination results and reports'
             }
+            onLogout={handleLogout}
             showLogout={false} // We have logout in sidebar
           />
 
@@ -205,12 +215,16 @@ const Dashboard = () => {
               <StudentResults hideHeader={true} />
             </TabsContent>
 
+            <TabsContent value="calendar" className="space-y-4 border-none p-0 outline-none">
+              <EventManagement />
+            </TabsContent>
+
             <TabsContent value="resources" className="space-y-4 border-none p-0 outline-none">
               <ResourceManagement hideHeader={true} />
             </TabsContent>
           </Tabs>
         </main>
-      </div>
+      </div >
 
       <AnnouncementDialog
         isOpen={isFormOpen}
@@ -225,7 +239,7 @@ const Dashboard = () => {
         selectedAnnouncement={selectedAnnouncement}
         onConfirm={handleDeleteConfirm}
       />
-    </div>
+    </div >
   );
 };
 

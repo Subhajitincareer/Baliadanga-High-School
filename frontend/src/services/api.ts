@@ -167,6 +167,22 @@ export interface Resource {
   createdAt?: string;
 }
 
+// Calendar Event Interface
+export interface CalendarEvent {
+  _id?: string;
+  title: string;
+  date: string | Date;
+  type: 'HOLIDAY' | 'EXAM' | 'ACTIVITY' | 'MEETING' | 'TERM';
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  startDate?: string | Date;
+  endDate?: string | Date;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // API Service Class
 class ApiService {
   private async request<T = unknown>(
@@ -412,6 +428,31 @@ class ApiService {
   async deleteResource(id: string): Promise<ApiResponse> {
     return this.request<ApiResponse>(`/resources/${id}`, {
       method: 'DELETE'
+    });
+  }
+
+  // Calendar Methods
+  async getEvents(): Promise<CalendarEvent[]> {
+    return this.request<CalendarEvent[]>('/calendar');
+  }
+
+  async createEvent(eventData: Partial<CalendarEvent>): Promise<CalendarEvent> {
+    return this.request<CalendarEvent>('/calendar', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async updateEvent(id: string, eventData: Partial<CalendarEvent>): Promise<CalendarEvent> {
+    return this.request<CalendarEvent>(`/calendar/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async deleteEvent(id: string): Promise<ApiResponse> {
+    return this.request<ApiResponse>(`/calendar/${id}`, {
+      method: 'DELETE',
     });
   }
 

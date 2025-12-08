@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Card,
@@ -6,25 +6,70 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+}
+  from '@/components/ui/card';
 import { CalendarIcon } from 'lucide-react';
 
-import { generateEvents } from '@/components/calendar/EventTypes';
+import { EVENT_TYPES } from '@/components/calendar/EventTypes'; // Still use EVENT_TYPES for color mapping
 import CalendarDayComponent from '@/components/calendar/CalendarDayComponent';
 import EventDetailCard from '@/components/calendar/EventDetailCard';
 import MonthlyEventsList from '@/components/calendar/MonthlyEventsList';
 import AcademicYearDates from '@/components/calendar/AcademicYearDates';
 
-// Import DayPickerDayProps type if possible from react-day-picker for better typing
 import type { DayProps } from 'react-day-picker';
+import apiService, { CalendarEvent as ApiCalendarEvent } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
+
+// Helper to map API event to component event structure
+const mapApiEventToCalendarEvent = (apiEvent: ApiCalendarEvent) => {
+  const typeKey = apiEvent.type as keyof typeof EVENT_TYPES;
+  const eventType = EVENT_TYPES[typeKey] || EVENT_TYPES.ACTIVITY; // Fallback
+
+  return {
+    date: new Date(apiEvent.date),
+    title: apiEvent.title,
+    type: eventType,
+    description: apiEvent.description,
+    startTime: apiEvent.startTime,
+    endTime: apiEvent.endTime,
+    endDate: apiEvent.endDate // Pass through end date
+  };
+};
 
 const AcademicCalendar: React.FC = () => {
-  const events = generateEvents();
+  const [events, setEvents] = useState<any[]>([]); // Using any[] to match specific local interfaces if needed, or map properly
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [filter, setFilter] = useState<string>('all');
+
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiService.getEvents();
+      // data might be array or { data: [] }
+      const eventsList = Array.isArray(data) ? data : (data as any).data || [];
+
+      const mappedEvents = eventsList.map(mapApiEventToCalendarEvent);
+      setEvents(mappedEvents);
+    } catch (error) {
+      console.error('Failed to fetch calendar events', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load calendar events.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   const handleMonthChange = (month: Date) => {
     setSelectedMonth(month.getMonth());
@@ -106,7 +151,7 @@ const AcademicCalendar: React.FC = () => {
 
       {/* Academic Year Dates Section */}
       <section className="mt-16">
-        <AcademicYearDates />
+        <AcademicYearDates events={events} />
       </section>
     </div>
   );
