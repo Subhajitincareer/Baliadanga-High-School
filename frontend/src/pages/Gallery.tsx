@@ -23,7 +23,7 @@ const galleryData = {
     { id: 12, src: "https://images.unsplash.com/photo-1511578194003-00c80e42dc9b?ixlib=rb-4.0.3&w=800&h=600&q=80", caption: "Teachers' Day" },
   ],
   "Activities": [
-    { id: 13, src: "https://images.unsplash.com/photo-1564979395767-48a39669d389?ixlib=rb-4.0.3&w=800&h=600&q=80", caption: "Art Class" },
+    { id: 13, src: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&w=800&h=600&q=80", caption: "Art Class" },
     { id: 14, src: "https://images.unsplash.com/photo-1550305080-4e029753abcf?ixlib=rb-4.0.3&w=800&h=600&q=80", caption: "Music Class" },
     { id: 15, src: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&w=800&h=600&q=80", caption: "Computer Class" },
     { id: 16, src: "https://images.unsplash.com/photo-1589998059171-988d887df646?ixlib=rb-4.0.3&w=800&h=600&q=80", caption: "Science Lab Activities" },

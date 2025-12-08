@@ -15,7 +15,7 @@ const events = [
     location: "School Auditorium",
     category: "Academic",
     description: "Showcasing innovative science projects by our students across all grades. Parents and community members are invited to view the exhibits and support our young scientists.",
-    image: "https://images.unsplash.com/photo-1564979395767-48a39669d389?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+    image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
   },
   {
     id: 2,
@@ -25,7 +25,7 @@ const events = [
     location: "School Playground",
     category: "Sports",
     description: "Annual cricket tournament featuring top schools from the district. Come cheer for our team as they compete for the district championship!",
-    image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1467&q=80"
+    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
   },
   {
     id: 3,
@@ -72,22 +72,22 @@ const events = [
 const Events = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  
+
   const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                       event.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || event.category === categoryFilter;
-    
+
     return matchesSearch && matchesCategory;
   });
-  
+
   return (
     <div className="container py-8">
       <div className="mb-8">
         <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">Events Calendar</h1>
         <p className="text-lg text-muted-foreground">Stay updated with all the events and important dates at Baliadanga High School</p>
       </div>
-      
+
       <div className="mb-8 flex flex-col gap-4 md:flex-row">
         <div className="flex-1">
           <SearchInput
@@ -113,14 +113,14 @@ const Events = () => {
           </Select>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredEvents.map((event) => (
           <Card key={event.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg">
             <div className="h-48 overflow-hidden">
-              <img 
-                src={event.image} 
-                alt={event.title} 
+              <img
+                src={event.image}
+                alt={event.title}
                 className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
               />
             </div>
@@ -135,10 +135,10 @@ const Events = () => {
                 <div className="flex items-center">
                   <CalendarIcon size={16} className="mr-2" />
                   <time dateTime={event.date}>
-                    {new Date(event.date).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date(event.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </time>
                 </div>
@@ -161,14 +161,14 @@ const Events = () => {
           </Card>
         ))}
       </div>
-      
+
       {filteredEvents.length === 0 && (
         <div className="mt-8 rounded-lg bg-gray-50 p-8 text-center">
           <p className="text-lg text-gray-600">No events found matching your search criteria.</p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="mt-4 border-school-primary text-school-primary hover:bg-school-primary hover:text-white"
-            onClick={() => {setSearchTerm(''); setCategoryFilter('all');}}
+            onClick={() => { setSearchTerm(''); setCategoryFilter('all'); }}
           >
             Reset Filters
           </Button>

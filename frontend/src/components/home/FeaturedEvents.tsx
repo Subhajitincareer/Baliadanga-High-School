@@ -12,7 +12,7 @@ const events = [
     time: "9:00 AM - 4:00 PM",
     location: "School Auditorium",
     description: "Showcasing innovative science projects by our students across all grades",
-    image: "https://images.unsplash.com/photo-1564979395767-48a39669d389?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+    image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ const events = [
     time: "10:00 AM - 5:00 PM",
     location: "School Playground",
     description: "Annual cricket tournament featuring top schools from the district",
-    image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1467&q=80"
+    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
   },
   {
     id: 3,
