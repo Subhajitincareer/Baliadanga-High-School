@@ -264,9 +264,17 @@ class ApiService {
     });
   }
 
+  async updateAdmission(id: string, admissionData: Partial<Admission>): Promise<Admission> {
+    return this.request<Admission>(`/admissions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(admissionData),
+    });
+  }
+
   // Staff Methods
   async getStaff(): Promise<Staff[]> {
-    return this.request<Staff[]>('/staff');
+    const response = await this.request<{ success: boolean; data: Staff[] }>('/staff');
+    return response.data;
   }
 
   async createStaff(staffData: Staff): Promise<Staff> {
@@ -382,13 +390,6 @@ class ApiService {
       headers: {
         // Don't set Content-Type for FormData, let browser set it with boundary
       },
-    });
-  }
-
-  async updateAdmission(id: string, admissionData: Partial<Admission>): Promise<Admission> {
-    return this.request<Admission>(`/admissions/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(admissionData),
     });
   }
 

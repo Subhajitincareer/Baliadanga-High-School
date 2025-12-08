@@ -13,6 +13,7 @@ import resources from './routes/resources.js';
 import admissions from './routes/admissions.js';
 import announcements from './routes/announcements.js';
 import calendar from './routes/calendar.js'; // Import calendar routes
+import staff from './routes/staff.js'; // Import staff routes
 
 // Load env vars
 dotenv.config();
@@ -45,6 +46,7 @@ app.use('/api/resources', resources);
 app.use('/api/admissions', admissions);
 app.use('/api/announcements', announcements);
 app.use('/api/calendar', calendar); // Mount calendar routes
+app.use('/api/staff', staff); // Mount staff routes
 
 // Serve static assets (uploads)
 import path from 'path';
