@@ -15,7 +15,9 @@ export function useAnnouncements() {
       // Optional: Process the data if your MongoDB model uses _id
       const processedData: Announcement[] = data.map((item: any) => ({
         ...item,
-        id: item._id || item.id, // Compatible with both id and _id
+        _id: item._id || item.id,
+        category: item.category || item.type || 'General', // Fallback to ensure category exists
+        publishDate: item.publishDate || item.date || new Date().toISOString(),
         pdfFile:
           item.pdf_url || item.pdfFile
             ? typeof item.pdf_url === 'string'
@@ -48,11 +50,11 @@ export function useAnnouncements() {
 
   const handleDeleteAnnouncement = async (announcement: Announcement) => {
     try {
-      await apiService.deleteAnnouncement(announcement.id || announcement._id);
+      await apiService.deleteAnnouncement(announcement._id!);
 
       // Update local state
       const updated = announcements.filter(
-        a => (a.id || a._id) !== (announcement.id || announcement._id)
+        a => a._id !== announcement._id
       );
       setAnnouncements(updated);
 

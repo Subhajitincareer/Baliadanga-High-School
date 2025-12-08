@@ -35,9 +35,9 @@ const Dashboard = () => {
   }, [isAdmin, navigate]);
 
   const filteredAnnouncements = announcements.filter((announcement) =>
-    announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    announcement.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    announcement.type.toLowerCase().includes(searchTerm.toLowerCase())
+    announcement.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    announcement.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    announcement.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

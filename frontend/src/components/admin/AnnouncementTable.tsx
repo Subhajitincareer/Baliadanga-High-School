@@ -32,27 +32,26 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
         <TableHeader>
           <TableRow>
             <TableHead>Title</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>Category</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>PDF</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {announcements.map((announcement) => (
-            <TableRow key={announcement.id}>
+          {announcements.map((announcement, index) => (
+            <TableRow key={announcement._id || index}>
               <TableCell className="font-medium">{announcement.title}</TableCell>
               <TableCell>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                  announcement.type === "Event" 
-                    ? "bg-blue-100 text-blue-800" 
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${announcement.category === "Event"
+                    ? "bg-blue-100 text-blue-800"
                     : "bg-amber-100 text-amber-800"
-                }`}>
-                  {announcement.type}
+                  }`}>
+                  {announcement.category}
                 </span>
               </TableCell>
               <TableCell>
-                {new Date(announcement.date).toLocaleDateString('en-US', {
+                {new Date(announcement.publishDate).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
@@ -60,7 +59,7 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
               </TableCell>
               <TableCell>
                 {announcement.pdfFile ? (
-                  <a 
+                  <a
                     href={announcement.pdfFile.data}
                     download={announcement.pdfFile.name}
                     className="flex items-center text-blue-600 hover:text-blue-800"

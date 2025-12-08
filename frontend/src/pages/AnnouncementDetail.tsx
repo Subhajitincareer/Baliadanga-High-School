@@ -18,41 +18,53 @@ const AnnouncementDetail = () => {
     const fetchAnnouncement = () => {
       setLoading(true);
       const storedAnnouncements = localStorage.getItem('announcements');
-      
+
       if (storedAnnouncements) {
         const announcements: Announcement[] = JSON.parse(storedAnnouncements);
-        const foundAnnouncement = announcements.find(a => a.id === id);
-        
+        const foundAnnouncement = announcements.find(a => a._id === id);
+
         if (foundAnnouncement) {
           setAnnouncement(foundAnnouncement);
         }
       } else {
         // Try to find in default announcements (for demo purposes)
-        const defaultAnnouncements = [
+        const defaultAnnouncements: Announcement[] = [
           {
-            id: "1",
+            _id: "1",
             title: "Annual Sports Day",
-            date: "2025-04-15",
-            type: "Event" as const,
-            content: "The annual sports day will be held on April 15th. All students are encouraged to participate in various sports activities. Parents are invited to attend and support their children. Please ensure your child wears appropriate sports attire on the day."
+            publishDate: "2025-04-15",
+            category: "Event",
+            content: "The annual sports day will be held on April 15th. All students are encouraged to participate in various sports activities. Parents are invited to attend and support their children. Please ensure your child wears appropriate sports attire on the day.",
+            targetAudience: "All",
+            priority: "Medium",
+            authorId: "1",
+            authorName: "Admin"
           },
           {
-            id: "2",
+            _id: "2",
             title: "Parent-Teacher Meeting",
-            date: "2025-04-20",
-            type: "Notice" as const,
-            content: "Parent-teacher meeting for all classes will be held on April 20th from 10:00 AM to 2:00 PM. Parents are requested to attend without fail to discuss their child's academic progress. Please bring the student diary and progress report."
+            publishDate: "2025-04-20",
+            category: "General",
+            content: "Parent-teacher meeting for all classes will be held on April 20th from 10:00 AM to 2:00 PM. Parents are requested to attend without fail to discuss their child's academic progress. Please bring the student diary and progress report.",
+            targetAudience: "Parents",
+            priority: "High",
+            authorId: "1",
+            authorName: "Admin"
           },
           {
-            id: "3",
+            _id: "3",
             title: "Science Exhibition",
-            date: "2025-05-05",
-            type: "Event" as const,
-            content: "Science exhibition for classes 8-10 will be organized on May 5th. Students should submit their project proposals by April 25th. The theme for this year's exhibition is 'Sustainable Development and Innovation'."
+            publishDate: "2025-05-05",
+            category: "Event",
+            content: "Science exhibition for classes 8-10 will be organized on May 5th. Students should submit their project proposals by April 25th. The theme for this year's exhibition is 'Sustainable Development and Innovation'.",
+            targetAudience: "Students",
+            priority: "Medium",
+            authorId: "1",
+            authorName: "Admin"
           }
         ];
-        
-        const foundAnnouncement = defaultAnnouncements.find(a => a.id === id);
+
+        const foundAnnouncement = defaultAnnouncements.find(a => a._id === id);
         if (foundAnnouncement) {
           setAnnouncement(foundAnnouncement);
         }
@@ -116,29 +128,29 @@ const AnnouncementDetail = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar size={16} className="mr-1" />
-              <time dateTime={announcement.date}>
-                {new Date(announcement.date).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+              <time dateTime={announcement.publishDate}>
+                {new Date(announcement.publishDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </time>
             </div>
             <div className="inline-flex items-center rounded-full bg-school-light px-2.5 py-1 text-xs font-semibold text-school-primary">
               <Bell size={12} className="mr-1" />
-              {announcement.type}
+              {announcement.category}
             </div>
           </div>
           <CardTitle className="text-3xl">{announcement.title}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="prose max-w-none">
-            <p className="text-lg text-foreground leading-relaxed">{announcement.content}</p>
+            <div dangerouslySetInnerHTML={{ __html: announcement.content }} className="text-lg text-foreground leading-relaxed" />
           </div>
-          
+
           {announcement.pdfFile && (
             <div className="pt-4">
-              <a 
+              <a
                 href={announcement.pdfFile.data}
                 download={announcement.pdfFile.name}
                 className="inline-flex items-center rounded-md bg-school-light px-4 py-2 text-sm font-medium text-school-primary hover:bg-school-light/80"
@@ -148,7 +160,7 @@ const AnnouncementDetail = () => {
               </a>
             </div>
           )}
-          
+
           <div className="pt-6 border-t">
             <Link to="/announcements">
               <Button variant="outline">
