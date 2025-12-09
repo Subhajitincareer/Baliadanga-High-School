@@ -8,6 +8,7 @@ type StaffContextType = {
     user: User | null;
     login: (email: string, password: string) => Promise<boolean>;
     logout: () => void;
+    hasPermission: (permission: string) => boolean;
 };
 
 const StaffContext = createContext<StaffContextType | undefined>(undefined);
@@ -111,8 +112,14 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         maybeSession();
     }, []);
 
+    const hasPermission = (permission: string): boolean => {
+        if (!user) return false;
+        if (user.role === 'admin' || user.role === 'principal') return true; // Admins have all permissions
+        return user.permissions?.includes(permission) || false;
+    };
+
     return (
-        <StaffContext.Provider value={{ isStaff, user, login, logout }}>
+        <StaffContext.Provider value={{ isStaff, user, login, logout, hasPermission }}>
             {children}
         </StaffContext.Provider>
     );

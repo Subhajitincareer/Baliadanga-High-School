@@ -13,6 +13,7 @@ import StudentResults from "@/pages/admin/StudentResults";
 import StudentManagement from '@/pages/admin/StudentManagement';
 import StudentDetail from '@/pages/admin/StudentDetail';
 import AddStudent from '@/pages/admin/AddStudent';
+import PrintableAdmissionForm from '@/pages/admin/PrintableAdmissionForm';
 
 import ResultDisplay from "@/pages/ResultDisplay";
 import Announcements from "@/pages/Announcements";
@@ -117,6 +118,14 @@ const App: FC = () => {
               element={
                 <ProtectedRoute>
                   <StudentDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/print-admission-form"
+              element={
+                <ProtectedRoute>
+                  <PrintableAdmissionForm />
                 </ProtectedRoute>
               }
             />

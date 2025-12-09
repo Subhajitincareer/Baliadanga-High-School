@@ -33,7 +33,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin', 'teacher', 'principal', 'vice_principal', 'coordinator', 'staff', 'student'],
     default: 'user'
-  }
+  },
+  permissions: [{
+    type: String,
+    enum: ['MANAGE_ADMISSION', 'MANAGE_FEES', 'MANAGE_RESULTS', 'TAKE_ATTENDANCE', 'MANAGE_RESOURCES']
+  }]
 }, {
   timestamps: true
 });

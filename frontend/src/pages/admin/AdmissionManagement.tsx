@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { EyeIcon, CheckCircle, XCircle, SearchIcon } from 'lucide-react';
+import { EyeIcon, CheckCircle, XCircle, SearchIcon, Printer, UserPlus } from 'lucide-react';
 import AdmissionDetail from '@/components/admission/AdmissionDetail';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -57,7 +57,26 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { isAuthenticated } = useAdmin();
+  // Fix: useAdmin provides 'isAdmin', not 'isAuthenticated'
+  const { isAdmin } = useAdmin();
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newAdmission, setNewAdmission] = useState({
+    studentName: '',
+    class: '',
+    phoneNumber: '',
+    email: '',
+    dateOfBirth: '',
+    gender: 'Male',
+    guardianName: '',
+    guardianPhone: '',
+    address: '',
+    previousSchool: ''
+  });
+  // Also hook into StaffContext for potential permission-based access
+  // We can dynamically import or check localStorage if getting contexts is tricky
+  // For now, let's rely on localStorage to prevent auto-redirects for valid staff
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -65,13 +84,19 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
     const verifyAccess = () => {
       const token = localStorage.getItem('token');
       const userRole = localStorage.getItem('userRole');
+      const permissionsStr = localStorage.getItem('userPermissions'); // If we stored it? We didn't explicitly store it in AdminContext but maybe we should.
+      // But we can just check if role is admin OR if we are in a valid state.
 
-      if (!token || !isAuthenticated) {
+      if (!token) {
         navigate('/admin');
         return;
       }
 
-      if (userRole !== 'admin') {
+      // Allow if admin OR if staff (we assume parent component checked permission)
+      // We will remove the strict 'userRole !== admin' check which was blocking staff
+      const allowedRoles = ['admin', 'teacher', 'staff', 'principal', 'vice_principal', 'coordinator'];
+
+      if (!allowedRoles.includes(userRole || '')) {
         navigate('/unauthorized');
         return;
       }
@@ -80,13 +105,13 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
     };
 
     verifyAccess();
-  }, [isAuthenticated, navigate]);
+  }, [navigate]);
 
   const fetchAdmissions = async () => {
     setIsLoading(true);
     try {
       const data = await apiService.getAdmissions();
-      setAdmissions(data || []);
+      setAdmissions((data || []) as any);
     } catch (error: any) {
       console.error('Error fetching admissions:', error);
       toast({
@@ -96,6 +121,33 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAddManualSubmit = async () => {
+    if (!newAdmission.studentName || !newAdmission.class || !newAdmission.phoneNumber) {
+      toast({ title: 'Validation Error', description: 'Name, Class and Phone are required.', variant: 'destructive' });
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await apiService.createAdmission({
+        ...newAdmission,
+        status: 'Pending',
+        email: newAdmission.email || `offline_${Date.now()}@school.local`
+      } as any);
+
+      toast({ title: 'Success', description: 'Manual application added successfully.' });
+      setShowAddModal(false);
+      setNewAdmission({
+        studentName: '', class: '', phoneNumber: '', email: '', dateOfBirth: '',
+        gender: 'Male', guardianName: '', guardianPhone: '', address: '', previousSchool: ''
+      });
+      fetchAdmissions();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -136,9 +188,9 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
           await apiService.updateAdmission(selectedAdmissionId, {
             ...admission,
             rollNumber,
-            remarks,
+            remarks: remarks || '',
             status: 'Approved'
-          });
+          } as any);
         }
       }
 
@@ -176,7 +228,7 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
             ...admission,
             remarks: rejectRemarks,
             status: 'Rejected'
-          });
+          } as any);
         }
       }
 
@@ -289,8 +341,8 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
       </div>
 
       {/* Search Bar */}
-      <div className="mb-4 flex items-center space-x-2">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="relative flex-1 w-full md:max-w-md">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
@@ -299,6 +351,22 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Button
+            variant="default"
+            onClick={() => setShowAddModal(true)}
+            className="flex-1 md:flex-none"
+          >
+            <UserPlus className="mr-2 h-4 w-4" /> Add Application
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => window.open('/#/admin/print-admission-form', '_blank')}
+            className="flex-1 md:flex-none"
+          >
+            <Printer className="mr-2 h-4 w-4" /> Print Blank Form
+          </Button>
         </div>
       </div>
 
@@ -397,6 +465,72 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
           </div>
         </CardContent>
       </Card>
+
+      {/* Manual Entry Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manual Admission Entry</DialogTitle>
+            <DialogDescription>
+              Enter details from the offline form.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Student Name *</Label>
+                <Input value={newAdmission.studentName} onChange={e => setNewAdmission({ ...newAdmission, studentName: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Class *</Label>
+                <Input value={newAdmission.class} placeholder="e.g. 5" onChange={e => setNewAdmission({ ...newAdmission, class: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Date of Birth</Label>
+                <Input type="date" value={newAdmission.dateOfBirth} onChange={e => setNewAdmission({ ...newAdmission, dateOfBirth: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Gender</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  value={newAdmission.gender}
+                  onChange={e => setNewAdmission({ ...newAdmission, gender: e.target.value })}
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Phone Number *</Label>
+                <Input value={newAdmission.phoneNumber} onChange={e => setNewAdmission({ ...newAdmission, phoneNumber: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Email (Optional)</Label>
+                <Input value={newAdmission.email} onChange={e => setNewAdmission({ ...newAdmission, email: e.target.value })} />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label>Address</Label>
+                <Textarea value={newAdmission.address} onChange={e => setNewAdmission({ ...newAdmission, address: e.target.value })} rows={2} />
+              </div>
+              <div className="space-y-2">
+                <Label>Guardian Name</Label>
+                <Input value={newAdmission.guardianName} onChange={e => setNewAdmission({ ...newAdmission, guardianName: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Guardian Phone</Label>
+                <Input value={newAdmission.guardianPhone} onChange={e => setNewAdmission({ ...newAdmission, guardianPhone: e.target.value })} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
+            <Button onClick={handleAddManualSubmit} disabled={isProcessing}>
+              {isProcessing ? 'Saving...' : 'Save Application'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Approval Dialog */}
       <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>

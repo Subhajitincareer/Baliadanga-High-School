@@ -10,7 +10,6 @@ import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementD
 import { useAnnouncements } from '@/hooks/use-announcements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StaffManagement } from '@/components/admin/StaffManagement';
-import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
@@ -23,6 +22,8 @@ import { ResourceManagement } from '@/components/admin/ResourceManagement';
 import { RoutineManagement } from '@/components/admin/RoutineManagement';
 import { EventManagement } from '@/components/admin/EventManagement';
 import AttendancePage from '@/pages/admin/AttendancePage';
+import PermissionManagement from '@/pages/admin/PermissionManagement';
+import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield } from 'lucide-react';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -133,6 +134,9 @@ const Dashboard = () => {
               <TabsTrigger value="routines" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                 <TableIcon className="mr-2 h-4 w-4" /> Class Routines
               </TabsTrigger>
+              <TabsTrigger value="permissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                <Shield className="mr-2 h-4 w-4" /> Permissions
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -188,6 +192,7 @@ const Dashboard = () => {
             <TabsContent value="resources" className="space-y-4 border-none p-0 outline-none"><ResourceManagement hideHeader={true} /></TabsContent>
             <TabsContent value="routines" className="space-y-4 border-none p-0 outline-none"><RoutineManagement /></TabsContent>
             <TabsContent value="attendance" className="space-y-4 border-none p-0 outline-none"><AttendancePage /></TabsContent>
+            <TabsContent value="permissions" className="space-y-4 border-none p-0 outline-none"><PermissionManagement /></TabsContent>
           </Tabs>
         </main>
       </div>

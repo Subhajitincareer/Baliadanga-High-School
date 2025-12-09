@@ -16,6 +16,7 @@ import {
     CheckSquare
 } from 'lucide-react';
 import AttendancePage from '@/pages/admin/AttendancePage';
+import AdmissionManagement from '@/pages/admin/AdmissionManagement';
 import apiService, { Routine } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,7 +28,7 @@ const getOrdinal = (n: number) => {
 };
 
 const StaffDashboard = () => {
-    const { user, logout } = useStaff();
+    const { user, logout, hasPermission } = useStaff();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState('home');
     const [isLoading, setIsLoading] = useState(false);
@@ -197,13 +198,26 @@ const StaffDashboard = () => {
                     >
                         <Calendar className="mr-2 h-4 w-4" /> My Routine
                     </Button>
-                    <Button
-                        variant={activeTab === 'attendance' ? 'secondary' : 'ghost'}
-                        className="w-full justify-start"
-                        onClick={() => setActiveTab('attendance')}
-                    >
-                        <CheckSquare className="mr-2 h-4 w-4" /> Take Attendance
-                    </Button>
+
+                    {hasPermission('TAKE_ATTENDANCE') && (
+                        <Button
+                            variant={activeTab === 'attendance' ? 'secondary' : 'ghost'}
+                            className="w-full justify-start"
+                            onClick={() => setActiveTab('attendance')}
+                        >
+                            <CheckSquare className="mr-2 h-4 w-4" /> Take Attendance
+                        </Button>
+                    )}
+
+                    {hasPermission('MANAGE_ADMISSION') && (
+                        <Button
+                            variant={activeTab === 'admissions' ? 'secondary' : 'ghost'}
+                            className="w-full justify-start"
+                            onClick={() => setActiveTab('admissions')}
+                        >
+                            <UserIcon className="mr-2 h-4 w-4" /> Admissions
+                        </Button>
+                    )}
                     <Button
                         variant={activeTab === 'profile' ? 'secondary' : 'ghost'}
                         className="w-full justify-start"
@@ -310,6 +324,12 @@ const StaffDashboard = () => {
                 {activeTab === 'attendance' && (
                     <div className="max-w-4xl mx-auto">
                         <AttendancePage />
+                    </div>
+                )}
+
+                {activeTab === 'admissions' && (
+                    <div className="max-w-4xl mx-auto">
+                        <AdmissionManagement hideHeader={true} />
                     </div>
                 )}
 

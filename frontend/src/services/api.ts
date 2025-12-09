@@ -24,6 +24,7 @@ export interface User {
   name?: string; // Backend often returns 'name' instead of fullName
   role: UserRole;
   employeeId?: string;
+  permissions?: string[];
 }
 
 export interface LoginResponse {
@@ -447,6 +448,15 @@ class ApiService {
   // Check if email is admin (whitelist)
   async checkAdminWhitelist(email: string): Promise<{ isAdmin: boolean }> {
     return this.request(`/admin/whitelist/${encodeURIComponent(email)}?_t=${Date.now()}`);
+  }
+
+  // Admin Permission Management
+  async updateUserPermissions(userId: string, permissions: string[]): Promise<User> {
+    const response = await this.request<{ success: boolean; data: User }>(`/admin/permissions/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ permissions }),
+    });
+    return response.data;
   }
 
   // Resource Methods

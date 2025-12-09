@@ -6,7 +6,7 @@ import User from '../models/User.js';
 // @access  Private (Admin)
 export const getStaff = async (req, res, next) => {
     try {
-        const staff = await Staff.find().sort({ name: 1 });
+        const staff = await Staff.find().populate('userId', 'email role permissions').sort({ name: 1 });
 
         res.status(200).json({
             success: true,

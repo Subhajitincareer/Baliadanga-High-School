@@ -32,6 +32,7 @@ export const register = asyncHandler(async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        permissions: user.permissions,
         token: generateToken(user._id)
       }
     });
@@ -92,6 +93,7 @@ export const login = asyncHandler(async (req, res) => {
           email: user.email,
           studentId: user.studentId,
           role: user.role,
+          permissions: user.permissions,
           token: generateToken(user._id)
         }
       });
@@ -148,7 +150,8 @@ export const adminLogin = asyncHandler(async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        permissions: user.permissions
       }
     });
   } else {
