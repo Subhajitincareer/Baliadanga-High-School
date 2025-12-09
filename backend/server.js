@@ -18,6 +18,7 @@ import examRoutes from './routes/exam.js';
 import resultRoutes from './routes/results.js';
 import uploadRoutes from './routes/upload.js';
 import routineRoutes from './routes/routine.js';
+import studentRoutes from './routes/students.js';
 
 // Load env vars
 dotenv.config();
@@ -56,6 +57,7 @@ app.use('/api/exams', examRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/routines', routineRoutes);
+app.use('/api/students', studentRoutes);
 
 // Serve static assets (uploads)
 import path from 'path';

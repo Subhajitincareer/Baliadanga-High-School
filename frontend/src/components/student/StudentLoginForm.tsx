@@ -24,14 +24,6 @@ export const StudentLoginForm = ({ onSubmit, loading, defaultEmail = "" }: Stude
 
   return (
     <>
-      <div className="flex items-center">
-        <LogIn className="mr-2 h-5 w-5" />
-        <h2 className="text-xl font-semibold">Student Login</h2>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Enter your credentials to access your student dashboard
-      </p>
-      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -39,9 +31,9 @@ export const StudentLoginForm = ({ onSubmit, loading, defaultEmail = "" }: Stude
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Student ID or Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="student@example.com" {...field} />
+                  <Input placeholder="Enter Student ID (e.g. ST-2024...) or Email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

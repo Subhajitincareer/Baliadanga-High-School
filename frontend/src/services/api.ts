@@ -236,11 +236,24 @@ class ApiService {
   }
 
   // Authentication Methods
-  async login(email: string, password: string): Promise<LoginResponse> {
-    return this.request<LoginResponse>('/auth/login', {
+  async login(identifier: string, password: string): Promise<LoginResponse> {
+    const payload = identifier.includes('@')
+      ? { email: identifier, password }
+      : { studentId: identifier, password };
+
+    // Backend returns flat object: { token, _id, name, email, role, ... } inside 'data'
+    const response = await this.request<{ success: boolean; data: any }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(payload),
     });
+
+    const { token, ...userData } = response.data;
+
+    // Transform to expected LoginResponse format
+    return {
+      token,
+      user: userData as User
+    };
   }
 
   async register(userData: Partial<User>): Promise<ApiResponse<User>> {
@@ -572,6 +585,14 @@ class ApiService {
   async getTeacherRoutine(teacherName: string): Promise<Routine[]> {
     const response = await this.request<{ success: boolean; data: Routine[] }>(`/routines/teacher/${encodeURIComponent(teacherName)}`);
     return response.data;
+  }
+
+  // Student Bulk Import
+  async bulkImportStudents(students: any[]): Promise<{ message: string; results: any }> {
+    return this.request<{ message: string; results: any }>('/students/bulk', {
+      method: 'POST',
+      body: JSON.stringify(students)
+    });
   }
 }
 

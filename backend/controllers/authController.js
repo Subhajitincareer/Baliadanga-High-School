@@ -47,14 +47,39 @@ export const register = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, studentId, password } = req.body;
+
+  let query = {};
+  if (email) {
+    query.email = email;
+  } else if (studentId) {
+    query.studentId = studentId;
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide email or student ID'
+    });
+  }
 
   // Check for user
-  const user = await User.findOne({ email }).select('+password');
+  let user = await User.findOne(query).select('+password');
+
+  // Fallback: If login by studentId and User not found directly (legacy data support)
+  if (!user && query.studentId) {
+    // Dynamically import StudentProfile to avoid circular dependency issues if any, 
+    // or just assume it's available or use mongoose.model
+    const StudentProfile = (await import('../models/StudentProfile.js')).default;
+    const profile = await StudentProfile.findOne({ studentId: query.studentId });
+    if (profile) {
+      user = await User.findById(profile.user).select('+password');
+    }
+  }
 
   if (user) {
-    console.log(`Login attempt for: ${email}`);
+    console.log(`Login attempt for: ${email || studentId}`);
     console.log(`User found. Role: ${user.role}`);
+
+    // Check password
     const isMatch = await user.comparePassword(password);
     console.log(`Password match: ${isMatch}`);
 
@@ -65,6 +90,7 @@ export const login = asyncHandler(async (req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
+          studentId: user.studentId,
           role: user.role,
           token: generateToken(user._id)
         }
@@ -72,7 +98,7 @@ export const login = asyncHandler(async (req, res) => {
       return;
     }
   } else {
-    console.log(`Login failed: User not found for ${email}`);
+    console.log(`Login failed: User not found for ${email || studentId}`);
     res.status(401).json({
       success: false,
       message: 'Invalid credentials - User not found'

@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'Name cannot be more than 50 characters']
   },
+  studentId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null values to not clash
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Please add an email'],
@@ -25,7 +31,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin', 'teacher', 'principal', 'vice_principal', 'coordinator', 'staff'],
+    enum: ['user', 'admin', 'teacher', 'principal', 'vice_principal', 'coordinator', 'staff', 'student'],
     default: 'user'
   }
 }, {

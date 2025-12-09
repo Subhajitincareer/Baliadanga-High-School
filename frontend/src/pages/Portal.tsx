@@ -18,11 +18,10 @@ const Portal = () => {
     },
     {
       title: 'Student Access',
-      description: 'Login or register to access your student dashboard',
+      description: 'Login with your Student ID to access your dashboard',
       icon: <User className="h-8 w-8 text-violet-500" />,
       links: [
-        { text: 'Login', url: '/student/login' },
-        { text: 'Register', url: '/student/login?tab=register' }
+        { text: 'Login', url: '/student/login' }
       ],
       color: 'bg-violet-50 border-violet-200'
     },

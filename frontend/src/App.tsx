@@ -10,6 +10,9 @@ import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/admin/Dashboard";
 import AdmissionManagement from "@/pages/admin/AdmissionManagement";
 import StudentResults from "@/pages/admin/StudentResults";
+import StudentManagement from '@/pages/admin/StudentManagement';
+import StudentDetail from '@/pages/admin/StudentDetail';
+import AddStudent from '@/pages/admin/AddStudent';
 
 import ResultDisplay from "@/pages/ResultDisplay";
 import Announcements from "@/pages/Announcements";
@@ -89,6 +92,31 @@ const App: FC = () => {
               element={
                 <ProtectedRoute>
                   <StudentResults />
+                </ProtectedRoute>
+              }
+            />
+            {/* Student routes */}
+            <Route
+              path="/admin/students"
+              element={
+                <ProtectedRoute>
+                  <StudentManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/students/new"
+              element={
+                <ProtectedRoute>
+                  <AddStudent />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/students/:id"
+              element={
+                <ProtectedRoute>
+                  <StudentDetail />
                 </ProtectedRoute>
               }
             />
