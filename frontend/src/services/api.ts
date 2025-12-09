@@ -21,6 +21,7 @@ export interface User {
   _id: string;
   email: string;
   fullName: string;
+  name?: string; // Backend often returns 'name' instead of fullName
   role: UserRole;
   employeeId?: string;
 }
@@ -184,6 +185,24 @@ export interface CalendarEvent {
 }
 
 // API Service Class
+export interface Routine {
+  _id: string;
+  className: string;
+  section: string;
+  weekSchedule: {
+    day: string;
+    periods: {
+      startTime: string;
+      endTime: string;
+      subject: string;
+      teacher: string;
+      roomNo?: string;
+    }[];
+  }[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 class ApiService {
   private async request<T = unknown>(
     endpoint: string,
@@ -525,6 +544,34 @@ class ApiService {
     return this.request<any>(`/results/publish/${examId}`, {
       method: 'POST'
     });
+  }
+  // Routine Methods
+  async getRoutines(className?: string, section?: string): Promise<Routine[]> {
+    const query = new URLSearchParams();
+    if (className) query.append('className', className);
+    if (section) query.append('section', section);
+    const response = await this.request<{ success: boolean; data: Routine[] }>(`/routines?${query.toString()}`);
+    return response.data;
+  }
+
+  async saveRoutine(data: Partial<Routine>): Promise<Routine> {
+    const response = await this.request<{ success: boolean; data: Routine }>('/routines', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return response.data;
+  }
+
+  async deleteRoutine(id: string): Promise<any> {
+    return this.request<{}>(`/routines/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getTeacherRoutine(teacherName: string): Promise<Routine[]> {
+    const response = await this.request<{ success: boolean; data: Routine[] }>(`/routines/teacher/${encodeURIComponent(teacherName)}`);
+    return response.data;
   }
 }
 

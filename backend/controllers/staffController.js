@@ -164,10 +164,34 @@ export const deleteStaff = async (req, res, next) => {
 // @access  Private (Staff/Admin)
 export const getStaffByUserId = async (req, res, next) => {
     try {
-        const staff = await Staff.findOne({ userId: req.user.id });
+        let staff = await Staff.findOne({ userId: req.user.id });
 
         if (!staff) {
-            return res.status(404).json({ success: false, message: 'Staff profile not found' });
+            console.log(`Staff profile not found for user ${req.user.name}, auto-creating...`);
+
+            // Map role to position (title case)
+            const roleToPosition = {
+                'teacher': 'Teacher',
+                'principal': 'Principal',
+                'vice_principal': 'Vice Principal',
+                'coordinator': 'Coordinator',
+                'admin': 'Admin',
+                'staff': 'Staff'
+            };
+            const position = roleToPosition[req.user.role] || 'Staff'; // Default to Staff
+
+            // Generate simple Employee ID
+            const employeeId = `EMP-${Date.now().toString().slice(-6)}`;
+
+            staff = await Staff.create({
+                userId: req.user.id,
+                fullName: req.user.name,
+                email: req.user.email,
+                position: position,
+                department: 'General',
+                employeeId: employeeId,
+                isActive: true
+            });
         }
 
         res.status(200).json({
@@ -175,6 +199,7 @@ export const getStaffByUserId = async (req, res, next) => {
             data: staff
         });
     } catch (err) {
+        console.error("Error in getStaffByUserId:", err);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };

@@ -10,10 +10,18 @@ import {
     LogOut,
     IdCard,
     Camera,
-    Lock
+    Lock,
+    Calendar
 } from 'lucide-react';
-import apiService from '@/services/api';
+import apiService, { Routine } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+
+// Helper for ordinal suffix
+const getOrdinal = (n: number) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
 
 const StaffDashboard = () => {
     const { user, logout } = useStaff();
@@ -25,6 +33,9 @@ const StaffDashboard = () => {
     const [profileData, setProfileData] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
 
+    // Routine State
+    const [myRoutines, setMyRoutines] = useState<Routine[]>([]);
+
     // Password State
     const [passwords, setPasswords] = useState({
         current: '',
@@ -35,8 +46,33 @@ const StaffDashboard = () => {
     useEffect(() => {
         if (activeTab === 'profile') {
             fetchProfile();
+        } else if (activeTab === 'routine') {
+            fetchMyRoutine();
         }
     }, [activeTab]);
+
+    const fetchMyRoutine = async () => {
+        // Fallback for name field mismatch (backend 'name' vs frontend 'fullName')
+        const myName = user?.fullName || user?.name;
+
+        if (!myName) {
+            console.log("StaffDashboard: No user name available (fullName or name)");
+            console.log("Current user object:", user);
+            return;
+        }
+        console.log("StaffDashboard: Fetching routine for:", myName);
+        setIsLoading(true);
+        try {
+            const data = await apiService.getTeacherRoutine(myName);
+            console.log("StaffDashboard: Raw Routine Data:", data);
+            setMyRoutines(data);
+        } catch (error) {
+            console.error("StaffDashboard: Error fetching routine", error);
+            toast({ title: "Error", description: "Failed to fetch routine", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const fetchProfile = async () => {
         try {
@@ -86,6 +122,56 @@ const StaffDashboard = () => {
         }
     };
 
+    // Helper to process routines into a daily schedule for this teacher
+    const getDailySchedule = (day: string) => {
+        const schedule: any[] = [];
+        const userName = user?.fullName || user?.name;
+        const myName = userName?.trim().toLowerCase();
+
+        // console.log(`Processing ${day} for ${myName}`); // Debug log
+
+        if (!myName) return [];
+
+        myRoutines.forEach(routine => {
+            const dayRoutine = routine.weekSchedule.find(d => d.day === day);
+            if (dayRoutine) {
+                let periodIndex = 0;
+
+                dayRoutine.periods.forEach((period) => {
+                    // Check if it's tiffin to handle counting logic, 
+                    // although teachers usually aren't assigned to "Tiffin" specifically as a class.
+                    // But we need accurate Period Numbers for the class they ARE assigned to.
+                    // IMPORTANT: The period number depends on the CLASS's schedule sequence.
+
+                    if (period.subject !== 'Tiffin') {
+                        periodIndex++;
+                    }
+
+                    // Case-insensitive check
+                    const periodTeacher = period.teacher?.trim().toLowerCase();
+                    // console.log(`Comparing '${periodTeacher}' with '${myName}'`); // Debug log
+
+                    if (periodTeacher === myName) {
+                        schedule.push({
+                            ...period,
+                            className: routine.className,
+                            section: routine.section,
+                            periodLabel: period.subject === 'Tiffin' ? 'Tiffin' : `${getOrdinal(periodIndex)} Period`
+                        });
+                    }
+                });
+            }
+        });
+        // Sort by start time
+        return schedule.sort((a, b) => {
+            const timeA = parseInt(a.startTime.replace(':', ''));
+            const timeB = parseInt(b.startTime.replace(':', ''));
+            return timeA - timeB;
+        });
+    };
+
+    const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
     return (
         <div className="flex h-screen bg-slate-50">
             {/* Sidebar */}
@@ -103,6 +189,13 @@ const StaffDashboard = () => {
                         onClick={() => setActiveTab('home')}
                     >
                         <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                    </Button>
+                    <Button
+                        variant={activeTab === 'routine' ? 'secondary' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setActiveTab('routine')}
+                    >
+                        <Calendar className="mr-2 h-4 w-4" /> My Routine
                     </Button>
                     <Button
                         variant={activeTab === 'profile' ? 'secondary' : 'ghost'}
@@ -130,7 +223,7 @@ const StaffDashboard = () => {
             <main className="flex-1 overflow-y-auto p-8">
                 {activeTab === 'home' && (
                     <div className="space-y-6">
-                        <h1 className="text-3xl font-bold text-gray-800">Welcome, {user?.name}</h1>
+                        <h1 className="text-3xl font-bold text-gray-800">Welcome, {user?.fullName || user?.name}</h1>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -142,6 +235,68 @@ const StaffDashboard = () => {
                                 </CardContent>
                             </Card>
                         </div>
+                    </div>
+                )}
+
+                {activeTab === 'routine' && (
+                    <div className="max-w-5xl mx-auto space-y-6">
+                        <h1 className="text-2xl font-bold flex items-center">
+                            <Calendar className="mr-2 h-6 w-6" /> My Class Schedule
+                        </h1>
+                        <p className="text-muted-foreground">Your personal class routine across all sections.</p>
+
+                        {isLoading ? (
+                            <div className="flex justify-center p-8">Loading...</div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {DAYS.map(day => {
+                                    const periods = getDailySchedule(day);
+                                    if (periods.length === 0) return null;
+
+                                    return (
+                                        <Card key={day} className="overflow-hidden">
+                                            <CardHeader className="bg-slate-100 py-3">
+                                                <CardTitle className="text-lg font-semibold">{day}</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-0">
+                                                <div className="divide-y">
+                                                    {periods.map((period, idx) => (
+                                                        <div key={idx} className="p-4 hover:bg-slate-50 transition-colors flex justify-between items-center group relative">
+                                                            {/* Period Label Badge */}
+                                                            <div className="absolute top-2 right-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
+                                                                {period.periodLabel}
+                                                            </div>
+
+                                                            <div>
+                                                                <div className="font-bold text-lg text-school-primary flex items-center gap-2">
+                                                                    <span>Class {period.className} - {period.section}</span>
+                                                                </div>
+                                                                <div className="text-sm text-gray-600 font-medium">{period.subject}</div>
+                                                            </div>
+                                                            <div className="text-right mt-4 sm:mt-0">
+                                                                <div className="font-mono font-bold text-gray-800">
+                                                                    {period.startTime} - {period.endTime}
+                                                                </div>
+                                                                {period.roomNo && (
+                                                                    <div className="text-xs text-muted-foreground mt-1 bg-slate-200 px-2 py-0.5 rounded-full inline-block">
+                                                                        Room: {period.roomNo}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                                {DAYS.every(day => getDailySchedule(day).length === 0) && (
+                                    <div className="col-span-full text-center py-10 text-gray-500">
+                                        No classes assigned to you yet, {user?.fullName || user?.name}.
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -161,7 +316,7 @@ const StaffDashboard = () => {
                                             <Camera className="h-4 w-4" />
                                         </Button>
                                     </div>
-                                    <h3 className="font-semibold text-lg">{user?.name}</h3>
+                                    <h3 className="font-semibold text-lg">{user?.fullName || user?.name}</h3>
                                     <p className="text-sm text-muted-foreground capitalize">{user?.role}</p>
                                 </CardContent>
                             </Card>
@@ -178,7 +333,7 @@ const StaffDashboard = () => {
                                             <div className="space-y-2">
                                                 <Label>Full Name</Label>
                                                 <Input
-                                                    value={profileData?.fullName || user?.name || ''}
+                                                    value={profileData?.fullName || user?.fullName || user?.name || ''}
                                                     onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
                                                     disabled={!isEditing}
                                                 />

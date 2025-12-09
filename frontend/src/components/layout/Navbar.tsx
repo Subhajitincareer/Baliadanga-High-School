@@ -39,6 +39,11 @@ const navigationItems = [
         title: "Resources",
         href: "/#/resources",
         description: "Access learning materials and educational resources"
+      },
+      {
+        title: "Class Routine",
+        href: "/#/routine",
+        description: "View weekly class timetables and schedules"
       }
     ]
   },

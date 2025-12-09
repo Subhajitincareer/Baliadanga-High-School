@@ -25,6 +25,7 @@ import Gallery from "@/pages/Gallery";
 import AcademicCalendar from "@/pages/AcademicCalendar";
 import Admission from "@/pages/Admission";
 import AdmissionStatus from "@/pages/AdmissionStatus";
+import RoutinePage from "@/pages/Routine";
 
 import StudentLogin from "@/pages/student/StudentLogin";
 import StudentDashboard from "@/pages/student/StudentDashboard";
@@ -129,6 +130,7 @@ const App: FC = () => {
               <Route path="academic-calendar" element={<AcademicCalendar />} />
               <Route path="admission" element={<Admission />} />
               <Route path="admission-status" element={<AdmissionStatus />} />
+              <Route path="routine" element={<RoutinePage />} />
               <Route path="results" element={<ResultDisplay />} />
               <Route path="*" element={<NotFound />} />
             </Route>

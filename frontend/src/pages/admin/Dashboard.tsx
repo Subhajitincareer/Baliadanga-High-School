@@ -18,8 +18,9 @@ import StudentResults from '@/pages/admin/StudentResults';
 import ExamManagement from '@/pages/admin/ExamManagement';
 import MarksEntry from '@/pages/admin/MarksEntry';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
+import { RoutineManagement } from '@/components/admin/RoutineManagement';
 import { EventManagement } from '@/components/admin/EventManagement';
-import { FileText, Calendar as CalendarIcon } from 'lucide-react'; // Import icon for sidebar
+import { FileText, Calendar as CalendarIcon, Table as TableIcon } from 'lucide-react'; // Import icon for sidebar
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -159,6 +160,13 @@ const Dashboard = () => {
                 <FileText className="mr-2 h-4 w-4" />
                 Resources
               </TabsTrigger>
+              <TabsTrigger
+                value="routines"
+                className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary"
+              >
+                <TableIcon className="mr-2 h-4 w-4" />
+                Class Routines
+              </TabsTrigger>
             </TabsList>
 
             {/* Hidden content area in sidebar - we render content in main area */}
@@ -197,7 +205,8 @@ const Dashboard = () => {
                   activeTab === 'admissions' ? 'Review and process admission requests' :
                     activeTab === 'calendar' ? 'Manage academic calendar events and holidays' :
                       activeTab === 'resources' ? 'Upload policies, forms, and other documents' :
-                        'Manage examination results and reports'
+                        activeTab === 'routines' ? 'Manage class timetables and schedules' :
+                          'Manage examination results and reports'
             }
             onLogout={handleLogout}
             showLogout={false} // We have logout in sidebar
@@ -245,6 +254,10 @@ const Dashboard = () => {
 
             <TabsContent value="resources" className="space-y-4 border-none p-0 outline-none">
               <ResourceManagement hideHeader={true} />
+            </TabsContent>
+
+            <TabsContent value="routines" className="space-y-4 border-none p-0 outline-none">
+              <RoutineManagement />
             </TabsContent>
           </Tabs>
         </main>
