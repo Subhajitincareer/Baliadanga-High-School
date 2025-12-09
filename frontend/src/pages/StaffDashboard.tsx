@@ -128,8 +128,6 @@ const StaffDashboard = () => {
         const userName = user?.fullName || user?.name;
         const myName = userName?.trim().toLowerCase();
 
-        // console.log(`Processing ${day} for ${myName}`); // Debug log
-
         if (!myName) return [];
 
         myRoutines.forEach(routine => {
@@ -149,7 +147,6 @@ const StaffDashboard = () => {
 
                     // Case-insensitive check
                     const periodTeacher = period.teacher?.trim().toLowerCase();
-                    // console.log(`Comparing '${periodTeacher}' with '${myName}'`); // Debug log
 
                     if (periodTeacher === myName) {
                         schedule.push({
