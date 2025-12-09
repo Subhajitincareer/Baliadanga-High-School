@@ -1,75 +1,37 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Bell, FileText, ArrowLeft } from 'lucide-react';
-import { Announcement } from '@/components/admin/AnnouncementForm';
+import { Calendar, Bell, FileText, ArrowLeft, Loader2, AlertCircle, Eye } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { Skeleton } from '@/components/ui/skeleton';
+import apiService, { Announcement } from '@/services/api';
 
 const AnnouncementDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load announcements from localStorage
-    const fetchAnnouncement = () => {
-      setLoading(true);
-      const storedAnnouncements = localStorage.getItem('announcements');
+    const fetchAnnouncement = async () => {
+      if (!id) return;
 
-      if (storedAnnouncements) {
-        const announcements: Announcement[] = JSON.parse(storedAnnouncements);
-        const foundAnnouncement = announcements.find(a => a._id === id);
+      try {
+        setLoading(true);
+        const announcements = await apiService.getAnnouncements();
+        const found = announcements.find(a => a._id === id);
 
-        if (foundAnnouncement) {
-          setAnnouncement(foundAnnouncement);
+        if (found) {
+          setAnnouncement(found);
+        } else {
+          setError('Announcement not found');
         }
-      } else {
-        // Try to find in default announcements (for demo purposes)
-        const defaultAnnouncements: Announcement[] = [
-          {
-            _id: "1",
-            title: "Annual Sports Day",
-            publishDate: "2025-04-15",
-            category: "Event",
-            content: "The annual sports day will be held on April 15th. All students are encouraged to participate in various sports activities. Parents are invited to attend and support their children. Please ensure your child wears appropriate sports attire on the day.",
-            targetAudience: "All",
-            priority: "Medium",
-            authorId: "1",
-            authorName: "Admin"
-          },
-          {
-            _id: "2",
-            title: "Parent-Teacher Meeting",
-            publishDate: "2025-04-20",
-            category: "General",
-            content: "Parent-teacher meeting for all classes will be held on April 20th from 10:00 AM to 2:00 PM. Parents are requested to attend without fail to discuss their child's academic progress. Please bring the student diary and progress report.",
-            targetAudience: "Parents",
-            priority: "High",
-            authorId: "1",
-            authorName: "Admin"
-          },
-          {
-            _id: "3",
-            title: "Science Exhibition",
-            publishDate: "2025-05-05",
-            category: "Event",
-            content: "Science exhibition for classes 8-10 will be organized on May 5th. Students should submit their project proposals by April 25th. The theme for this year's exhibition is 'Sustainable Development and Innovation'.",
-            targetAudience: "Students",
-            priority: "Medium",
-            authorId: "1",
-            authorName: "Admin"
-          }
-        ];
-
-        const foundAnnouncement = defaultAnnouncements.find(a => a._id === id);
-        if (foundAnnouncement) {
-          setAnnouncement(foundAnnouncement);
-        }
+      } catch (err) {
+        console.error("Error fetching announcement:", err);
+        setError("Failed to load announcement details");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchAnnouncement();
@@ -77,20 +39,17 @@ const AnnouncementDetail = () => {
 
   if (loading) {
     return (
-      <div className="container py-8">
-        <Skeleton className="h-8 w-64 mb-4" />
-        <Skeleton className="h-6 w-full mb-2" />
-        <Skeleton className="h-40 w-full mb-4" />
-        <Skeleton className="h-10 w-32" />
+      <div className="container py-8 flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-school-primary" />
       </div>
     );
   }
 
-  if (!announcement) {
+  if (error || !announcement) {
     return (
       <div className="container py-8">
         <h1 className="text-2xl font-bold mb-4">Announcement Not Found</h1>
-        <p className="text-muted-foreground mb-4">The announcement you're looking for doesn't exist or has been removed.</p>
+        <p className="text-muted-foreground mb-4">{error || "The announcement you're looking for doesn't exist or has been removed."}</p>
         <Link to="/announcements">
           <Button>
             <ArrowLeft className="mr-2" />
@@ -129,11 +88,11 @@ const AnnouncementDetail = () => {
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar size={16} className="mr-1" />
               <time dateTime={announcement.publishDate}>
-                {new Date(announcement.publishDate).toLocaleDateString('en-US', {
+                {announcement.publishDate ? new Date(announcement.publishDate).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
-                })}
+                }) : 'N/A'}
               </time>
             </div>
             <div className="inline-flex items-center rounded-full bg-school-light px-2.5 py-1 text-xs font-semibold text-school-primary">
@@ -148,20 +107,58 @@ const AnnouncementDetail = () => {
             <div dangerouslySetInnerHTML={{ __html: announcement.content }} className="text-lg text-foreground leading-relaxed" />
           </div>
 
-          {announcement.pdfFile && (
-            <div className="pt-4">
-              <a
-                href={announcement.pdfFile.data}
-                download={announcement.pdfFile.name}
-                className="inline-flex items-center rounded-md bg-school-light px-4 py-2 text-sm font-medium text-school-primary hover:bg-school-light/80"
-              >
-                <FileText className="mr-2 h-5 w-5" />
-                Download Attachment
-              </a>
-            </div>
-          )}
+          {/* Attachments Section with Inline PDF Viewer */}
+          {announcement.attachments && announcement.attachments.map((file, idx) => (
+            <div key={idx} className="mt-8 border rounded-lg overflow-hidden">
+              <div className="bg-muted px-4 py-2 flex items-center justify-between border-b">
+                <div className="flex items-center font-medium">
+                  <FileText className="mr-2 h-4 w-4" />
+                  {file.filename}
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={file.url}
+                    download={file.filename}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs flex items-center bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90"
+                  >
+                    Download
+                  </a>
+                </div>
+              </div>
 
-          <div className="pt-6 border-t">
+              {/* PDF Previewer Logic */}
+              {(file.mimetype === 'application/pdf' || file.url.endsWith('.pdf') || file.url.startsWith('data:application/pdf')) ? (
+                <div className="w-full h-[600px] bg-slate-50 flex items-center justify-center relative">
+                  {/* Using Google Docs Viewer for remote URLs or direct embed for data URIs/local */}
+                  {/* Note: Data URIs might be heavy for iframe src depending on browser limit, but often work */}
+                  {file.url.startsWith('data:') ? (
+                    <iframe
+                      src={file.url}
+                      className="w-full h-full"
+                      title={file.filename}
+                    />
+                  ) : (
+                    /* Fallback for remote URLs often needs a viewer if CORS is an issue, 
+                       but for same-origin or public URLs, direct embed usually works if browser supports PDF */
+                    <iframe
+                      src={`${file.url}#toolbar=0`}
+                      className="w-full h-full"
+                      title={file.filename}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>Preview not available for this file type.</p>
+                  <a href={file.url} download className="underline text-primary cursor-pointer mt-2 block">Download to view</a>
+                </div>
+              )}
+            </div>
+          ))}
+
+          <div className="pt-6 border-t mt-4">
             <Link to="/announcements">
               <Button variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />

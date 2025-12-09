@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import apiService from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarIcon, X, FileText, Upload } from 'lucide-react';
+import { Calendar as CalendarIcon, X, FileText, Upload, LayoutTemplate } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
@@ -37,6 +37,150 @@ interface AnnouncementFormProps {
   onCancel: () => void;
 }
 
+const TEMPLATES = [
+  {
+    id: 'blank',
+    label: 'Blank Template',
+    category: 'General',
+    content: ''
+  },
+  {
+    id: 'official',
+    label: 'Official Letterhead (Green)',
+    category: 'General',
+    content: `
+      <div style="font-family: 'Times New Roman', serif; max-width: 800px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="background: linear-gradient(to right, #1b5e20, #2e7d32); color: white; padding: 20px; border-radius: 8px 8px 0 0; display: flex; align-items: center;">
+            <div style="flex: 1; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; color: #fff;">BALIADANGA HIGH SCHOOL</h1>
+                <p style="margin: 5px 0; font-size: 14px; color: #e8f5e9;">P.O.: Baliadanga, Dist.: Nadia, Pin: 741152</p>
+                <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 12px; font-size: 12px; margin-top: 5px;">
+                  ESTD: 1956
+                </div>
+            </div>
+        </div>
+        
+        <div style="padding: 30px; border: 1px solid #ddd; border-top: none; background: #fff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #666; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <div><strong>Ref No:</strong> ........................</div>
+                <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <h2 style="font-size: 22px; text-decoration: underline; margin: 0; color: #1b5e20; text-transform: uppercase;">NOTICE</h2>
+                <h3 style="font-size: 16px; margin: 10px 0 0; color: #333;">Sub: [Subject of the Notice]</h3>
+            </div>
+
+            <div style="font-size: 16px; line-height: 1.8; color: #222; min-height: 200px; text-align: justify;">
+                <p>This is to inform all the students of Baliadanga High School that...</p>
+                <p>[Write your main content here]</p>
+            </div>
+
+            <div style="margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end;">
+                 <div style="text-align: center;">
+                    <div style="width: 80px; height: 80px; border: 2px dashed #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 10px;">
+                      [Stamp]
+                    </div>
+                 </div>
+                 <div style="text-align: center; padding-right: 20px;">
+                    <div style="height: 40px;"></div>
+                    <p style="font-weight: bold; margin: 0; color: #000;">Headmaster / TIC</p>
+                    <p style="margin: 0; color: #555;">Baliadanga High School</p>
+                </div>
+            </div>
+        </div>
+      </div>
+    `
+  },
+  {
+    id: 'kanyashree',
+    label: 'Kanyashree Form Notice',
+    category: 'Academic',
+    content: `
+      <div style="font-family: 'Times New Roman', serif; max-width: 800px; margin: 0 auto; border: 1px solid #ccc;">
+        <!-- Header -->
+        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-bottom: 3px solid #1b5e20;">
+            <h1 style="color: #1b5e20; margin: 0;">BALIADANGA HIGH SCHOOL</h1>
+            <p style="margin: 5px 0;">P.O.: Baliadanga, Dist.: Nadia</p>
+        </div>
+
+        <div style="padding: 40px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                <span>Ref: .............</span>
+                <span>Date: ${new Date().toLocaleDateString()}</span>
+            </div>
+
+            <h2 style="text-align: center; text-decoration: underline; margin-bottom: 30px;">NOTICE - KANYASHREE (K2) FORM DISTRIBUTION</h2>
+
+            <div style="font-size: 16px; line-height: 1.6;">
+                <p>It is hereby informed to all first-semester/eligible female students that the Kanyashree (K2) forms will be distributed from the school office on <strong>[Date]</strong>.</p>
+                <p><strong>Time:</strong> 11:00 AM to 2:00 PM</p>
+                <p><strong>Required Documents:</strong></p>
+                <ul>
+                    <li>Kanyashree ID / Transfer Certificate</li>
+                    <li>Aadhaar Card</li>
+                    <li>Bank Passbook Copy</li>
+                </ul>
+                <p>Students must come personally to collect the form.</p>
+            </div>
+
+            <div style="margin-top: 50px; text-align: right;">
+                <p><strong>Teacher-in-Charge</strong></p>
+                <p>Baliadanga High School</p>
+            </div>
+        </div>
+      </div>
+    `
+  },
+  {
+    id: 'holiday',
+    label: 'Holiday Notice',
+    category: 'Holiday',
+    content: `
+      <h3><strong>Holiday Notice</strong></h3>
+      <p>Dear Students and Staff,</p>
+      <p>This is to inform you that the school will remain closed on <strong>[Date]</strong> on account of <strong>[Occasion]</strong>.</p>
+      <p>Regular classes will resume from <strong>[Resume Date]</strong>.</p>
+      <p>Enjoy your holiday!</p>
+    `
+  },
+  {
+    id: 'exam',
+    label: 'Exam Schedule',
+    category: 'Academic',
+    content: `
+      <h3><strong>Examination Schedule</strong></h3>
+      <p>Please find below the schedule for the upcoming exams:</p>
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #ccc;">
+        <thead>
+          <tr style="background-color: #f2f2f2;">
+            <th style="border: 1px solid #ccc; padding: 8px;">Date</th>
+            <th style="border: 1px solid #ccc; padding: 8px;">Subject</th>
+            <th style="border: 1px solid #ccc; padding: 8px;">Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border: 1px solid #ccc; padding: 8px;">DD/MM/YYYY</td>
+            <td style="border: 1px solid #ccc; padding: 8px;">Mathematics</td>
+            <td style="border: 1px solid #ccc; padding: 8px;">10:00 AM - 1:00 PM</td>
+          </tr>
+        </tbody>
+      </table>
+    `
+  },
+  {
+    id: 'emergency',
+    label: 'Emergency Alert',
+    category: 'Emergency',
+    content: `
+      <h3 style="color: red;"><strong>URGENT NOTICE</strong></h3>
+      <p>Due to <strong>[Reason]</strong>, the school will remain closed tomorrow, <strong>[Date]</strong>.</p>
+    `
+  }
+];
+
 const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuccess, onCancel }) => {
   const [activeTab, setActiveTab] = useState<'write' | 'upload'>('write');
   const [title, setTitle] = useState(announcement?.title || '');
@@ -54,8 +198,23 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
     announcement?.publishDate ? new Date(announcement.publishDate) : new Date()
   );
 
+  // Template handling
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('blank');
+
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    const template = TEMPLATES.find(t => t.id === templateId);
+    if (template && template.id !== 'blank') {
+      setContent(template.content);
+      // Automatically set category if it matches
+      if (template.category) {
+        setCategory(template.category as any);
+      }
+    }
+  };
+
   // Branding options
-  const [includeLogo, setIncludeLogo] = useState(true);
+  const [includeLogo, setIncludeLogo] = useState(false); // Default false as template includes it often
   const [includeSignature, setIncludeSignature] = useState(false);
   const [signatureName, setSignatureName] = useState('Principal');
 
@@ -111,17 +270,6 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
             </div>`;
         }
 
-        // Wrap user content 
-        // Note: we're modifying the string that gets saved. Toggling this on edit might double-add if not careful.
-        // For now, on create/update we just save the final HTML.
-        // Ideally, we'd store these flags separately, but schema doesn't support it yet.
-        // We'll just prepend/append.
-        // To avoid duplication on re-edit, we only do this if it looks like raw content? 
-        // Actually, simpler to just let the user see it in the editor? 
-        // The user asked for "option give", better to inject it when SAVING or PREVIEWING.
-        // Let's inject on Save for now.
-
-        // Wait, if we edit back, the user sees the injected HTML in the editor. That's fine.
         finalContent = `${headerHtml}${finalContent}${footerHtml}`;
       }
 
@@ -202,6 +350,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
       [{ 'header': [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+      [{ 'color': [] }, { 'background': [] }],
       ['link', 'image'],
       ['clean']
     ],
@@ -210,7 +359,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
   const formats = [
     'header',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'indent',
+    'list', 'indent', 'color', 'background',
     'link', 'image'
   ];
 
@@ -293,8 +442,25 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
         </TabsList>
 
         <TabsContent value="write" className="space-y-4 pt-4">
-          {/* Branding Toggles */}
-          <div className="flex flex-wrap gap-6 items-center border-b pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center mb-4">
+            {/* Template Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="template" className="flex items-center gap-2"><LayoutTemplate className="w-4 h-4" /> Usage Template</Label>
+              <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEMPLATES.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Branding Toggles - only show if NOT using a template that already has it (simple heuristic) or just let user toggle */}
+          <div className="flex flex-wrap gap-6 items-center border-b pb-4 mb-4">
             <div className="flex items-center space-x-2">
               <Switch id="logo-mode" checked={includeLogo} onCheckedChange={setIncludeLogo} />
               <Label htmlFor="logo-mode">Include School Header</Label>
