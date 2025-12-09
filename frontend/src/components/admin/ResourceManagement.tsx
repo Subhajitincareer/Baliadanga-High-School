@@ -27,6 +27,9 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
     const [type, setType] = useState<'policy' | 'form' | 'other'>('policy');
     const [file, setFile] = useState<File | null>(null);
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState<string>('all');
+
     useEffect(() => {
         fetchResources();
     }, []);
@@ -102,12 +105,12 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
             const fileInput = document.getElementById('file-upload') as HTMLInputElement;
             if (fileInput) fileInput.value = '';
 
-            fetchResources();
+            await fetchResources(); // Ensure we wait for fetch
         } catch (error: any) {
             console.error('Upload error:', error);
             toast({
                 title: 'Upload Failed',
-                description: error.message || 'Failed to upload resource.',
+                description: error.message || 'Failed to upload resource. Please check your connection.',
                 variant: 'destructive',
             });
         } finally {
@@ -136,23 +139,19 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
     };
 
     const getFileUrl = (filePath: string) => {
-        // filePath is like '/uploads/file.pdf'
-        // Backend serves static at /uploads
-        // So full URL is BASE_URL + filePath if filePath starts with /
-        // But backend saved it as '/uploads/filename'.
-        // And backend serves '/uploads' route mapped to 'uploads' folder.
-        // So http://localhost:5000/uploads/filename
-        // But filePath includes /uploads. 
-        // Wait, controller: filePath: `/uploads/${req.file.filename}`
-        // Server: app.use('/uploads', express.static(...))
-        // So URL should be just API_BASE_URL (origin) + filePath.
-        // Assuming API_BASE_URL is http://localhost:5000/api
-        // We need http://localhost:5000  + filePath
-        // Let's hardcode base for now or extract from api config if possible, 
-        // but api.ts constants aren't exported.
-        // Best to assume relative or just construct it.
+        if (filePath.startsWith('http')) {
+            return filePath;
+        }
         return `http://localhost:5000${filePath}`;
     };
+
+    // Filter Logic
+    const filteredResources = resources.filter(resource => {
+        const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            resource.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'all' || resource.type === filterType;
+        return matchesSearch && matchesType;
+    });
 
     return (
         <div className="container py-8">
@@ -239,55 +238,93 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
                 {/* Resource List */}
                 <div className="lg:col-span-2">
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle>Existing Resources</CardTitle>
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={fetchResources} title="Refresh List">
+                                    <Loader2 className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
+                            {/* Search and Filter Controls */}
+                            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                                <Input
+                                    placeholder="Search resources..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="flex-1"
+                                />
+                                <Select value={filterType} onValueChange={setFilterType}>
+                                    <SelectTrigger className="w-[150px]">
+                                        <SelectValue placeholder="Filter by Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Types</SelectItem>
+                                        <SelectItem value="policy">Policy</SelectItem>
+                                        <SelectItem value="form">Form</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
                             {isLoading ? (
                                 <LoadingSpinner />
-                            ) : resources.length === 0 ? (
+                            ) : filteredResources.length === 0 ? (
                                 <div className="text-center py-8 text-muted-foreground">
-                                    No resources found. Upload one to get started.
+                                    {resources.length === 0 ? "No resources found. Upload one to get started." : "No resources match your search."}
                                 </div>
                             ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Title</TableHead>
-                                            <TableHead>Type</TableHead>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {resources.map((resource) => (
-                                            <TableRow key={resource._id}>
-                                                <TableCell className="font-medium">
-                                                    <div className="flex items-center space-x-2">
-                                                        <FileText className="h-4 w-4 text-school-primary" />
-                                                        <span>{resource.title}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="capitalize">{resource.type}</TableCell>
-                                                <TableCell>
-                                                    {resource.createdAt ? new Date(resource.createdAt).toLocaleDateString() : 'N/A'}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex justify-end space-x-2">
-                                                        <a href={getFileUrl(resource.filePath)} target="_blank" rel="noopener noreferrer">
-                                                            <Button variant="ghost" size="sm">
-                                                                <Download className="h-4 w-4" />
-                                                            </Button>
-                                                        </a>
-                                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(resource._id)}>
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Title</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredResources.map((resource) => (
+                                                <TableRow key={resource._id}>
+                                                    <TableCell className="font-medium">
+                                                        <div className="flex items-center space-x-2">
+                                                            <FileText className="h-4 w-4 text-school-primary" />
+                                                            <div>
+                                                                <div className="font-semibold">{resource.title}</div>
+                                                                <div className="text-xs text-muted-foreground truncate max-w-[200px]">{resource.description}</div>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="capitalize">
+                                                        <span className={`px-2 py-1 rounded-full text-xs ${resource.type === 'policy' ? 'bg-blue-100 text-blue-800' :
+                                                                resource.type === 'form' ? 'bg-green-100 text-green-800' :
+                                                                    'bg-gray-100 text-gray-800'
+                                                            }`}>
+                                                            {resource.type}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {resource.createdAt ? new Date(resource.createdAt).toLocaleDateString() : 'N/A'}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex justify-end space-x-2">
+                                                            <a href={getFileUrl(resource.filePath)} target="_blank" rel="noopener noreferrer">
+                                                                <Button variant="ghost" size="sm" title="Download">
+                                                                    <Download className="h-4 w-4" />
+                                                                </Button>
+                                                            </a>
+                                                            <Button variant="ghost" size="sm" onClick={() => handleDelete(resource._id)} title="Delete">
+                                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             )}
                         </CardContent>
                     </Card>

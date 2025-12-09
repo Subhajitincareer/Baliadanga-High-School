@@ -1,10 +1,7 @@
 import Resource from '../models/Resource.js';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+import imagekit from '../config/imageKit.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Removed path/fs imports as they are not needed for memory storage uploads
 
 // @desc    Get all resources
 // @route   GET /api/resources
@@ -29,14 +26,22 @@ export const createResource = async (req, res, next) => {
 
         const { title, description, type } = req.body;
 
+        // Upload to ImageKit
+        const uploadResponse = await imagekit.upload({
+            file: req.file.buffer, // required
+            fileName: req.file.originalname, // required
+            folder: '/resources' // optional
+        });
+
         // Create resource in DB
         const resource = await Resource.create({
             title,
             description,
             type,
-            filePath: `/uploads/${req.file.filename}`,
-            fileName: req.file.originalname,
-            fileSize: req.file.size
+            filePath: uploadResponse.url, // Store the ImageKit URL
+            fileName: uploadResponse.name,
+            fileId: uploadResponse.fileId, // Store fileId for deletion
+            fileSize: uploadResponse.size
         });
 
         res.status(201).json({
@@ -44,13 +49,6 @@ export const createResource = async (req, res, next) => {
             data: resource
         });
     } catch (err) {
-        // If DB creation fails, delete the uploaded file to keep things clean
-        if (req.file) {
-            const filePath = path.join(__dirname, '..', 'uploads', req.file.filename);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
-        }
         next(err);
     }
 };
@@ -66,14 +64,9 @@ export const deleteResource = async (req, res, next) => {
             return res.status(404).json({ success: false, message: `Resource not found with id of ${req.params.id}` });
         }
 
-        // Delete file from filesystem
-        // We need to resolve the path relative to the backend root
-        // filePath is stored as '/uploads/filename.pdf'
-        // So we join __dirname (controllers) + .. + filePath
-        const filePath = path.join(__dirname, '..', resource.filePath);
-
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        // Delete file from ImageKit
+        if (resource.fileId) {
+            await imagekit.deleteFile(resource.fileId);
         }
 
         await resource.deleteOne();

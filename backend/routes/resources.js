@@ -7,15 +7,7 @@ import { protect, authorize } from '../middlewares/authMiddleware.js';
 const router = express.Router();
 
 // Set up storage engine
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        // Generate unique filename: fieldname-timestamp.ext
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
+const storage = multer.memoryStorage();
 
 // Check file type
 function checkFileType(file, cb) {

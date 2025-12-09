@@ -26,6 +26,10 @@ const resourceSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    fileId: {
+        type: String,
+        required: true
+    },
     fileSize: {
         type: Number
     },
