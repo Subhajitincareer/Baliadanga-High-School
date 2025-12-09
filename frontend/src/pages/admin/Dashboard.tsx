@@ -23,7 +23,8 @@ import { RoutineManagement } from '@/components/admin/RoutineManagement';
 import { EventManagement } from '@/components/admin/EventManagement';
 import AttendancePage from '@/pages/admin/AttendancePage';
 import PermissionManagement from '@/pages/admin/PermissionManagement';
-import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield } from 'lucide-react';
+import PromotionManagement from '@/pages/admin/PromotionManagement';
+import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle } from 'lucide-react';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -134,6 +135,9 @@ const Dashboard = () => {
               <TabsTrigger value="routines" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                 <TableIcon className="mr-2 h-4 w-4" /> Class Routines
               </TabsTrigger>
+              <TabsTrigger value="promotion" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                <ArrowUpCircle className="mr-2 h-4 w-4" /> Promotion
+              </TabsTrigger>
               <TabsTrigger value="permissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                 <Shield className="mr-2 h-4 w-4" /> Permissions
               </TabsTrigger>
@@ -190,8 +194,9 @@ const Dashboard = () => {
             <TabsContent value="marks" className="space-y-4 border-none p-0 outline-none"><MarksEntry /></TabsContent>
             <TabsContent value="calendar" className="space-y-4 border-none p-0 outline-none"><EventManagement /></TabsContent>
             <TabsContent value="resources" className="space-y-4 border-none p-0 outline-none"><ResourceManagement hideHeader={true} /></TabsContent>
-            <TabsContent value="routines" className="space-y-4 border-none p-0 outline-none"><RoutineManagement /></TabsContent>
             <TabsContent value="attendance" className="space-y-4 border-none p-0 outline-none"><AttendancePage /></TabsContent>
+            <TabsContent value="routines" className="space-y-4 border-none p-0 outline-none"><RoutineManagement /></TabsContent>
+            <TabsContent value="promotion" className="space-y-4 border-none p-0 outline-none"><PromotionManagement /></TabsContent>
             <TabsContent value="permissions" className="space-y-4 border-none p-0 outline-none"><PermissionManagement /></TabsContent>
           </Tabs>
         </main>

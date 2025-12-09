@@ -179,10 +179,16 @@ const AdmissionStatus = () => {
                 )}
                 {admissionStatus.status === 'approved' && (
                   <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-4">
-                    <p className="text-sm">
-                      Congratulations! Your application has been approved. Please visit the school office with your
-                      original documents and admission fees. Use your access code and assigned roll number
-                      for all future communications.
+                    <h3 className="font-bold text-green-800 mb-2">🎉 Congratulations! Application Approved.</h3>
+                    <p className="text-sm text-green-700 mb-2">
+                      A Student Account has been automatically created for you.
+                    </p>
+                    <div className="bg-white/50 p-3 rounded border border-green-200 text-sm">
+                      <p><strong>Login ID:</strong> (Use the Access Code or wait for ID card)</p>
+                      <p><strong>Password:</strong> Your Phone Number</p>
+                    </div>
+                    <p className="text-sm text-green-700 mt-2">
+                      Please login to the <strong>Student Portal</strong> to view your profile and class routine.
                     </p>
                   </div>
                 )}

@@ -299,7 +299,7 @@ class ApiService {
 
   async updateAdmission(id: string, admissionData: Partial<Admission>): Promise<Admission> {
     return this.request<Admission>(`/admissions/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(admissionData),
     });
   }
