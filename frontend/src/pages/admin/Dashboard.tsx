@@ -10,7 +10,7 @@ import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementD
 import { useAnnouncements } from '@/hooks/use-announcements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StaffManagement } from '@/components/admin/StaffManagement';
-import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign } from 'lucide-react';
+import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
@@ -22,6 +22,7 @@ import FeeManagement from '@/pages/admin/FeeManagement';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
 import { RoutineManagement } from '@/components/admin/RoutineManagement';
 import { EventManagement } from '@/components/admin/EventManagement';
+import AttendancePage from '@/pages/admin/AttendancePage';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,6 +127,9 @@ const Dashboard = () => {
               <TabsTrigger value="resources" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                 <FileText className="mr-2 h-4 w-4" /> Resources
               </TabsTrigger>
+              <TabsTrigger value="attendance" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                <CheckSquare className="mr-2 h-4 w-4" /> Attendance
+              </TabsTrigger>
               <TabsTrigger value="routines" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                 <TableIcon className="mr-2 h-4 w-4" /> Class Routines
               </TabsTrigger>
@@ -183,6 +187,7 @@ const Dashboard = () => {
             <TabsContent value="calendar" className="space-y-4 border-none p-0 outline-none"><EventManagement /></TabsContent>
             <TabsContent value="resources" className="space-y-4 border-none p-0 outline-none"><ResourceManagement hideHeader={true} /></TabsContent>
             <TabsContent value="routines" className="space-y-4 border-none p-0 outline-none"><RoutineManagement /></TabsContent>
+            <TabsContent value="attendance" className="space-y-4 border-none p-0 outline-none"><AttendancePage /></TabsContent>
           </Tabs>
         </main>
       </div>

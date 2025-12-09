@@ -594,6 +594,26 @@ class ApiService {
       body: JSON.stringify(students)
     });
   }
+  // Attendance Methods
+  async markAttendance(data: any): Promise<any> {
+    return this.request<any>('/attendance', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async getClassAttendance(className: string, section?: string, date?: string): Promise<any[]> {
+    const query = new URLSearchParams();
+    query.append('className', className);
+    if (section) query.append('section', section);
+    if (date) query.append('date', date);
+
+    return this.request<any[]>(`/attendance/class?${query.toString()}`);
+  }
+
+  async getStudentAttendance(studentId: string): Promise<any[]> {
+    return this.request<any[]>(`/attendance/student/${studentId}`);
+  }
 }
 
 export default new ApiService();

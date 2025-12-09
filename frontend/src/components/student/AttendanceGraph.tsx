@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { CalendarDays } from 'lucide-react';
 
 interface AttendanceGraphProps {
-    attendanceData?: Record<string, 'present' | 'absent' | 'holiday'>;
+    attendanceData?: Record<string, 'present' | 'absent' | 'holiday' | 'late'>;
     year?: number;
 }
 
@@ -51,20 +51,13 @@ export const AttendanceGraph = ({ attendanceData = {}, year = new Date().getFull
         weeks.push(currentWeek);
     }
 
-    // Mock data generator if no data provided
+    // Real data lookup
     const getStatus = (date: Date) => {
         const dateString = date.toISOString().split('T')[0];
         if (attendanceData[dateString]) return attendanceData[dateString];
 
-        // Mock logic: Weekends off, random attendance otherwise
-        const day = date.getDay();
-        if (day === 0 || day === 6) return 'holiday';
-
-        // Deterministic mock based on date hash
-        const hash = date.getTime() % 100;
-        if (hash > 90) return 'absent';
-        if (hash > 85) return 'late';
-        return 'present';
+        // Return 'no-data' instead of mock logic
+        return 'no-data';
     };
 
     const getColor = (status: string) => {

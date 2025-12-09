@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+// Import
 import {
     LayoutDashboard,
     User as UserIcon,
@@ -11,8 +12,10 @@ import {
     IdCard,
     Camera,
     Lock,
-    Calendar
+    Calendar,
+    CheckSquare
 } from 'lucide-react';
+import AttendancePage from '@/pages/admin/AttendancePage';
 import apiService, { Routine } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -195,6 +198,13 @@ const StaffDashboard = () => {
                         <Calendar className="mr-2 h-4 w-4" /> My Routine
                     </Button>
                     <Button
+                        variant={activeTab === 'attendance' ? 'secondary' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setActiveTab('attendance')}
+                    >
+                        <CheckSquare className="mr-2 h-4 w-4" /> Take Attendance
+                    </Button>
+                    <Button
                         variant={activeTab === 'profile' ? 'secondary' : 'ghost'}
                         className="w-full justify-start"
                         onClick={() => setActiveTab('profile')}
@@ -294,6 +304,12 @@ const StaffDashboard = () => {
                                 )}
                             </div>
                         )}
+                    </div>
+                )}
+
+                {activeTab === 'attendance' && (
+                    <div className="max-w-4xl mx-auto">
+                        <AttendancePage />
                     </div>
                 )}
 

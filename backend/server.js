@@ -12,13 +12,14 @@ import admin from './routes/admin.js';
 import resourceRoutes from './routes/resources.js';
 import admissionRoutes from './routes/admissions.js';
 import announcementRoutes from './routes/announcements.js';
-import calendar from './routes/calendar.js'; // Import calendar routes
-import staffRoutes from './routes/staff.js'; // Import staff routes
+import calendar from './routes/calendar.js';
+import staffRoutes from './routes/staff.js';
 import examRoutes from './routes/exam.js';
 import resultRoutes from './routes/results.js';
 import uploadRoutes from './routes/upload.js';
 import routineRoutes from './routes/routine.js';
 import studentRoutes from './routes/students.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
 
 // Load env vars
 dotenv.config();
@@ -44,7 +45,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Mount routers
-// Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/items', items);
 app.use('/api/admin', admin);
@@ -58,6 +58,7 @@ app.use('/api/results', resultRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/routines', routineRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 // Serve static assets (uploads)
 import path from 'path';

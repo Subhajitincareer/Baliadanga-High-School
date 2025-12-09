@@ -15,6 +15,8 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [results, setResults] = useState<StudentResult[]>([]);
+  const [attendanceData, setAttendanceData] = useState<Record<string, 'present' | 'absent' | 'holiday' | 'late'>>({});
+  const [attendanceStats, setAttendanceStats] = useState({ percentage: 0, presentDays: 0, totalDays: 0 });
   const [activeTab, setActiveTab] = useState('dashboard');
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -32,6 +34,31 @@ const StudentDashboard = () => {
 
       // Fetch student results
       const resultsData = await apiService.getStudentResults(userId);
+
+      // Fetch Attendance
+      try {
+        const attendanceRecords = await apiService.getStudentAttendance(userId);
+        const attData: Record<string, any> = {};
+        let presentCount = 0;
+        let totalCount = 0;
+
+        attendanceRecords.forEach((record: any) => {
+          const dateKey = new Date(record.date).toISOString().split('T')[0];
+          attData[dateKey] = record.status.toLowerCase();
+          if (record.status === 'Present' || record.status === 'Late') presentCount++;
+          if (record.status !== 'Holiday') totalCount++;
+        });
+
+        setAttendanceData(attData);
+        setAttendanceStats({
+          percentage: totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0,
+          presentDays: presentCount,
+          totalDays: totalCount
+        });
+
+      } catch (attError) {
+        console.error('Failed to fetch attendance', attError);
+      }
 
       setProfile(profileData);
       setResults(resultsData || []);
@@ -194,8 +221,8 @@ const StudentDashboard = () => {
                     <CalendarDays className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">85%</div>
-                    <p className="text-xs text-muted-foreground">Present this month</p>
+                    <div className="text-2xl font-bold">{attendanceStats.percentage}%</div>
+                    <p className="text-xs text-muted-foreground">{attendanceStats.presentDays} days present</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -223,7 +250,7 @@ const StudentDashboard = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <AttendanceGraph />
+                <AttendanceGraph attendanceData={attendanceData} />
                 <Card>
                   <CardHeader>
                     <CardTitle>Recent Results</CardTitle>
@@ -251,7 +278,7 @@ const StudentDashboard = () => {
 
             {/* Attendance Tab */}
             <TabsContent value="attendance" className="m-0 space-y-4">
-              <AttendanceGraph />
+              <AttendanceGraph attendanceData={attendanceData} />
               <Card>
                 <CardHeader>
                   <CardTitle>Monthly Breakdown</CardTitle>

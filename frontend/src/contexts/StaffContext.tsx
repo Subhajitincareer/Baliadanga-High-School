@@ -22,23 +22,20 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            const resp: any = await apiService.login(email, password);
+            // apiService.login returns { token, user, message? }
+            const { token, user } = await apiService.login(email, password);
 
-            // The API returns { success: true, data: { token, ... } }
-            // So we need to access resp.data.token, not resp.token
-            const authData = resp.data || resp;
-
-            if (!authData?.token || !authData?.role) {
+            if (!token || !user?.role) {
                 toast({
                     title: 'Login Failed',
-                    description: resp?.message || 'Invalid credentials.',
+                    description: 'Invalid response from server.',
                     variant: 'destructive',
                 });
                 return false;
             }
 
             // Check if user is actually a staff member
-            if (!STAFF_ROLES.includes(authData.role)) {
+            if (!STAFF_ROLES.includes(user.role)) {
                 toast({
                     title: 'Access Denied',
                     description: 'This portal is for Faculty and Staff only.',
@@ -48,19 +45,17 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
 
             // Store tokens/user info for session
-            localStorage.setItem('token', authData.token);
-            localStorage.setItem('userRole', authData.role);
-            localStorage.setItem('userId', authData._id); // Assuming _id is top level in data
-            // User object might be mixed in data based on authController
-            // data: { _id, name, email, role, token }
-            localStorage.setItem('user', JSON.stringify(authData));
+            localStorage.setItem('token', token);
+            localStorage.setItem('userRole', user.role);
+            localStorage.setItem('userId', user._id);
+            localStorage.setItem('user', JSON.stringify(user));
 
             setIsStaff(true);
-            setUser(authData);
+            setUser(user);
 
             toast({
                 title: 'Login Successful',
-                description: `Welcome back, ${authData.name || 'Staff Member'}!`
+                description: `Welcome back, ${user.name || 'Staff Member'}!`
             });
 
             navigate('/staff/dashboard');
