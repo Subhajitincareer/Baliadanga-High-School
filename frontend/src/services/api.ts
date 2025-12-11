@@ -1,5 +1,5 @@
 // Base API configuration
-const API_BASE_URL: string = 'http://localhost:5000/api';
+const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Request Options Interface
 interface RequestOptions extends RequestInit {
