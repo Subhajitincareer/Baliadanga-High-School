@@ -27,73 +27,134 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>PDF</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {announcements.map((announcement, index) => (
-            <TableRow key={announcement._id || index}>
-              <TableCell className="font-medium">{announcement.title}</TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${announcement.category === "Event"
+
+    <>
+      {/* Desktop Table View */}
+      <div className="hidden rounded-md border md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>PDF</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {announcements.map((announcement, index) => (
+              <TableRow key={announcement._id || index}>
+                <TableCell className="font-medium">{announcement.title}</TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${announcement.category === "Event"
                     ? "bg-blue-100 text-blue-800"
                     : "bg-amber-100 text-amber-800"
+                    }`}>
+                    {announcement.category}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  {new Date(announcement.publishDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </TableCell>
+                <TableCell>
+                  {announcement.pdfFile ? (
+                    <a
+                      href={announcement.pdfFile.data}
+                      download={announcement.pdfFile.name}
+                      className="flex items-center text-blue-600 hover:text-blue-800"
+                    >
+                      <FileText className="mr-1 h-4 w-4" />
+                      <span className="text-xs">Download</span>
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No PDF</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEdit(announcement)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onDelete(announcement)}
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="space-y-4 md:hidden">
+        {announcements.map((announcement, index) => (
+          <div key={announcement._id || index} className="rounded-lg border bg-white p-4 shadow-sm">
+            <div className="mb-2 flex items-start justify-between">
+              <div>
+                <h3 className="font-semibold">{announcement.title}</h3>
+                <span className={`mt-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${announcement.category === "Event"
+                  ? "bg-blue-100 text-blue-800"
+                  : "bg-amber-100 text-amber-800"
                   }`}>
                   {announcement.category}
                 </span>
-              </TableCell>
-              <TableCell>
+              </div>
+              <div className="flex space-x-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onEdit(announcement)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={() => onDelete(announcement)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center justify-between text-sm text-muted-foreground">
+              <span>
                 {new Date(announcement.publishDate).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
                 })}
-              </TableCell>
-              <TableCell>
-                {announcement.pdfFile ? (
-                  <a
-                    href={announcement.pdfFile.data}
-                    download={announcement.pdfFile.name}
-                    className="flex items-center text-blue-600 hover:text-blue-800"
-                  >
-                    <FileText className="mr-1 h-4 w-4" />
-                    <span className="text-xs">Download</span>
-                  </a>
-                ) : (
-                  <span className="text-xs text-muted-foreground">No PDF</span>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEdit(announcement)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onDelete(announcement)}
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+              </span>
+              {announcement.pdfFile && (
+                <a
+                  href={announcement.pdfFile.data}
+                  download={announcement.pdfFile.name}
+                  className="flex items-center text-blue-600 hover:text-blue-800"
+                >
+                  <FileText className="mr-1 h-3 w-3" />
+                  <span className="text-xs">PDF</span>
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 };

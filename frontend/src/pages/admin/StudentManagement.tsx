@@ -50,7 +50,7 @@ const StudentManagement = () => {
         try {
             setIsLoading(true);
             const data = await apiService.getStudents();
-            setStudents(data);
+            setStudents(data as any);
         } catch (error) {
             console.error("Failed to fetch students:", error);
             toast({
@@ -257,7 +257,7 @@ const StudentManagement = () => {
                             </CardDescription>
                         </div>
 
-                        <div className="flex flex-col md:flex-row gap-2">
+                        <div className="flex flex-col gap-2 md:flex-row">
                             {/* Search */}
                             <div className="relative w-full md:w-64">
                                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -269,35 +269,37 @@ const StudentManagement = () => {
                                 />
                             </div>
 
-                            {/* Class Filter */}
-                            <Select value={classFilter} onValueChange={setClassFilter}>
-                                <SelectTrigger className="w-[120px]">
-                                    <SelectValue placeholder="Class" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {classes.map(c => <SelectItem key={c} value={c}>{c === 'ALL' ? 'All Classes' : `Class ${c}`}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                            <div className="flex gap-2">
+                                {/* Class Filter */}
+                                <Select value={classFilter} onValueChange={setClassFilter}>
+                                    <SelectTrigger className="w-full md:w-[120px]">
+                                        <SelectValue placeholder="Class" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {classes.map(c => <SelectItem key={c} value={c}>{c === 'ALL' ? 'All Classes' : `Class ${c}`}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
 
-                            {/* Section Filter */}
-                            <Select value={sectionFilter} onValueChange={setSectionFilter}>
-                                <SelectTrigger className="w-[120px]">
-                                    <SelectValue placeholder="Section" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {sections.map(s => <SelectItem key={s} value={s}>{s === 'ALL' ? 'All Sections' : `Sec ${s}`}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                                {/* Section Filter */}
+                                <Select value={sectionFilter} onValueChange={setSectionFilter}>
+                                    <SelectTrigger className="w-full md:w-[120px]">
+                                        <SelectValue placeholder="Section" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {sections.map(s => <SelectItem key={s} value={s}>{s === 'ALL' ? 'All Sections' : `Sec ${s}`}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
 
-                            {(classFilter !== 'ALL' || sectionFilter !== 'ALL' || searchTerm !== '') && (
-                                <Button variant="ghost" size="icon" onClick={() => {
-                                    setClassFilter('ALL');
-                                    setSectionFilter('ALL');
-                                    setSearchTerm('');
-                                }} title="Clear Filters">
-                                    <X className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                            )}
+                                {(classFilter !== 'ALL' || sectionFilter !== 'ALL' || searchTerm !== '') && (
+                                    <Button variant="ghost" size="icon" onClick={() => {
+                                        setClassFilter('ALL');
+                                        setSectionFilter('ALL');
+                                        setSearchTerm('');
+                                    }} title="Clear Filters">
+                                        <X className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </CardHeader>
@@ -317,51 +319,106 @@ const StudentManagement = () => {
                             }}>Clear all filters</Button>
                         </div>
                     ) : (
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Student ID</TableHead>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Class</TableHead>
-                                        <TableHead>Roll</TableHead>
-                                        <TableHead>Section</TableHead>
-                                        <TableHead className="hidden md:table-cell">Guardian</TableHead>
-                                        <TableHead className="hidden md:table-cell">Contact</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredStudents.map((student) => {
-                                        const name = typeof student.user === 'object' && student.user ? (student.user as any).name : (student as any).name || student.fullName;
-                                        const email = typeof student.user === 'object' && student.user ? (student.user as any).email : (student as any).email;
+                        <div className="space-y-4">
+                            {/* Desktop Table View */}
+                            <div className="hidden rounded-md border md:block">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Student ID</TableHead>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Class</TableHead>
+                                            <TableHead>Roll</TableHead>
+                                            <TableHead>Section</TableHead>
+                                            <TableHead className="hidden md:table-cell">Guardian</TableHead>
+                                            <TableHead className="hidden md:table-cell">Contact</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredStudents.map((student) => {
+                                            // Type assertion to handle potential populated user field
+                                            const studentAny = student as any;
+                                            const name = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.name : studentAny.name || studentAny.fullName;
+                                            const email = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.email : studentAny.email;
 
-                                        return (
-                                            <TableRow key={student._id}>
-                                                <TableCell className="font-mono text-xs">{student.studentId}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">{name}</span>
-                                                        <span className="text-xs text-muted-foreground">{email}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell><span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{student.class}</span></TableCell>
-                                                <TableCell>{student.rollNumber}</TableCell>
-                                                <TableCell>{student.section}</TableCell>
-                                                <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{student.guardianName}</TableCell>
-                                                <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{student.guardianPhone}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <Link to={`/admin/students/${student.studentId}`}>
-                                                        <Button size="sm" variant="outline" className="h-8">
-                                                            <Eye className="mr-2 h-3 w-3" /> View
-                                                        </Button>
-                                                    </Link>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
+                                            return (
+                                                <TableRow key={student._id}>
+                                                    <TableCell className="font-mono text-xs">{student.studentId}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium">{name}</span>
+                                                            <span className="text-xs text-muted-foreground">{email}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell><span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{student.class}</span></TableCell>
+                                                    <TableCell>{student.rollNumber}</TableCell>
+                                                    <TableCell>{student.section}</TableCell>
+                                                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{student.guardianName}</TableCell>
+                                                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{student.guardianPhone}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Link to={`/admin/students/${student.studentId}`}>
+                                                            <Button size="sm" variant="outline" className="h-8">
+                                                                <Eye className="mr-2 h-3 w-3" /> View
+                                                            </Button>
+                                                        </Link>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {/* Mobile Card View */}
+                            <div className="grid gap-4 md:hidden">
+                                {filteredStudents.map((student) => {
+                                    const studentAny = student as any;
+                                    const name = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.name : studentAny.name || studentAny.fullName;
+                                    const email = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.email : studentAny.email;
+
+                                    return (
+                                        <div key={student._id} className="rounded-lg border bg-white p-4 shadow-sm">
+                                            <div className="mb-2 flex items-start justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium text-lg">{name}</span>
+                                                    <span className="text-xs text-muted-foreground">{email}</span>
+                                                </div>
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                    Class {student.class}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-muted-foreground">Student ID</span>
+                                                    <span className="font-mono">{student.studentId}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-muted-foreground">Roll No</span>
+                                                    <span>{student.rollNumber}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-muted-foreground">Section</span>
+                                                    <span>{student.section}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-muted-foreground">Guardian</span>
+                                                    <span>{student.guardianName}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 flex justify-end">
+                                                <Link to={`/admin/students/${student.studentId}`} className="w-full">
+                                                    <Button size="sm" variant="outline" className="w-full">
+                                                        <Eye className="mr-2 h-3 w-3" /> View Details
+                                                    </Button>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
                 </CardContent>
