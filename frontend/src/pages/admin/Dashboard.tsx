@@ -23,8 +23,9 @@ import { RoutineManagement } from '@/components/admin/RoutineManagement';
 import { EventManagement } from '@/components/admin/EventManagement';
 import AttendancePage from '@/pages/admin/AttendancePage';
 import PermissionManagement from '@/pages/admin/PermissionManagement';
+import { IDCardGenerator } from '@/pages/admin/IDCardGenerator';
 import PromotionManagement from '@/pages/admin/PromotionManagement';
-import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle } from 'lucide-react';
+import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle, LayoutTemplate } from 'lucide-react';
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 
 const Dashboard = () => {
@@ -142,6 +143,9 @@ const Dashboard = () => {
               <TabsTrigger value="permissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                 <Shield className="mr-2 h-4 w-4" /> Permissions
               </TabsTrigger>
+              <TabsTrigger value="idcards" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                <LayoutTemplate className="mr-2 h-4 w-4" /> ID Cards
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -167,7 +171,8 @@ const Dashboard = () => {
                     activeTab === 'fees' ? 'Fee Management' :
                       activeTab === 'calendar' ? 'Calendar Events' :
                         activeTab === 'resources' ? 'Resource Management' :
-                          'Student Results'
+                          activeTab === 'idcards' ? 'ID Card Generator' :
+                            'Student Results'
             }
             subtitle={
               activeTab === 'announcements' ? 'Create and manage school announcements' :
@@ -178,7 +183,8 @@ const Dashboard = () => {
                         activeTab === 'calendar' ? 'Manage academic calendar events and holidays' :
                           activeTab === 'resources' ? 'Upload policies, forms, and other documents' :
                             activeTab === 'routines' ? 'Manage class timetables and schedules' :
-                              'Manage examination results and reports'
+                              activeTab === 'idcards' ? 'Generate and print student ID cards' :
+                                'Manage examination results and reports'
             }
             onLogout={handleLogout}
             showLogout={false}
@@ -202,6 +208,7 @@ const Dashboard = () => {
             <TabsContent value="routines" className="space-y-4 border-none p-0 outline-none"><RoutineManagement /></TabsContent>
             <TabsContent value="promotion" className="space-y-4 border-none p-0 outline-none"><PromotionManagement /></TabsContent>
             <TabsContent value="permissions" className="space-y-4 border-none p-0 outline-none"><PermissionManagement /></TabsContent>
+            <TabsContent value="idcards" className="space-y-4 border-none p-0 outline-none"><IDCardGenerator /></TabsContent>
           </Tabs>
         </main>
       </div>
