@@ -10,6 +10,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { cn } from "@/lib/utils";
 import { Menu, X } from 'lucide-react';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
@@ -28,22 +29,22 @@ const navigationItems = [
     submenu: [
       {
         title: "Courses",
-        href: "/#/courses",
+        href: "/courses",
         description: "Explore our comprehensive academic curriculum"
       },
       {
         title: "Academic Calendar",
-        href: "/#/academic-calendar",
+        href: "/academic-calendar",
         description: "View important academic dates and events"
       },
       {
         title: "Resources",
-        href: "/#/resources",
+        href: "/resources",
         description: "Access learning materials and educational resources"
       },
       {
         title: "Class Routine",
-        href: "/#/routine",
+        href: "/routine",
         description: "View weekly class timetables and schedules"
       }
     ]
@@ -53,17 +54,17 @@ const navigationItems = [
     submenu: [
       {
         title: "Events",
-        href: "/#/events",
+        href: "/events",
         description: "Stay updated with school events and activities"
       },
       {
         title: "Gallery",
-        href: "/#/gallery",
+        href: "/gallery",
         description: "Browse photos of our school and events"
       },
       {
         title: "Staff",
-        href: "/#/staff",
+        href: "/staff",
         description: "Meet our dedicated teachers and staff members"
       }
     ]
@@ -114,17 +115,7 @@ const Navbar = () => {
           <span className="text-lg md:text-xl font-bold text-school-primary truncate">Baliadanga High School</span>
         </Link>
 
-        {/* Mobile Menu Toggle Button - Visible only on mobile */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </Button>
-
-        {/* Desktop Navigation - Hidden on mobile, Flex on Desktop */}
+        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-4">
           <NavigationMenu>
             <NavigationMenuList>
@@ -173,54 +164,72 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu Overlay - conditionally rendered but styled for mobile */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 top-16 z-50 animate-in slide-in-from-top-5 bg-white p-4 shadow-md overflow-y-auto">
-            <div className="flex flex-col space-y-4 pb-20">
-              {navigationItems.map((item) =>
-                item.submenu ? (
-                  <div key={item.title} className="space-y-2">
-                    <div className="px-4 py-2 font-bold text-lg text-school-primary border-b">{item.title}</div>
-                    <div className="ml-4 grid grid-cols-1 gap-2 pl-2">
-                      {item.submenu.map((subItem) => (
-                        <Link
-                          key={subItem.href}
-                          to={subItem.href}
-                          className="block rounded-md px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-school-primary"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          {subItem.title}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className="block rounded-md px-4 py-3 text-lg font-bold text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.title}
+        {/* Mobile Menu using Sheet */}
+        <div className="md:hidden flex items-center gap-2">
+          <LanguageToggle />
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu size={24} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
+              <SheetHeader className="text-left mb-6">
+                <SheetTitle>
+                  <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
+                    <span className="text-xl font-bold text-school-primary">Baliadanga High School</span>
                   </Link>
-                )
-              )}
-              <div className="pt-4 space-y-3 px-4">
-                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full bg-school-primary hover:bg-school-dark py-6 text-lg">
-                    Admin Portal
-                  </Button>
-                </Link>
+                </SheetTitle>
+                <SheetDescription>
+                  Navigate through our school portal
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex flex-col gap-6">
 
-                <Link to="/portal" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="outline" className="w-full border-school-primary text-school-primary hover:bg-school-light py-6 text-lg">
-                    Student Portal
-                  </Button>
-                </Link>
+                <div className="flex flex-col space-y-4">
+                  {navigationItems.map((item) => (
+                    <div key={item.title} className="space-y-2">
+                      {item.submenu ? (
+                        <>
+                          <h4 className="font-medium text-sm text-gray-500 uppercase tracking-wider">{item.title}</h4>
+                          <div className="pl-4 border-l-2 border-slate-100 flex flex-col space-y-3">
+                            {item.submenu.map((sub) => (
+                              <Link
+                                key={sub.title}
+                                to={sub.href}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="text-gray-700 hover:text-school-primary"
+                              >
+                                {sub.title}
+                              </Link>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <Link
+                          to={item.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="text-lg font-medium text-gray-900 border-b pb-2"
+                        >
+                          {item.title}
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-3 mt-4">
+                  <Link to="/portal" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="w-full bg-school-primary hover:bg-school-dark">Student Portal</Button>
+                  </Link>
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="w-full" variant="secondary">Admin Portal</Button>
+                  </Link>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </nav>
   );

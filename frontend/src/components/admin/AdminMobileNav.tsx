@@ -6,7 +6,7 @@ import {
     LayoutTemplate, Utensils
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils'; // Assuming this exists, standard in shadcn/ui
 
 interface AdminMobileNavProps {
@@ -85,6 +85,7 @@ export const AdminMobileNav: React.FC<AdminMobileNavProps> = ({ activeTab, setAc
                 <SheetContent side="left" className="w-[80vw] sm:w-[350px] overflow-y-auto">
                     <SheetHeader className="mb-4 text-left">
                         <SheetTitle className="text-school-primary">Admin Menu</SheetTitle>
+                        <SheetDescription>Quick access to admin modules</SheetDescription>
                     </SheetHeader>
                     <div className="grid gap-2">
                         {menuItems.map((item) => (
