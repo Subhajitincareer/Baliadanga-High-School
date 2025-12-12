@@ -13,6 +13,9 @@ const admissionSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add phone number']
     },
+    photoUrl: {
+        type: String
+    },
     dateOfBirth: {
         type: Date,
         required: [true, 'Please add date of birth']

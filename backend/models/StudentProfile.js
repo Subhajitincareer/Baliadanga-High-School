@@ -43,6 +43,9 @@ const studentProfileSchema = new mongoose.Schema({
     address: {
         type: String
     },
+    photoUrl: {
+        type: String
+    },
     admissionDate: {
         type: Date,
         default: Date.now
