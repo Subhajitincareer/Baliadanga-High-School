@@ -25,6 +25,7 @@ import AttendancePage from '@/pages/admin/AttendancePage';
 import PermissionManagement from '@/pages/admin/PermissionManagement';
 import PromotionManagement from '@/pages/admin/PromotionManagement';
 import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle } from 'lucide-react';
+import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -150,11 +151,14 @@ const Dashboard = () => {
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center border-b bg-white px-6 md:hidden">
-          <span className="font-bold text-lg">Admin Portal</span>
+        <header className="flex h-16 items-center justify-between border-b bg-white px-4 md:hidden">
+          <span className="font-bold text-lg text-school-primary">Admin Portal</span>
+          <div className="flex items-center gap-2">
+            {/* Could add quick action or profile icon here */}
+          </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-8 md:pb-8">
           <DashboardHeader
             title={
               activeTab === 'announcements' ? 'Manage Announcements' :
@@ -204,6 +208,9 @@ const Dashboard = () => {
 
       <AnnouncementDialog isOpen={isFormOpen} onOpenChange={setIsFormOpen} selectedAnnouncement={selectedAnnouncement} onSuccess={handleFormSuccess} />
       <DeleteAnnouncementDialog isOpen={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} selectedAnnouncement={selectedAnnouncement} onConfirm={handleDeleteConfirm} />
+
+      {/* Mobile Navigation */}
+      <AdminMobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
 };
