@@ -7,6 +7,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { NoticeTicker } from '@/components/home/NoticeTicker';
 import { FloatingAction } from '@/components/home/FloatingAction';
 import { PublicMobileNav } from '@/components/layout/PublicMobileNav';
+import { PageTransition } from '@/components/common/PageTransition';
 
 const Layout: React.FC = () => {
   return (
@@ -15,7 +16,9 @@ const Layout: React.FC = () => {
         <NoticeTicker />
         <Navbar />
         <main className="flex-grow w-full relative">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
           <FloatingAction />
         </main>
         <PublicMobileNav />

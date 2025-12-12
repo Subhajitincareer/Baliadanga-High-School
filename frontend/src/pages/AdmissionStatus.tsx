@@ -10,6 +10,7 @@ import { Search, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import apiService from "@/services/api"; // <-- MERN API import
+import { AdmissionTimeline } from '@/components/admission/AdmissionTimeline';
 
 const accessCodeSchema = z.object({
   accessCode: z.string().min(6, { message: "Please enter a valid access code" }).max(10),
@@ -178,7 +179,7 @@ const AdmissionStatus = () => {
                   </div>
                 )}
                 {admissionStatus.status === 'approved' && (
-                  <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-4">
+                  <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-4 print:hidden">
                     <h3 className="font-bold text-green-800 mb-2">🎉 Congratulations! Application Approved.</h3>
                     <p className="text-sm text-green-700 mb-2">
                       A Student Account has been automatically created for you.
@@ -192,14 +193,18 @@ const AdmissionStatus = () => {
                     </p>
                   </div>
                 )}
-                {admissionStatus.status === 'pending' && (
-                  <div className="bg-yellow-50 border border-yellow-100 rounded-md p-4 mt-4">
-                    <p className="text-sm">
-                      Your application is currently being reviewed by our admissions team.
-                      Please check back later for updates. This process typically takes 5-7 working days.
-                    </p>
-                  </div>
-                )}
+
+                {/* Timeline Visualization */}
+                <div className="mt-6 p-4 border rounded-lg bg-slate-50 print:hidden">
+                  <h4 className="font-semibold mb-4 text-center">Application Progress</h4>
+                  <AdmissionTimeline status={admissionStatus.status as any} />
+                </div>
+
+                <div className="mt-6 flex justify-center print:hidden">
+                  <Button variant="outline" onClick={() => window.print()}>
+                    Download / Print Receipt
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -5,6 +5,8 @@ import Layout from "@/components/layout/Layout";
 import Index from "@/pages/Index";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { Toaster } from "@/components/ui/toaster";
+import ScrollToTop from "@/components/common/ScrollToTop";
+import { TopLoader } from "@/components/common/TopLoader";
 
 import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/admin/Dashboard";
@@ -65,6 +67,8 @@ const ProtectedStaffRoute: FC<{ children: React.ReactNode }> = ({ children }) =>
 const App: FC = () => {
   return (
     <Router basename="/">
+      <ScrollToTop />
+      <TopLoader />
       <StaffProvider>
         <AdminProvider>
           <Routes>

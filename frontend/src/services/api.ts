@@ -277,6 +277,10 @@ class ApiService {
     return this.request<Admission[]>('/admissions');
   }
 
+  async getAdmissionByAccessCode(accessCode: string): Promise<any> {
+    return this.request<any>(`/admissions/status/${accessCode}`);
+  }
+
   async createAdmission(admissionData: Admission): Promise<Admission> {
     return this.request<Admission>('/admissions', {
       method: 'POST',
