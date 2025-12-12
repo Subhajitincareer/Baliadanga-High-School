@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import AdminWhitelist from '../models/AdminWhitelist.js';
 import { generateToken } from '../utils/generateToken.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 
@@ -137,6 +138,7 @@ export const adminLogin = asyncHandler(async (req, res) => {
   if (user && (await user.comparePassword(password))) {
     // Check if user is admin
     if (user.role !== 'admin') {
+      console.log(`Admin Login Failed: User ${email} is not an admin (Role: ${user.role})`);
       return res.status(401).json({
         success: false,
         message: 'Not authorized as an admin'
@@ -155,6 +157,10 @@ export const adminLogin = asyncHandler(async (req, res) => {
       }
     });
   } else {
+    console.log(`Admin Login Failed: Invalid credentials for ${email}`);
+    if (!user) console.log('Reason: User not found');
+    else console.log('Reason: Password mismatch');
+
     res.status(401).json({
       success: false,
       message: 'Invalid credentials'
@@ -184,5 +190,47 @@ export const updatePassword = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Password updated successfully'
+  });
+});
+
+// @desc    Seed admin user (Temporary for production fix)
+// @route   POST /api/auth/seed-admin
+// @access  Public (Protected by secret key)
+export const seedAdmin = asyncHandler(async (req, res) => {
+  const { secretKey } = req.body;
+  const adminEmail = 'admin@baliadanga.com';
+  const adminPassword = 'adminpassword123';
+
+  if (secretKey !== process.env.JWT_SECRET) {
+    return res.status(401).json({ success: false, message: 'Invalid secret key' });
+  }
+
+  // 1. Create/Update User
+  let user = await User.findOne({ email: adminEmail });
+  if (user) {
+    user.password = adminPassword;
+    user.role = 'admin';
+    await user.save();
+    console.log('Admin user updated');
+  } else {
+    user = await User.create({
+      name: 'Super Admin',
+      email: adminEmail,
+      password: adminPassword,
+      role: 'admin'
+    });
+    console.log('Admin user created');
+  }
+
+  // 2. Add to Whitelist
+  const whitelistEntry = await AdminWhitelist.findOne({ email: adminEmail });
+  if (!whitelistEntry) {
+    await AdminWhitelist.create({ email: adminEmail });
+    console.log('Admin added to whitelist');
+  }
+
+  res.json({
+    success: true,
+    message: 'Admin seeded successfully'
   });
 });
