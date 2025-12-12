@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const HeroSection = () => {
   return (
-    <div className="relative overflow-hidden h-[600px] flex items-center justify-center text-white">
+    <div className="relative overflow-hidden min-h-[500px] md:min-h-[600px] flex items-center justify-center text-white">
       {/* Background Carousel */}
       <HeroCarousel />
 

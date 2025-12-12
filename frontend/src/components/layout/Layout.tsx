@@ -6,17 +6,19 @@ import { Outlet } from 'react-router-dom';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { NoticeTicker } from '@/components/home/NoticeTicker';
 import { FloatingAction } from '@/components/home/FloatingAction';
+import { PublicMobileNav } from '@/components/layout/PublicMobileNav';
 
 const Layout: React.FC = () => {
   return (
     <LanguageProvider>
-      <div className="flex min-h-screen w-full flex-col bg-white">
+      <div className="flex min-h-screen w-full flex-col bg-white pb-16 md:pb-0"> {/* Added padding bottom for mobile nav */}
         <NoticeTicker />
         <Navbar />
         <main className="flex-grow w-full relative">
           <Outlet />
           <FloatingAction />
         </main>
+        <PublicMobileNav />
         <Footer />
       </div>
     </LanguageProvider>
