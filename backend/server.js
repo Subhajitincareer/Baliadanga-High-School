@@ -20,6 +20,7 @@ import uploadRoutes from './routes/upload.js';
 import routineRoutes from './routes/routine.js';
 import studentRoutes from './routes/students.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
+import midDayMealRoutes from './routes/midDayMealRoutes.js';
 
 // Load env vars
 dotenv.config();
@@ -83,6 +84,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/routines', routineRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/mid-day-meal', midDayMealRoutes);
 
 // Serve static assets (uploads)
 import path from 'path';

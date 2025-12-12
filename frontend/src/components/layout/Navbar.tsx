@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { Menu, X } from 'lucide-react';
+import { LanguageToggle } from '@/components/common/LanguageToggle';
 
 const navigationItems = [
   {
@@ -162,11 +163,14 @@ const Navbar = () => {
               )}
             </NavigationMenuList>
           </NavigationMenu>
-          <Link to="/portal">
-            <Button className="bg-school-primary hover:bg-school-dark">
-              Student Portal
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <Link to="/portal">
+              <Button className="bg-school-primary hover:bg-school-dark">
+                Student Portal
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Mobile Menu Overlay - conditionally rendered but styled for mobile */}

@@ -9,7 +9,20 @@ export const checkWhitelist = asyncHandler(async (req, res) => {
     try {
         const { email } = req.params;
         const entry = await AdminWhitelist.findOne({ email: email.toLowerCase() });
-        res.status(200).json({ isAdmin: !!entry });
+
+        if (entry) {
+            return res.status(200).json({ isAdmin: true });
+        }
+
+        // Also allow if user exists and has staff role
+        const user = await User.findOne({ email: email.toLowerCase() });
+        const textRoles = ['admin', 'teacher', 'principal', 'vice_principal', 'coordinator', 'staff'];
+
+        if (user && textRoles.includes(user.role)) {
+            return res.status(200).json({ isAdmin: true });
+        }
+
+        res.status(200).json({ isAdmin: false });
     } catch (error) {
         res.status(500).json({ message: 'Server check failed' });
     }

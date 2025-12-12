@@ -3,7 +3,7 @@ import {
     BellRing, Users, GraduationCap, Award, BookOpen, PenTool,
     UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon,
     DollarSign, CheckSquare, Shield, ArrowUpCircle, Menu, Home,
-    LayoutTemplate
+    LayoutTemplate, Utensils
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -38,6 +38,7 @@ export const AdminMobileNav: React.FC<AdminMobileNavProps> = ({ activeTab, setAc
         { id: 'promotion', label: 'Promotion', icon: ArrowUpCircle },
         { id: 'permissions', label: 'Permissions', icon: Shield },
         { id: 'idcards', label: 'ID Cards', icon: LayoutTemplate },
+        { id: 'meal', label: 'Mid-Day Meal', icon: Utensils },
     ];
 
     return (

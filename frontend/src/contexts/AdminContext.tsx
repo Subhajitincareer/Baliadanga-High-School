@@ -108,7 +108,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const maybeSession = () => {
       const token = localStorage.getItem('token');
       const role = localStorage.getItem('userRole');
-      if (token && role === 'admin') {
+      const allowedRoles = ['admin', 'teacher', 'staff', 'principal', 'vice_principal', 'coordinator'];
+      if (token && role && allowedRoles.includes(role)) {
         setIsAdmin(true);
       }
     };

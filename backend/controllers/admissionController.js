@@ -83,7 +83,8 @@ export const updateAdmissionStatus = asyncHandler(async (req, res, next) => {
                 email: admission.email,
                 address: admission.address,
                 guardianName: admission.guardianName,
-                guardianPhone: admission.guardianPhone
+                guardianPhone: admission.guardianPhone,
+                photoUrl: admission.photoUrl
             });
 
             // Ideally we should send an email here with credentials

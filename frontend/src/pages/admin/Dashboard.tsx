@@ -24,8 +24,9 @@ import { EventManagement } from '@/components/admin/EventManagement';
 import AttendancePage from '@/pages/admin/AttendancePage';
 import PermissionManagement from '@/pages/admin/PermissionManagement';
 import { IDCardGenerator } from '@/pages/admin/IDCardGenerator';
+import MidDayMealPage from '@/pages/admin/MidDayMealPage';
 import PromotionManagement from '@/pages/admin/PromotionManagement';
-import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle, LayoutTemplate } from 'lucide-react';
+import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle, LayoutTemplate, Utensils } from 'lucide-react';
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 
 const Dashboard = () => {
@@ -37,6 +38,22 @@ const Dashboard = () => {
   const { isAdmin, logout } = useAdmin();
   const navigate = useNavigate();
   const { announcements, isLoading, fetchAnnouncements, handleDeleteAnnouncement } = useAnnouncements();
+
+  // Get user role
+  const userRole = localStorage.getItem('userRole') || 'admin';
+
+  // Define tab visibility
+  const canAccess = (tab: string) => {
+    if (userRole === 'admin' || userRole === 'principal') return true;
+
+    const teacherTabs = ['announcements', 'attendance', 'meal', 'calendar', 'results', 'marks', 'exams', 'routines', 'idcards', 'students']; // Added students for view
+    const staffTabs = ['announcements', 'attendance', 'meal', 'fees', 'students', 'idcards', 'admissions'];
+
+    if (userRole === 'teacher') return teacherTabs.includes(tab);
+    if (userRole === 'staff') return staffTabs.includes(tab);
+
+    return false; // Default blocked
+  };
 
   useEffect(() => {
     if (!isAdmin) {
@@ -104,48 +121,81 @@ const Dashboard = () => {
               <TabsTrigger value="announcements" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                 <BellRing className="mr-2 h-4 w-4" /> Announcements
               </TabsTrigger>
-              <TabsTrigger value="staff" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <Users className="mr-2 h-4 w-4" /> Staff Directory
-              </TabsTrigger>
-              <TabsTrigger value="students" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <UserPlus className="mr-2 h-4 w-4" /> Student Management
-              </TabsTrigger>
-              <TabsTrigger value="fees" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <DollarSign className="mr-2 h-4 w-4" /> Fee Management
-              </TabsTrigger>
-              <TabsTrigger value="admissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <GraduationCap className="mr-2 h-4 w-4" /> Admissions
-              </TabsTrigger>
-              <TabsTrigger value="results" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <Award className="mr-2 h-4 w-4" /> Student Results
-              </TabsTrigger>
-              <TabsTrigger value="exams" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <BookOpen className="mr-2 h-4 w-4" /> Manage Exams
-              </TabsTrigger>
-              <TabsTrigger value="marks" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <PenTool className="mr-2 h-4 w-4" /> Marks Entry
-              </TabsTrigger>
-              <TabsTrigger value="calendar" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <CalendarIcon className="mr-2 h-4 w-4" /> Academic Calendar
-              </TabsTrigger>
-              <TabsTrigger value="resources" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <FileText className="mr-2 h-4 w-4" /> Resources
-              </TabsTrigger>
-              <TabsTrigger value="attendance" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <CheckSquare className="mr-2 h-4 w-4" /> Attendance
-              </TabsTrigger>
-              <TabsTrigger value="routines" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <TableIcon className="mr-2 h-4 w-4" /> Class Routines
-              </TabsTrigger>
-              <TabsTrigger value="promotion" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <ArrowUpCircle className="mr-2 h-4 w-4" /> Promotion
-              </TabsTrigger>
-              <TabsTrigger value="permissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <Shield className="mr-2 h-4 w-4" /> Permissions
-              </TabsTrigger>
-              <TabsTrigger value="idcards" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <LayoutTemplate className="mr-2 h-4 w-4" /> ID Cards
-              </TabsTrigger>
+              {canAccess('staff') && (
+                <TabsTrigger value="staff" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <Users className="mr-2 h-4 w-4" /> Staff Directory
+                </TabsTrigger>
+              )}
+              {canAccess('students') && (
+                <TabsTrigger value="students" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <UserPlus className="mr-2 h-4 w-4" /> Student Management
+                </TabsTrigger>
+              )}
+              {canAccess('fees') && (
+                <TabsTrigger value="fees" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <DollarSign className="mr-2 h-4 w-4" /> Fee Management
+                </TabsTrigger>
+              )}
+              {canAccess('admissions') && (
+                <TabsTrigger value="admissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <GraduationCap className="mr-2 h-4 w-4" /> Admissions
+                </TabsTrigger>
+              )}
+              {canAccess('results') && (
+                <TabsTrigger value="results" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <Award className="mr-2 h-4 w-4" /> Student Results
+                </TabsTrigger>
+              )}
+              {canAccess('exams') && (
+                <TabsTrigger value="exams" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <BookOpen className="mr-2 h-4 w-4" /> Manage Exams
+                </TabsTrigger>
+              )}
+              {canAccess('marks') && (
+                <TabsTrigger value="marks" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <PenTool className="mr-2 h-4 w-4" /> Marks Entry
+                </TabsTrigger>
+              )}
+              {canAccess('calendar') && (
+                <TabsTrigger value="calendar" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <CalendarIcon className="mr-2 h-4 w-4" /> Academic Calendar
+                </TabsTrigger>
+              )}
+              {canAccess('resources') && (
+                <TabsTrigger value="resources" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <FileText className="mr-2 h-4 w-4" /> Resources
+                </TabsTrigger>
+              )}
+              {canAccess('attendance') && (
+                <TabsTrigger value="attendance" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <CheckSquare className="mr-2 h-4 w-4" /> Attendance
+                </TabsTrigger>
+              )}
+              {canAccess('routines') && (
+                <TabsTrigger value="routines" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <TableIcon className="mr-2 h-4 w-4" /> Class Routines
+                </TabsTrigger>
+              )}
+              {canAccess('promotion') && (
+                <TabsTrigger value="promotion" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <ArrowUpCircle className="mr-2 h-4 w-4" /> Promotion
+                </TabsTrigger>
+              )}
+              {canAccess('permissions') && (
+                <TabsTrigger value="permissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <Shield className="mr-2 h-4 w-4" /> Permissions
+                </TabsTrigger>
+              )}
+              {canAccess('idcards') && (
+                <TabsTrigger value="idcards" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <LayoutTemplate className="mr-2 h-4 w-4" /> ID Cards
+                </TabsTrigger>
+              )}
+              {canAccess('meal') && (
+                <TabsTrigger value="meal" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <Utensils className="mr-2 h-4 w-4" /> Mid-Day Meal
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
         </div>
@@ -172,7 +222,8 @@ const Dashboard = () => {
                       activeTab === 'calendar' ? 'Calendar Events' :
                         activeTab === 'resources' ? 'Resource Management' :
                           activeTab === 'idcards' ? 'ID Card Generator' :
-                            'Student Results'
+                            activeTab === 'meal' ? 'Mid-Day Meal Register' :
+                              'Student Results'
             }
             subtitle={
               activeTab === 'announcements' ? 'Create and manage school announcements' :
@@ -184,7 +235,8 @@ const Dashboard = () => {
                           activeTab === 'resources' ? 'Upload policies, forms, and other documents' :
                             activeTab === 'routines' ? 'Manage class timetables and schedules' :
                               activeTab === 'idcards' ? 'Generate and print student ID cards' :
-                                'Manage examination results and reports'
+                                activeTab === 'meal' ? 'Track daily student meal consumption' :
+                                  'Manage examination results and reports'
             }
             onLogout={handleLogout}
             showLogout={false}
@@ -209,6 +261,7 @@ const Dashboard = () => {
             <TabsContent value="promotion" className="space-y-4 border-none p-0 outline-none"><PromotionManagement /></TabsContent>
             <TabsContent value="permissions" className="space-y-4 border-none p-0 outline-none"><PermissionManagement /></TabsContent>
             <TabsContent value="idcards" className="space-y-4 border-none p-0 outline-none"><IDCardGenerator /></TabsContent>
+            <TabsContent value="meal" className="space-y-4 border-none p-0 outline-none"><MidDayMealPage /></TabsContent>
           </Tabs>
         </main>
       </div>

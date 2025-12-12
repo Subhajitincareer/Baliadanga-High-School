@@ -71,8 +71,10 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
     guardianName: '',
     guardianPhone: '',
     address: '',
-    previousSchool: ''
+    previousSchool: '',
+    photoUrl: ''
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   // Also hook into StaffContext for potential permission-based access
   // We can dynamically import or check localStorage if getting contexts is tricky
   // For now, let's rely on localStorage to prevent auto-redirects for valid staff
@@ -131,8 +133,15 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
     }
     setIsProcessing(true);
     try {
+      let uploadedPhotoUrl = '';
+      if (photoFile) {
+        const uploadResult = await apiService.uploadFile(photoFile, 'student-photos');
+        uploadedPhotoUrl = uploadResult.url;
+      }
+
       await apiService.createAdmission({
         ...newAdmission,
+        photoUrl: uploadedPhotoUrl,
         status: 'Pending',
         email: newAdmission.email || `offline_${Date.now()}@school.local`
       } as any);
@@ -141,8 +150,9 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
       setShowAddModal(false);
       setNewAdmission({
         studentName: '', class: '', phoneNumber: '', email: '', dateOfBirth: '',
-        gender: 'Male', guardianName: '', guardianPhone: '', address: '', previousSchool: ''
+        gender: 'Male', guardianName: '', guardianPhone: '', address: '', previousSchool: '', photoUrl: ''
       });
+      setPhotoFile(null);
       fetchAdmissions();
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -480,6 +490,20 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
               <div className="space-y-2">
                 <Label>Student Name *</Label>
                 <Input value={newAdmission.studentName} onChange={e => setNewAdmission({ ...newAdmission, studentName: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Student Photo</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setPhotoFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Class *</Label>

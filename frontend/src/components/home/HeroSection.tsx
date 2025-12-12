@@ -1,36 +1,60 @@
-
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { HeroCarousel } from './HeroCarousel';
+import { motion } from 'framer-motion';
 
 const HeroSection = () => {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-school-primary to-school-dark py-12 md:py-24 text-white">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80')] bg-cover bg-center opacity-20"></div>
+    <div className="relative overflow-hidden h-[600px] flex items-center justify-center text-white">
+      {/* Background Carousel */}
+      <HeroCarousel />
+
+      {/* Content */}
       <div className="container relative z-10 px-4">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="font-heading mb-4 text-3xl font-bold md:text-5xl lg:text-6xl leading-tight">
-            Welcome to Baliadanga High School
-          </h1>
-          <p className="mb-8 text-base md:text-xl text-gray-100">
+        <div className="mx-auto max-w-4xl text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="font-heading mb-6 text-4xl font-extrabold md:text-6xl lg:text-7xl leading-tight tracking-tight drop-shadow-md"
+          >
+            Welcome to <span className="text-school-secondary">Baliadanga</span> High School
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mb-10 text-lg md:text-2xl text-gray-100 max-w-2xl mx-auto drop-shadow-sm font-light"
+          >
             Nurturing minds, building character, and inspiring excellence since 1965
-          </p>
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex flex-col sm:flex-row flex-wrap justify-center gap-4"
+          >
             <Link to="/admission" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-school-secondary hover:bg-green-700" size="lg">
-                Admissions
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button className="w-full sm:w-auto px-8 py-6 text-lg bg-school-secondary hover:bg-green-700 shadow-lg hover:shadow-green-500/20" size="lg">
+                  Apply for Admission
+                </Button>
+              </motion.div>
             </Link>
             <Link to="/announcements" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto border-white text-blue-600 hover:bg-blue-100 hover:text-school-primary"
-                size="lg"
-              >
-                Latest Updates
-              </Button>
-
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto px-8 py-6 text-lg border-2 border-white text-white hover:bg-white hover:text-school-primary backdrop-blur-sm bg-white/10"
+                  size="lg"
+                >
+                  Latest Updates
+                </Button>
+              </motion.div>
             </Link>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

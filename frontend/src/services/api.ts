@@ -519,11 +519,12 @@ class ApiService {
   }
 
   // Admin login (returns token & user)
-  async adminLogin(email: string, password: string) {
-    return this.request('/auth/admin-login', {
+  async adminLogin(email: string, password: string): Promise<LoginResponse> {
+    const response = await this.request<{ success: boolean; token: string; user: User; message?: string }>('/auth/admin-login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+    return response as unknown as LoginResponse; // Casting to match interface
   }
 
   async updatePassword(passwordData: any): Promise<ApiResponse> {
@@ -623,6 +624,21 @@ class ApiService {
 
   async getStudentAttendance(studentId: string): Promise<any[]> {
     return this.request<any[]>(`/attendance/student/${studentId}`);
+  }
+
+  // Mid-Day Meal Methods
+  async markMidDayMeal(data: any): Promise<any> {
+    return this.request<any>('/mid-day-meal', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async getMealReport(date: string, className?: string): Promise<any[]> {
+    const query = new URLSearchParams();
+    if (date) query.append('date', date);
+    if (className) query.append('class', className);
+    return this.request<any[]>(`/mid-day-meal?${query.toString()}`);
   }
 }
 
