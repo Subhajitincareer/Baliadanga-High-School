@@ -5,6 +5,16 @@
   --radius: 0.5rem;
   --font-sans: "Inter", sans-serif;
   --font-heading: "Montserrat", sans-serif;
+}
+
+/* Global Overflow Fix */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+@theme {
 
   /* রঙের ভ্যারিয়েবলগুলি */
   --color-border: hsl(220, 14%, 96%);
