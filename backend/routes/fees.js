@@ -5,7 +5,8 @@ import {
     getFeeStructures,
     recordPayment,
     getStudentPayments,
-    getStudentDues
+    getStudentDues,
+    getMyFeeHistory
 } from '../controllers/feeController.js';
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.route('/structure')
     .get(protect, getFeeStructures);
 
 router.post('/pay', protect, authorize('admin', 'staff'), recordPayment);
+router.get('/my-history', protect, getMyFeeHistory);   // student self-service
 router.get('/student/:id', protect, getStudentPayments);
 router.get('/dues/:studentId', protect, getStudentDues);
 

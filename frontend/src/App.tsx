@@ -4,18 +4,29 @@ import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import Layout from "@/components/layout/Layout";
 import Index from "@/pages/Index";
 import { AdminProvider } from "@/contexts/AdminContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { TopLoader } from "@/components/common/TopLoader";
 
 import AdminLogin from "@/pages/AdminLogin";
+import AdminSetup from "@/pages/AdminSetup";
 import Dashboard from "@/pages/admin/Dashboard";
 import AdmissionManagement from "@/pages/admin/AdmissionManagement";
 import StudentResults from "@/pages/admin/StudentResults";
 import StudentManagement from '@/pages/admin/StudentManagement';
 import StudentDetail from '@/pages/admin/StudentDetail';
 import AddStudent from '@/pages/admin/AddStudent';
+import QuickAddStudents from '@/pages/admin/QuickAddStudents';
 import PrintableAdmissionForm from '@/pages/admin/PrintableAdmissionForm';
+import AttendancePage from '@/pages/admin/AttendancePage';
+import ExamManagement from '@/pages/admin/ExamManagement';
+import FeeManagement from '@/pages/admin/FeeManagement';
+import { IDCardGenerator } from '@/pages/admin/IDCardGenerator';
+import MarksEntry from '@/pages/admin/MarksEntry';
+import MidDayMealPage from '@/pages/admin/MidDayMealPage';
+import PermissionManagement from '@/pages/admin/PermissionManagement';
+import PromotionManagement from '@/pages/admin/PromotionManagement';
 
 import ResultDisplay from "@/pages/ResultDisplay";
 import Announcements from "@/pages/Announcements";
@@ -39,29 +50,25 @@ import StaffLogin from "@/pages/StaffLogin";
 import StaffDashboard from "@/pages/StaffDashboard";
 import { StaffProvider } from "@/contexts/StaffContext";
 
-// ProtectedRoute for Admin routes
+// ProtectedRoute for Admin routes — uses AuthContext (httpOnly cookie session)
 const ProtectedRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAdmin = localStorage.getItem("token") !== null &&
-    localStorage.getItem("userRole") === "admin";
-  return isAdmin ? <>{children}</> : <Navigate to="/admin" replace />;
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  return isAuthenticated && isAdmin ? <>{children}</> : <Navigate to="/admin" replace />;
 };
 
 // ProtectedRoute for Student routes
 const ProtectedStudentRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Check if JWT token exists and user is a student
-  const token = localStorage.getItem("token");
-  const userRole = localStorage.getItem("userRole");
-  const isLoggedIn = token !== null && userRole === "student";
-  return isLoggedIn ? <>{children}</> : <Navigate to="/student/login" replace />;
+  const { isAuthenticated, isStudent, isLoading } = useAuth();
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  return isAuthenticated && isStudent ? <>{children}</> : <Navigate to="/student/login" replace />;
 };
 
 // ProtectedRoute for Staff routes
 const ProtectedStaffRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
-  const token = localStorage.getItem("token");
-  const userRole = localStorage.getItem("userRole");
-  const STAFF_ROLES = ['teacher', 'principal', 'vice_principal', 'coordinator', 'staff', 'admin'];
-  const isLoggedIn = token !== null && STAFF_ROLES.includes(userRole || '');
-  return isLoggedIn ? <>{children}</> : <Navigate to="/staff/login" replace />;
+  const { isAuthenticated, isStaff, isLoading } = useAuth();
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  return isAuthenticated && isStaff ? <>{children}</> : <Navigate to="/staff/login" replace />;
 };
 
 const App: FC = () => {
@@ -69,11 +76,14 @@ const App: FC = () => {
     <Router basename="/">
       <ScrollToTop />
       <TopLoader />
-      <StaffProvider>
-        <AdminProvider>
+      <AuthProvider>
+        <StaffProvider>
+          <AdminProvider>
           <Routes>
             {/* Admin login */}
             <Route path="/admin" element={<AdminLogin />} />
+            {/* First-run: Headmaster creates admin account */}
+            <Route path="/setup" element={<AdminSetup />} />
 
             {/* Admin protected routes */}
             <Route
@@ -133,6 +143,70 @@ const App: FC = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/attendance"
+              element={
+                <ProtectedRoute>
+                  <AttendancePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/exams"
+              element={
+                <ProtectedRoute>
+                  <ExamManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/fees"
+              element={
+                <ProtectedRoute>
+                  <FeeManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/id-cards"
+              element={
+                <ProtectedRoute>
+                  <IDCardGenerator />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/marks-entry"
+              element={
+                <ProtectedRoute>
+                  <MarksEntry />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/mid-day-meal"
+              element={
+                <ProtectedRoute>
+                  <MidDayMealPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/permissions"
+              element={
+                <ProtectedRoute>
+                  <PermissionManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/promotions"
+              element={
+                <ProtectedRoute>
+                  <PromotionManagement />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Student routes */}
             <Route path="/student/login" element={<StudentLogin />} />
@@ -178,6 +252,7 @@ const App: FC = () => {
           </Routes>
         </AdminProvider>
       </StaffProvider>
+      </AuthProvider>
       <Toaster />
     </Router >
   );

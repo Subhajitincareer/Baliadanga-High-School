@@ -3,14 +3,21 @@ import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, User, Calendar, MapPin, Phone, Mail, BookOpen, Activity } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, User, Calendar, MapPin, Phone, Mail, BookOpen, Activity, Printer } from 'lucide-react';
 import apiService, { StudentProfile } from '@/services/api';
 import { Progress } from '@/components/ui/progress';
+import { ReportCardPrint } from '@/components/admin/ReportCardPrint';
 
 const StudentDetail = () => {
     const { id } = useParams<{ id: string }>(); // This will be studentId like "ST-..."
-    const [student, setStudent] = useState<StudentProfile | null>(null);
+    const [student, setStudent] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
+    const [exams, setExams] = useState<any[]>([]);
+    const [selectedExamId, setSelectedExamId] = useState<string>('');
+    const [showReportCard, setShowReportCard] = useState(false);
+    const [reportCardData, setReportCardData] = useState<any>(null);
+    const [reportCardLoading, setReportCardLoading] = useState(false);
 
     useEffect(() => {
         // We need to fetch by studentId (ST-...) not _id (mongo object id), 
@@ -27,7 +34,7 @@ const StudentDetail = () => {
         const fetchStudent = async () => {
             try {
                 setLoading(true);
-                const allStudents = await apiService.getStudents(); // Fallback strategy
+                const allStudents = (await apiService.getStudents()) as any[]; // Fallback strategy
                 // Find by studentId matches param
                 const found = allStudents.find(s => s.studentId === id);
 
@@ -57,8 +64,9 @@ const StudentDetail = () => {
         );
     }
 
-    const name = typeof student.user === 'object' && student.user ? (student.user as any).name : (student as any).name || student.fullName;
-    const email = typeof student.user === 'object' && student.user ? (student.user as any).email : (student as any).email;
+    const s = student as any;
+    const name = s.name || s.fullName || (s.user?.name) || 'Unknown';
+    const email = s.email || s.user?.email || '';
 
     // Mock Attendance Data
     const attendancePercentage = 85;
@@ -123,7 +131,17 @@ const StudentDetail = () => {
                         <TabsList className="w-full justify-start">
                             <TabsTrigger value="details">Academic Details</TabsTrigger>
                             <TabsTrigger value="attendance">Attendance</TabsTrigger>
-                            <TabsTrigger value="results">Exam Results</TabsTrigger>
+                            <TabsTrigger
+                              value="results"
+                              onClick={async () => {
+                                if (exams.length === 0) {
+                                  try {
+                                    const data = await apiService.getExams();
+                                    setExams(Array.isArray(data) ? data : []);
+                                  } catch (e) { console.error(e); }
+                                }
+                              }}
+                            >Exam Results</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="details" className="mt-6">
@@ -190,11 +208,53 @@ const StudentDetail = () => {
 
                         <TabsContent value="results" className="mt-6">
                             <Card>
-                                <CardContent className="p-8 text-center text-muted-foreground">
-                                    <Activity className="mx-auto h-12 w-12 opacity-20 mb-4" />
-                                    <p>No exam results available yet.</p>
+                                <CardHeader>
+                                    <CardTitle className="text-base">Print Report Card</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {exams.length === 0 ? (
+                                        <p className="text-muted-foreground text-sm">No exams found. Click the Exam Results tab to load.</p>
+                                    ) : (
+                                        <div className="flex gap-3 items-center flex-wrap">
+                                            <Select value={selectedExamId} onValueChange={setSelectedExamId}>
+                                                <SelectTrigger className="w-64">
+                                                    <SelectValue placeholder="Select an exam" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {exams.map((e: any) => (
+                                                        <SelectItem key={e._id} value={e._id}>{e.name} ({e.type})</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button
+                                                onClick={async () => {
+                                                    if (!selectedExamId || !student?._id) return;
+                                                    setReportCardLoading(true);
+                                                    try {
+                                                        const res = await apiService.getReportCard(student._id, selectedExamId);
+                                                        setReportCardData(res?.data || res || null);
+                                                        setShowReportCard(true);
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                    } finally {
+                                                        setReportCardLoading(false);
+                                                    }
+                                                }}
+                                                disabled={!selectedExamId || reportCardLoading}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <Printer className="h-4 w-4" />
+                                                {reportCardLoading ? 'Loading...' : 'Print Report Card'}
+                                            </Button>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
+                            <ReportCardPrint
+                                data={reportCardData}
+                                open={showReportCard}
+                                onClose={() => setShowReportCard(false)}
+                            />
                         </TabsContent>
                     </Tabs>
                 </div>

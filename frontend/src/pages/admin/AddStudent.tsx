@@ -13,6 +13,7 @@ const AddStudent = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -27,7 +28,8 @@ const AddStudent = () => {
         guardianPhone: '',
         address: '',
         dateOfBirth: '',
-        gender: 'Male'
+        gender: 'Male',
+        photoUrl: ''
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,23 +40,26 @@ const AddStudent = () => {
         setFormData({ ...formData, [name]: value });
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setPhotoFile(e.target.files[0]);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
-            // We'll use the bulk import API with a single item array for simplicity
-            // or we could create a proper single create endpoint. 
-            // The controller exists: createStudent (POST /) but requires specific payload.
-            // Let's us bulk import as it handles User + Profile creation logic seamlessly we built earlier.
-            // Actually, let's look at studentController.js again... it has `createStudent` which does User+Profile.
-            // But let's verify if `apiService` has `createStudent`. 
-            // It was not in the interface... I'll check api.ts or just use bulk for now as it's robust.
-            // Wait, bulk is /students/bulk.
-            // Let's use bulk for consistency with the "auto-id" logic we just added there.
+            let uploadedPhotoUrl = '';
+            if (photoFile) {
+                const uploadResult = await apiService.uploadFile(photoFile, 'student-photos');
+                uploadedPhotoUrl = uploadResult.url;
+            }
 
             const payload = [{
-                ...formData
+                ...formData,
+                photoUrl: uploadedPhotoUrl
             }];
 
             const response = await apiService.bulkImportStudents(payload);
@@ -64,7 +69,8 @@ const AddStudent = () => {
                     title: "Student Added",
                     description: "Student profile has been created successfully.",
                 });
-                navigate('/admin/dashboard');
+                // Redirect to ID Card Generator with pre-filled Class/Section
+                navigate(`/admin/id-cards?class=${formData.class}&section=${formData.section}`);
             } else {
                 const errorMsg = response.results.errors[0]?.message || "Failed to create student";
                 throw new Error(errorMsg);
@@ -82,7 +88,7 @@ const AddStudent = () => {
         }
     };
 
-    const classes = ["V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+    const classes = ["5", "6", "7", "8", "9", "10", "11", "12"];
     const sections = ["A", "B", "C", "D"];
 
     return (
@@ -108,6 +114,15 @@ const AddStudent = () => {
                             </div>
                         </div>
 
+                        {/* Photo Upload Field */}
+                        <div className="space-y-2">
+                            <Label htmlFor="photo">Student Photo</Label>
+                            <div className="flex items-center gap-4">
+                                <Input id="photo" type="file" accept="image/*" onChange={handleFileChange} className="cursor-pointer" />
+                                {photoFile && <span className="text-sm text-green-600">Selected: {photoFile.name}</span>}
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="password">Password (Optional)</Label>
@@ -123,7 +138,7 @@ const AddStudent = () => {
                                         <SelectValue placeholder="Select Class" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                        {classes.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -134,7 +149,7 @@ const AddStudent = () => {
                                         <SelectValue placeholder="Select Section" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {sections.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        {sections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -187,9 +202,9 @@ const AddStudent = () => {
                             <Input id="address" name="address" value={formData.address} onChange={handleChange} />
                         </div>
 
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button type="submit" className="w-full bg-school-primary hover:bg-school-dark" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                            Save Student
+                            Save Student & Generate ID
                         </Button>
                     </form>
                 </CardContent>

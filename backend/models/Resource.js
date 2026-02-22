@@ -15,7 +15,7 @@ const resourceSchema = new mongoose.Schema({
     type: {
         type: String,
         required: [true, 'Please select a type'],
-        enum: ['policy', 'form', 'other'],
+        enum: ['policy', 'form', 'syllabus', 'booklist', 'other'],
         default: 'other'
     },
     filePath: {

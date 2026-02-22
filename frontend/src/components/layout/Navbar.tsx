@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { cn } from "@/lib/utils";
 import { Menu, X } from 'lucide-react';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const navigationItems = [
   {
@@ -81,13 +82,14 @@ const navigationItems = [
 
 const ListItem = React.forwardRef<
   HTMLAnchorElement,
-  React.ComponentPropsWithoutRef<"a"> & { title: string }
->(({ className, title, children, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"a"> & { title: string; href?: string }
+>(({ className, title, children, href, ...props }, ref) => {
   return (
     <li>
       <NavigationMenuLink asChild>
-        <a
-          ref={ref}
+        <Link
+          ref={ref as any}
+          to={href || ""}
           className={cn(
             "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
@@ -98,7 +100,7 @@ const ListItem = React.forwardRef<
           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
-        </a>
+        </Link>
       </NavigationMenuLink>
     </li>
   );
@@ -187,35 +189,43 @@ const Navbar = () => {
               <div className="flex flex-col gap-6">
 
                 <div className="flex flex-col space-y-4">
-                  {navigationItems.map((item) => (
-                    <div key={item.title} className="space-y-2">
-                      {item.submenu ? (
-                        <>
-                          <h4 className="font-medium text-sm text-gray-500 uppercase tracking-wider">{item.title}</h4>
-                          <div className="pl-4 border-l-2 border-slate-100 flex flex-col space-y-3">
-                            {item.submenu.map((sub) => (
-                              <Link
-                                key={sub.title}
-                                to={sub.href}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="text-gray-700 hover:text-school-primary"
-                              >
-                                {sub.title}
-                              </Link>
-                            ))}
+                  <Accordion type="single" collapsible className="w-full">
+                    {navigationItems.map((item, index) => (
+                      <div key={item.title} className="w-full">
+                        {item.submenu ? (
+                          <AccordionItem value={`item-${index}`} className="border-b-0">
+                            <AccordionTrigger className="py-2 text-lg font-medium text-gray-900 hover:no-underline">
+                              {item.title}
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-4">
+                              <div className="pl-4 border-l-2 border-slate-100 flex flex-col space-y-3 mt-2">
+                                {item.submenu.map((sub) => (
+                                  <Link
+                                    key={sub.title}
+                                    to={sub.href}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="text-gray-600 hover:text-school-primary text-base py-1"
+                                  >
+                                    {sub.title}
+                                  </Link>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ) : (
+                          <div className="py-2">
+                            <Link
+                              to={item.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="text-lg font-medium text-gray-900 block w-full py-2 hover:text-school-primary"
+                            >
+                              {item.title}
+                            </Link>
                           </div>
-                        </>
-                      ) : (
-                        <Link
-                          to={item.href}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-lg font-medium text-gray-900 border-b pb-2"
-                        >
-                          {item.title}
-                        </Link>
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    ))}
+                  </Accordion>
                 </div>
 
                 <div className="flex flex-col gap-3 mt-4">

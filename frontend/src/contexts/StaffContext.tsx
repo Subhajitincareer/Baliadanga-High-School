@@ -1,134 +1,93 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+/**
+ * StaffContext.tsx
+ *
+ * Thin wrapper around AuthContext for staff-specific UI behaviour:
+ * toast notifications, navigation, and permission checks.
+ *
+ * Auth state (user object, cookie) is managed entirely by AuthContext.
+ * No localStorage token reads/writes here.
+ */
+import React, { createContext, useContext } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import apiService, { User } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, AuthUser } from './AuthContext';
 
 type StaffContextType = {
-    isStaff: boolean;
-    user: User | null;
-    login: (email: string, password: string) => Promise<boolean>;
-    logout: () => void;
-    hasPermission: (permission: string) => boolean;
+  isStaff: boolean;
+  user: AuthUser | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  hasPermission: (permission: string) => boolean;
 };
 
 const StaffContext = createContext<StaffContextType | undefined>(undefined);
 
+const STAFF_ROLES = ['teacher', 'principal', 'vice_principal', 'coordinator', 'staff', 'admin'];
+
 export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isStaff, setIsStaff] = useState(false);
-    const [user, setUser] = useState<User | null>(null);
-    const { toast } = useToast();
-    const navigate = useNavigate();
+  const { isStaff, user, login: authLogin, logout: authLogout } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-    const STAFF_ROLES = ['teacher', 'principal', 'vice_principal', 'coordinator', 'staff', 'admin'];
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      // authLogin calls POST /api/auth/login; httpOnly cookie set by backend
+      const loggedInUser = await authLogin(email, password);
 
-    const login = async (email: string, password: string): Promise<boolean> => {
-        try {
-            // apiService.login returns { token, user, message? }
-            const { token, user } = await apiService.login(email, password);
+      if (!STAFF_ROLES.includes(loggedInUser.role)) {
+        // Logged in but not a staff member — log them out immediately
+        await authLogout();
+        toast({
+          title: 'Access Denied',
+          description: 'This portal is for Faculty and Staff only.',
+          variant: 'destructive',
+        });
+        return false;
+      }
 
-            if (!token || !user?.role) {
-                toast({
-                    title: 'Login Failed',
-                    description: 'Invalid response from server.',
-                    variant: 'destructive',
-                });
-                return false;
-            }
+      toast({
+        title: 'Login Successful',
+        description: `Welcome back, ${loggedInUser.name || 'Staff Member'}!`,
+      });
+      navigate('/staff/dashboard');
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Error Encountered',
+        description: error.message || 'An unexpected error occurred during login.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
 
-            // Check if user is actually a staff member
-            if (!STAFF_ROLES.includes(user.role)) {
-                toast({
-                    title: 'Access Denied',
-                    description: 'This portal is for Faculty and Staff only.',
-                    variant: 'destructive',
-                });
-                return false;
-            }
+  const logout = async () => {
+    try {
+      await authLogout(); // Clears httpOnly cookie + React state via AuthContext
+    } finally {
+      navigate('/staff/login');
+      toast({
+        title: 'Logged Out',
+        description: 'You have been logged out successfully.',
+      });
+    }
+  };
 
-            // Store tokens/user info for session
-            localStorage.setItem('token', token);
-            localStorage.setItem('userRole', user.role);
-            localStorage.setItem('userId', user._id);
-            localStorage.setItem('user', JSON.stringify(user));
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin' || user.role === 'principal') return true;
+    return user.permissions?.includes(permission) || false;
+  };
 
-            setIsStaff(true);
-            setUser(user);
-
-            toast({
-                title: 'Login Successful',
-                description: `Welcome back, ${user.name || 'Staff Member'}!`
-            });
-
-            navigate('/staff/dashboard');
-            return true;
-        } catch (error: any) {
-            console.error('Login error:', error);
-            toast({
-                title: 'Error Encountered',
-                description: error.message || 'An unexpected error occurred during login.',
-                variant: 'destructive',
-            });
-            return false;
-        }
-    };
-
-    const logout = async () => {
-        try {
-            await apiService.logout();
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            setIsStaff(false);
-            setUser(null);
-            localStorage.removeItem('token');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('user');
-            navigate('/staff/login');
-            toast({
-                title: 'Logged Out',
-                description: 'You have been logged out successfully.',
-            });
-        }
-    };
-
-    useEffect(() => {
-        const maybeSession = () => {
-            const token = localStorage.getItem('token');
-            const role = localStorage.getItem('userRole');
-            const storedUser = localStorage.getItem('user');
-
-            if (token && role && STAFF_ROLES.includes(role)) {
-                setIsStaff(true);
-                if (storedUser) {
-                    try {
-                        setUser(JSON.parse(storedUser));
-                    } catch (e) {
-                        console.error("Failed to parse stored user", e);
-                    }
-                }
-            }
-        };
-        maybeSession();
-    }, []);
-
-    const hasPermission = (permission: string): boolean => {
-        if (!user) return false;
-        if (user.role === 'admin' || user.role === 'principal') return true; // Admins have all permissions
-        return user.permissions?.includes(permission) || false;
-    };
-
-    return (
-        <StaffContext.Provider value={{ isStaff, user, login, logout, hasPermission }}>
-            {children}
-        </StaffContext.Provider>
-    );
+  return (
+    <StaffContext.Provider value={{ isStaff, user, login, logout, hasPermission }}>
+      {children}
+    </StaffContext.Provider>
+  );
 };
 
 export const useStaff = () => {
-    const context = useContext(StaffContext);
-    if (!context) {
-        throw new Error('useStaff must be used within a StaffProvider');
-    }
-    return context;
+  const context = useContext(StaffContext);
+  if (!context) throw new Error('useStaff must be used within a StaffProvider');
+  return context;
 };

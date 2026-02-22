@@ -2,6 +2,7 @@ import FeeStructure from '../models/FeeStructure.js';
 import FeePayment from '../models/FeePayment.js';
 import StudentProfile from '../models/StudentProfile.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
+import { randomUUID } from 'crypto';
 
 // @desc    Create a new fee structure (e.g. "Class X Exam Fee")
 // @route   POST /api/fees/structure
@@ -58,9 +59,9 @@ export const recordPayment = asyncHandler(async (req, res) => {
         throw new Error('Student not found');
     }
 
-    // Generate Receipt Number: REC-{Year}-{Random4}
-    const year = new Date().getFullYear();
-    const receiptNumber = `REC-${year}-${Math.floor(1000 + Math.random() * 9000)}`;
+    // Generate collision-safe receipt number using crypto.randomUUID()
+    // Format: REC-{YEAR}-{8-char UUID hex} e.g. REC-2026-A3F7C21B
+    const receiptNumber = `REC-${year}-${randomUUID().slice(0, 8).toUpperCase()}`;
 
     const payment = await FeePayment.create({
         student: student._id,
@@ -142,4 +143,48 @@ export const getStudentDues = asyncHandler(async (req, res) => {
     };
 
     res.json(dues);
+});
+
+// @desc    Get my own fee history (Student-facing)
+// @route   GET /api/fees/my-history
+// @access  Private (Student)
+export const getMyFeeHistory = asyncHandler(async (req, res) => {
+    // Resolve logged-in user → StudentProfile
+    const profile = await StudentProfile.findOne({ user: req.user._id });
+    if (!profile) {
+        res.status(404);
+        throw new Error('Student profile not found');
+    }
+
+    const currentYear = new Date().getFullYear().toString();
+
+    // All fee structures applicable to this student's class
+    const structures = await FeeStructure.find({
+        $or: [{ currentClass: profile.currentClass || profile.class }, { currentClass: 'ALL' }]
+    }).sort({ amount: -1 });
+
+    // All payments this student has made (all years)
+    const payments = await FeePayment.find({ student: profile._id })
+        .populate('feeStructure', 'name amount type')
+        .populate('collectedBy', 'name')
+        .sort({ paymentDate: -1 });
+
+    // Compute current year outstanding
+    const thisYearStructures = structures.filter(s => s.academicYear === currentYear || !s.academicYear);
+    const thisYearPayments = payments.filter(p => p.academicYear === currentYear);
+    const totalDue = thisYearStructures.reduce((sum, s) => sum + s.amount, 0);
+    const totalPaid = thisYearPayments.reduce((sum, p) => sum + p.amountPaid, 0);
+
+    res.json({
+        success: true,
+        data: {
+            structures,
+            payments,
+            summary: {
+                totalDue,
+                totalPaid,
+                outstanding: Math.max(0, totalDue - totalPaid)
+            }
+        }
+    });
 });

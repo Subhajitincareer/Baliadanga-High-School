@@ -17,17 +17,19 @@ const AttendancePage = () => {
     // Manual State
     const [selectedClass, setSelectedClass] = useState("");
     const [selectedSection, setSelectedSection] = useState("");
+    const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [students, setStudents] = useState<any[]>([]);
     const [attendanceData, setAttendanceData] = useState<Record<string, string>>({}); // studentId -> status
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [quickAbsentInput, setQuickAbsentInput] = useState("");
 
     // QR State
     const [scanResult, setScanResult] = useState("");
     const [lastScanned, setLastScanned] = useState("");
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
-    // Load students for Manual Mode
+    // Load students when class+section change
     useEffect(() => {
         if (selectedClass && selectedSection) {
             fetchStudents();
@@ -37,43 +39,16 @@ const AttendancePage = () => {
     const fetchStudents = async () => {
         setLoading(true);
         try {
-            // Fetch students by class/section
-            // Assuming we have such an API or using generic getStudents and filtering (inefficient but works for now)
-            // Or use getRoutines? No.
-            // Let's use the 'bulkImport' endpoint format GET? 
-            // Actually existing `apiService.getStudents()` returns ALL students. 
-            // We should ideally have `getStudents(class, section)`.
-            // For now, let's assume `apiService.getStudents()` and filter client-side.
-            const allStudents = await apiService.getStudents();
-            const filtered = allStudents.filter((s: any) =>
-                s.role === 'student' &&
-                s.studentId && // Ensure they have ID
-                // Ideally profile has class/section. User model might not have it updated?
-                // Wait, User model doesn't have class/section directly usually, StudentProfile does.
-                // The `allStudents` above endpoint `/admin/students` aggregates Profile data?
-                // Let's verify adminController `getAllStudents`.
-                // If it aggregates, great. If not, we might fail to filter.
-                // For this demo, let's assume it works or we skip detailed filtering if fields missing.
-                true
-            );
+            const data = await apiService.getStudentsByClass(selectedClass, selectedSection);
+            setStudents(data);
 
-            // Allow client-side filter if data exists
-            const classFiltered = filtered.filter((s: any) => {
-                // Check if s.class exists (it comes from aggregate lookup in adminController?)
-                // If not, we can't filter.
-                // Let's assume the user object has it or we fetch profiles.
-                return true;
-            });
-
-            setStudents(classFiltered);
-
-            // Initialize attendance as Present
+            // Initialize all as Present by default
             const initialStatus: Record<string, string> = {};
-            classFiltered.forEach((s: any) => {
+            data.forEach((s: any) => {
                 initialStatus[s._id] = 'Present';
             });
             setAttendanceData(initialStatus);
-
+            setQuickAbsentInput("");
         } catch (error) {
             console.error(error);
             toast({ title: "Error fetching students", variant: "destructive" });
@@ -86,22 +61,51 @@ const AttendancePage = () => {
         setSaving(true);
         try {
             const payload = students.map(student => ({
-                student: student._id,
+                student: student.userId,   // User ObjectId from populated profile
                 studentId: student.studentId,
-                date: new Date(),
-                status: attendanceData[student._id],
+                date: attendanceDate,
+                status: attendanceData[student._id] || 'Present',
                 method: 'Manual',
                 class: selectedClass,
                 section: selectedSection
             }));
 
             await apiService.markAttendance(payload);
-            toast({ title: "Attendance Saved", description: `Marked for ${students.length} students.` });
+            toast({ title: "Attendance Saved", description: `Marked ${students.length} students for ${attendanceDate}.` });
         } catch (error: any) {
             toast({ title: "Failed to save", description: error.message, variant: "destructive" });
         } finally {
             setSaving(false);
         }
+    };
+
+    const markAllPresent = () => {
+        const newData: Record<string, string> = {};
+        students.forEach(s => newData[s._id] = 'Present');
+        setAttendanceData(newData);
+        setQuickAbsentInput("");
+    };
+
+    const markAllAbsent = () => {
+        const newData: Record<string, string> = {};
+        students.forEach(s => newData[s._id] = 'Absent');
+        setAttendanceData(newData);
+        setQuickAbsentInput("");
+    };
+
+    const handleQuickAbsentChange = (val: string) => {
+        setQuickAbsentInput(val);
+        const absentRolls = val.split(',').map(s => s.trim()).filter(Boolean);
+        
+        const newData: Record<string, string> = {};
+        students.forEach(s => {
+            if (absentRolls.includes(String(s.rollNumber))) {
+                newData[s._id] = 'Absent';
+            } else {
+                newData[s._id] = 'Present';
+            }
+        });
+        setAttendanceData(newData);
     };
 
     // QR Logic
@@ -178,24 +182,55 @@ const AttendancePage = () => {
                             <CardDescription>Select Class & Section to mark attendance</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex gap-4 mb-6">
+                            <div className="flex flex-wrap gap-4 mb-6">
                                 <Select onValueChange={setSelectedClass}>
-                                    <SelectTrigger className="w-[180px]">
+                                    <SelectTrigger className="w-[160px]">
                                         <SelectValue placeholder="Select Class" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {["V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                        {["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                                 <Select onValueChange={setSelectedSection}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Select Section" />
+                                    <SelectTrigger className="w-[140px]">
+                                        <SelectValue placeholder="Section" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {["A", "B", "C", "D"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        {["A","B","C","D"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
+                                <div className="flex flex-col gap-1">
+                                    <Label className="text-xs text-muted-foreground">Date</Label>
+                                    <Input
+                                        type="date"
+                                        className="w-[160px]"
+                                        value={attendanceDate}
+                                        onChange={e => setAttendanceDate(e.target.value)}
+                                    />
+                                </div>
                             </div>
+
+                            {/* Fast Attendance Controls */}
+                            {students.length > 0 && !loading && (
+                                <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-indigo-50/50 rounded-md border border-indigo-100">
+                                    <div className="flex-1 space-y-1">
+                                        <Label className="text-sm font-semibold text-indigo-900">Quick Absent (By Roll No)</Label>
+                                        <div className="flex gap-2">
+                                            <Input 
+                                                placeholder="e.g. 5, 12, 18" 
+                                                value={quickAbsentInput}
+                                                onChange={(e) => handleQuickAbsentChange(e.target.value)}
+                                                className="bg-white border-indigo-200 focus-visible:ring-indigo-500"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-indigo-600">Type roll numbers separated by commas. Others will be marked 'Present'.</p>
+                                    </div>
+                                    <div className="flex items-end gap-2 shrink-0">
+                                        <Button variant="outline" className="border-green-200 bg-white text-green-700 hover:bg-green-50" onClick={markAllPresent}>Mark All Present</Button>
+                                        <Button variant="outline" className="border-red-200 bg-white text-red-700 hover:bg-red-50" onClick={markAllAbsent}>Mark All Absent</Button>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Student List */}
                             <div className="border rounded-md p-4 min-h-[300px]">
@@ -219,7 +254,10 @@ const AttendancePage = () => {
                                                 <Button
                                                     size="sm"
                                                     variant={attendanceData[student._id] === 'Present' ? "default" : "outline"}
-                                                    onClick={() => setAttendanceData({ ...attendanceData, [student._id]: 'Present' })}
+                                                    onClick={() => {
+                                                        setAttendanceData({ ...attendanceData, [student._id]: 'Present' });
+                                                        setQuickAbsentInput("");
+                                                    }}
                                                     className="h-8"
                                                 >
                                                     P
@@ -227,7 +265,10 @@ const AttendancePage = () => {
                                                 <Button
                                                     size="sm"
                                                     variant={attendanceData[student._id] === 'Absent' ? "destructive" : "outline"}
-                                                    onClick={() => setAttendanceData({ ...attendanceData, [student._id]: 'Absent' })}
+                                                    onClick={() => {
+                                                        setAttendanceData({ ...attendanceData, [student._id]: 'Absent' });
+                                                        setQuickAbsentInput("");
+                                                    }}
                                                     className="h-8"
                                                 >
                                                     A

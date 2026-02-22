@@ -9,6 +9,7 @@ import { AnnouncementDialog } from '@/components/admin/AnnouncementDialog';
 import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementDialog';
 import { useAnnouncements } from '@/hooks/use-announcements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { StaffManagement } from '@/components/admin/StaffManagement';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -28,6 +29,7 @@ import MidDayMealPage from '@/pages/admin/MidDayMealPage';
 import PromotionManagement from '@/pages/admin/PromotionManagement';
 import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle, LayoutTemplate, Utensils } from 'lucide-react';
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
+import { DashboardStats } from '@/components/admin/DashboardStats';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -117,85 +119,119 @@ const Dashboard = () => {
         </div>
         <div className="flex-1 overflow-auto py-4">
           <Tabs defaultValue="announcements" value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="w-full">
-            <TabsList className="flex h-full flex-col items-start justify-start space-y-1 bg-transparent p-4">
-              <TabsTrigger value="announcements" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                <BellRing className="mr-2 h-4 w-4" /> Announcements
-              </TabsTrigger>
-              {canAccess('staff') && (
-                <TabsTrigger value="staff" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <Users className="mr-2 h-4 w-4" /> Staff Directory
+            <TabsList className="flex h-full flex-col items-start justify-start space-y-1 bg-transparent p-0 w-full">
+              <div className="w-full px-3 py-2">
+                <TabsTrigger value="announcements" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                  <BellRing className="mr-2 h-4 w-4" /> Announcements
                 </TabsTrigger>
-              )}
-              {canAccess('students') && (
-                <TabsTrigger value="students" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <UserPlus className="mr-2 h-4 w-4" /> Student Management
-                </TabsTrigger>
-              )}
-              {canAccess('fees') && (
-                <TabsTrigger value="fees" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <DollarSign className="mr-2 h-4 w-4" /> Fee Management
-                </TabsTrigger>
-              )}
-              {canAccess('admissions') && (
-                <TabsTrigger value="admissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <GraduationCap className="mr-2 h-4 w-4" /> Admissions
-                </TabsTrigger>
-              )}
-              {canAccess('results') && (
-                <TabsTrigger value="results" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <Award className="mr-2 h-4 w-4" /> Student Results
-                </TabsTrigger>
-              )}
-              {canAccess('exams') && (
-                <TabsTrigger value="exams" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <BookOpen className="mr-2 h-4 w-4" /> Manage Exams
-                </TabsTrigger>
-              )}
-              {canAccess('marks') && (
-                <TabsTrigger value="marks" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <PenTool className="mr-2 h-4 w-4" /> Marks Entry
-                </TabsTrigger>
-              )}
-              {canAccess('calendar') && (
-                <TabsTrigger value="calendar" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <CalendarIcon className="mr-2 h-4 w-4" /> Academic Calendar
-                </TabsTrigger>
-              )}
-              {canAccess('resources') && (
-                <TabsTrigger value="resources" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <FileText className="mr-2 h-4 w-4" /> Resources
-                </TabsTrigger>
-              )}
-              {canAccess('attendance') && (
-                <TabsTrigger value="attendance" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <CheckSquare className="mr-2 h-4 w-4" /> Attendance
-                </TabsTrigger>
-              )}
-              {canAccess('routines') && (
-                <TabsTrigger value="routines" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <TableIcon className="mr-2 h-4 w-4" /> Class Routines
-                </TabsTrigger>
-              )}
-              {canAccess('promotion') && (
-                <TabsTrigger value="promotion" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <ArrowUpCircle className="mr-2 h-4 w-4" /> Promotion
-                </TabsTrigger>
-              )}
-              {canAccess('permissions') && (
-                <TabsTrigger value="permissions" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <Shield className="mr-2 h-4 w-4" /> Permissions
-                </TabsTrigger>
-              )}
-              {canAccess('idcards') && (
-                <TabsTrigger value="idcards" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <LayoutTemplate className="mr-2 h-4 w-4" /> ID Cards
-                </TabsTrigger>
-              )}
-              {canAccess('meal') && (
-                <TabsTrigger value="meal" className="w-full justify-start px-4 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
-                  <Utensils className="mr-2 h-4 w-4" /> Mid-Day Meal
-                </TabsTrigger>
-              )}
+              </div>
+
+              <Accordion type="multiple" defaultValue={['people', 'academic', 'management']} className="w-full px-3">
+                <AccordionItem value="people" className="border-b-0">
+                  <AccordionTrigger className="py-2 hover:no-underline text-sm font-semibold text-slate-500 hover:text-slate-800">
+                    People
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-2 pt-1 pl-2">
+                    <div className="flex flex-col space-y-1">
+                      {canAccess('students') && (
+                        <TabsTrigger value="students" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <UserPlus className="mr-2 h-4 w-4" /> Students
+                        </TabsTrigger>
+                      )}
+                      {canAccess('staff') && (
+                        <TabsTrigger value="staff" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <Users className="mr-2 h-4 w-4" /> Staff
+                        </TabsTrigger>
+                      )}
+                      {canAccess('idcards') && (
+                        <TabsTrigger value="idcards" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <LayoutTemplate className="mr-2 h-4 w-4" /> ID Cards
+                        </TabsTrigger>
+                      )}
+                      {canAccess('permissions') && (
+                        <TabsTrigger value="permissions" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <Shield className="mr-2 h-4 w-4" /> Permissions
+                        </TabsTrigger>
+                      )}
+                      {canAccess('promotion') && (
+                        <TabsTrigger value="promotion" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <ArrowUpCircle className="mr-2 h-4 w-4" /> Promotion
+                        </TabsTrigger>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="academic" className="border-b-0">
+                  <AccordionTrigger className="py-2 hover:no-underline text-sm font-semibold text-slate-500 hover:text-slate-800">
+                    Academic
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-2 pt-1 pl-2">
+                    <div className="flex flex-col space-y-1">
+                      {canAccess('routines') && (
+                        <TabsTrigger value="routines" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <TableIcon className="mr-2 h-4 w-4" /> Class Routines
+                        </TabsTrigger>
+                      )}
+                      {canAccess('exams') && (
+                        <TabsTrigger value="exams" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <BookOpen className="mr-2 h-4 w-4" /> Exams
+                        </TabsTrigger>
+                      )}
+                      {canAccess('marks') && (
+                        <TabsTrigger value="marks" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <PenTool className="mr-2 h-4 w-4" /> Marks Entry
+                        </TabsTrigger>
+                      )}
+                      {canAccess('results') && (
+                        <TabsTrigger value="results" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <Award className="mr-2 h-4 w-4" /> Results
+                        </TabsTrigger>
+                      )}
+                      {canAccess('calendar') && (
+                        <TabsTrigger value="calendar" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <CalendarIcon className="mr-2 h-4 w-4" /> Calendar
+                        </TabsTrigger>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="management" className="border-b-0">
+                  <AccordionTrigger className="py-2 hover:no-underline text-sm font-semibold text-slate-500 hover:text-slate-800">
+                    Management
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-2 pt-1 pl-2">
+                    <div className="flex flex-col space-y-1">
+                      {canAccess('fees') && (
+                        <TabsTrigger value="fees" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <DollarSign className="mr-2 h-4 w-4" /> Fees
+                        </TabsTrigger>
+                      )}
+                      {canAccess('admissions') && (
+                        <TabsTrigger value="admissions" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <GraduationCap className="mr-2 h-4 w-4" /> Admissions
+                        </TabsTrigger>
+                      )}
+                      {canAccess('attendance') && (
+                        <TabsTrigger value="attendance" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <CheckSquare className="mr-2 h-4 w-4" /> Attendance
+                        </TabsTrigger>
+                      )}
+                      {canAccess('meal') && (
+                        <TabsTrigger value="meal" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <Utensils className="mr-2 h-4 w-4" /> Mid-Day Meal
+                        </TabsTrigger>
+                      )}
+                      {canAccess('resources') && (
+                        <TabsTrigger value="resources" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <FileText className="mr-2 h-4 w-4" /> Resources
+                        </TabsTrigger>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </TabsList>
           </Tabs>
         </div>
@@ -244,6 +280,7 @@ const Dashboard = () => {
 
           <Tabs value={activeTab} className="mt-6 space-y-4 border-none">
             <TabsContent value="announcements" className="space-y-4 border-none p-0 outline-none">
+              {(userRole === 'admin' || userRole === 'principal') && <DashboardStats />}
               <AnnouncementToolbar searchTerm={searchTerm} onSearchChange={handleSearchChange} onCreateClick={handleCreateClick} />
               <AnnouncementTable announcements={filteredAnnouncements} onEdit={handleEditClick} onDelete={handleDeleteClick} />
             </TabsContent>

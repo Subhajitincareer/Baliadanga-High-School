@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, FileText, Download, CheckCircle, AlertTriangle, Loader2, Search, User, Eye, Filter, X } from 'lucide-react';
+import { Upload, FileText, Download, CheckCircle, AlertTriangle, Loader2, Search, User, Eye, Filter, X, Zap } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -50,7 +50,26 @@ const StudentManagement = () => {
         try {
             setIsLoading(true);
             const data = await apiService.getStudents();
-            setStudents(data as any);
+
+            // Normalize data to handle both flat and nested (studentProfile) structures
+            const normalizedData = data.map((s: any) => ({
+                ...s,
+                // Prioritize top-level, fall back to nested studentProfile or user object
+                _id: s._id,
+                studentId: s.studentId || s.employeeId || s.user?.username || 'N/A',
+                fullName: s.name || s.fullName || s.user?.name || 'Unknown',
+                email: s.email || s.user?.email || '',
+                class: s.class || s.studentProfile?.class || 'N/A',
+                section: s.section || s.studentProfile?.section || 'N/A',
+                rollNumber: s.rollNumber || s.studentProfile?.rollNumber || 'N/A',
+                guardianName: s.guardianName || s.studentProfile?.guardianName || '',
+                guardianPhone: s.guardianPhone || s.studentProfile?.guardianPhone || '',
+                // Preserve original objects if needed
+                user: s.user,
+                studentProfile: s.studentProfile
+            }));
+
+            setStudents(normalizedData as any);
         } catch (error) {
             console.error("Failed to fetch students:", error);
             toast({
@@ -168,9 +187,14 @@ const StudentManagement = () => {
                     <p className="text-muted-foreground">Manage student records, admission, and bulk import.</p>
                 </div>
                 <div className="flex gap-2">
+                    <Link to="/admin/students/quick-add">
+                        <Button className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                            <Zap className="mr-2 h-4 w-4" /> Quick Add
+                        </Button>
+                    </Link>
                     <Link to="/admin/students/new">
                         <Button variant="outline">
-                            <User className="mr-2 h-4 w-4" /> Add Single Student
+                            <User className="mr-2 h-4 w-4" /> Single Add
                         </Button>
                     </Link>
                     <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
@@ -337,18 +361,13 @@ const StudentManagement = () => {
                                     </TableHeader>
                                     <TableBody>
                                         {filteredStudents.map((student) => {
-                                            // Type assertion to handle potential populated user field
-                                            const studentAny = student as any;
-                                            const name = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.name : studentAny.name || studentAny.fullName;
-                                            const email = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.email : studentAny.email;
-
                                             return (
                                                 <TableRow key={student._id}>
                                                     <TableCell className="font-mono text-xs">{student.studentId}</TableCell>
                                                     <TableCell>
                                                         <div className="flex flex-col">
-                                                            <span className="font-medium">{name}</span>
-                                                            <span className="text-xs text-muted-foreground">{email}</span>
+                                                            <span className="font-medium">{student.fullName}</span>
+                                                            <span className="text-xs text-muted-foreground">{student.email}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell><span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{student.class}</span></TableCell>
@@ -373,16 +392,12 @@ const StudentManagement = () => {
                             {/* Mobile Card View */}
                             <div className="grid gap-4 md:hidden">
                                 {filteredStudents.map((student) => {
-                                    const studentAny = student as any;
-                                    const name = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.name : studentAny.name || studentAny.fullName;
-                                    const email = studentAny.user && typeof studentAny.user === 'object' ? studentAny.user.email : studentAny.email;
-
                                     return (
                                         <div key={student._id} className="rounded-lg border bg-white p-4 shadow-sm">
                                             <div className="mb-2 flex items-start justify-between">
                                                 <div className="flex flex-col">
-                                                    <span className="font-medium text-lg">{name}</span>
-                                                    <span className="text-xs text-muted-foreground">{email}</span>
+                                                    <span className="font-medium text-lg">{student.fullName}</span>
+                                                    <span className="text-xs text-muted-foreground">{student.email}</span>
                                                 </div>
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                                     Class {student.class}

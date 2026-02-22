@@ -198,6 +198,42 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
         res.json({ message: 'Student removed' });
     } else {
         res.status(404);
-        throw new Error('Student not found');
     }
+});
+
+// @desc    Get students filtered by class and section (lightweight)
+// @route   GET /api/students/by-class?class=VI&section=A
+// @access  Private (Admin/Staff/Teacher)
+export const getStudentsByClass = asyncHandler(async (req, res) => {
+    const { class: className, section } = req.query;
+
+    if (!className) {
+        res.status(400);
+        throw new Error('class query parameter is required');
+    }
+
+    const query = { class: className, status: 'Active' };
+    if (section) query.section = section;
+
+    const students = await StudentProfile.find(query)
+        .populate('user', 'name email')
+        .sort({ rollNumber: 1 });
+
+    const formatted = students.map(s => ({
+        _id: s._id,
+        userId: s.user?._id,
+        name: s.user?.name || 'N/A',
+        email: s.user?.email || '',
+        studentId: s.studentId,
+        rollNumber: s.rollNumber,
+        class: s.class,
+        section: s.section,
+        session: s.session,
+    }));
+
+    res.status(200).json({
+        success: true,
+        count: formatted.length,
+        data: formatted
+    });
 });

@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Utensils, Save, CheckCircle2 } from 'lucide-react';
+import { Loader2, Utensils, Save, CheckCircle2, BarChart3 } from 'lucide-react';
 import apiService from '@/services/api';
-import { classOptions, sectionOptions } from '@/utils/constants'; // Assuming these exist, else iterate numbers
+import { CLASS_OPTIONS, SECTION_OPTIONS } from '@/utils/constants';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const MidDayMealPage = () => {
     const [selectedClass, setSelectedClass] = useState<string>('');
@@ -16,12 +17,13 @@ const MidDayMealPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [mealDate, setMealDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [monthlySummary, setMonthlySummary] = useState<any[]>([]);
+    const [summaryLoading, setSummaryLoading] = useState(false);
+    const [summaryMonth, setSummaryMonth] = useState<string>(
+        new Date().toISOString().slice(0, 7) // 'YYYY-MM'
+    );
 
     const { toast } = useToast();
-
-    // Classes 1-12
-    const classes = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
-    const sections = ['A', 'B', 'C'];
 
     const fetchStudents = async () => {
         if (!selectedClass || !selectedSection) {
@@ -31,30 +33,25 @@ const MidDayMealPage = () => {
 
         setIsLoading(true);
         try {
-            // 1. Fetch Students of this class/section
-            // Use existing getStudents with filters? Need to check apiService capabilities.
-            // Assuming getStudents returns all, we filter client side or backend supports query params.
-            // Let's assume we fetch all for now and filter, or better, implement filter in getStudents if needed.
-            // Since StudentManagement uses getStudents, let's see if we can reuse or just fetch all.
-            // A better approach is to use the existing attendance fetch logic or just getStudents.
+            // Use the dedicated class-filter endpoint
+            const data = await apiService.getStudentsByClass(selectedClass, selectedSection);
+            setStudents(data);
 
-            // Optimization: If getStudents is heavy, we should have a lightweight endpoint.
-            // For now, let's use getStudents() and filter client-side as per previous conversation context.
-            const allStudents = await apiService.getStudents();
-            const filtered = (allStudents as any[]).filter(
-                s => s.class === selectedClass && s.section === selectedSection
-            );
-
-            setStudents(filtered);
-
-            // 2. Fetch existing meal record for today to pre-fill
-            // TODO: Add getMealReport to apiService logic or just try to fetch
-            // const existingRecord = await apiService.getMealReport(mealDate, selectedClass, selectedSection);
-            // if (existingRecord) setMealTakers(new Set(existingRecord.studentIds));
-
-            // Default: All unchecked.
-            setMealTakers(new Set());
-
+            // Pre-fill from existing meal record for this date/class if any
+            try {
+                const existing = await apiService.getMealReport(mealDate, selectedClass);
+                const existingArr = Array.isArray(existing) ? existing : [];
+                const record = existingArr.find((r: any) =>
+                    r.class === selectedClass && r.section === selectedSection
+                );
+                if (record?.studentIds?.length) {
+                    setMealTakers(new Set(record.studentIds));
+                } else {
+                    setMealTakers(new Set());
+                }
+            } catch {
+                setMealTakers(new Set());
+            }
         } catch (error: any) {
             console.error(error);
             toast({ title: 'Error fetching data', description: error.message, variant: 'destructive' });
@@ -92,6 +89,18 @@ const MidDayMealPage = () => {
             toast({ title: 'Save Failed', description: error.message, variant: 'destructive' });
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const fetchMonthlySummary = async () => {
+        setSummaryLoading(true);
+        try {
+            const res = await apiService.getMonthlySummary(summaryMonth);
+            setMonthlySummary(res.data ?? []);
+        } catch {
+            setMonthlySummary([]);
+        } finally {
+            setSummaryLoading(false);
         }
     };
 
@@ -133,7 +142,7 @@ const MidDayMealPage = () => {
                                 <SelectValue placeholder="Select" />
                             </SelectTrigger>
                             <SelectContent>
-                                {classes.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
+                                {CLASS_OPTIONS.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -144,7 +153,7 @@ const MidDayMealPage = () => {
                                 <SelectValue placeholder="Select" />
                             </SelectTrigger>
                             <SelectContent>
-                                {sections.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
+                                {SECTION_OPTIONS.map(s => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -210,6 +219,54 @@ const MidDayMealPage = () => {
                     </CardContent>
                 </Card>
             )}
+
+            {/* Monthly Summary Section */}
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5" /> Monthly Meal Summary
+                        </CardTitle>
+                        <CardDescription>Aggregated meal counts per class for selected month.</CardDescription>
+                    </div>
+                    <input
+                        type="month"
+                        value={summaryMonth}
+                        onChange={e => setSummaryMonth(e.target.value)}
+                        className="border rounded p-2 text-sm"
+                    />
+                </CardHeader>
+                <CardContent>
+                    {summaryLoading ? (
+                        <div className="flex justify-center py-6"><Loader2 className="animate-spin h-6 w-6" /></div>
+                    ) : monthlySummary.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-4">No meal data for this month.</p>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Class</TableHead>
+                                    <TableHead>Section</TableHead>
+                                    <TableHead>Meal Days</TableHead>
+                                    <TableHead>Total Meals</TableHead>
+                                    <TableHead>Avg / Day</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {monthlySummary.map((row, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell>{row.class}</TableCell>
+                                        <TableCell>{row.section}</TableCell>
+                                        <TableCell>{row.mealDays}</TableCell>
+                                        <TableCell className="font-bold">{row.totalMeals}</TableCell>
+                                        <TableCell>{row.avgPerDay}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 };

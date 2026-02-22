@@ -26,7 +26,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     const [title, setTitle] = useState('');
     const [date, setDate] = useState('');
     const [endDate, setEndDate] = useState(''); // New state for end date
-    const [type, setType] = useState<'HOLIDAY' | 'EXAM' | 'ACTIVITY' | 'MEETING' | 'TERM'>('ACTIVITY');
+    const [type, setType] = useState<'HOLIDAY' | 'EXAM' | 'ACTIVITY' | 'MEETING' | 'TERM' | 'PTM'>('ACTIVITY');
     const [description, setDescription] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
@@ -139,7 +139,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                                     <SelectItem value="ACTIVITY">Activity</SelectItem>
                                     <SelectItem value="HOLIDAY">Holiday</SelectItem>
                                     <SelectItem value="EXAM">Exam</SelectItem>
-                                    <SelectItem value="MEETING">Meeting</SelectItem>
+                                    <SelectItem value="MEETING">Staff Meeting</SelectItem>
+                                    <SelectItem value="PTM">Parent-Teacher Meeting</SelectItem>
                                     <SelectItem value="TERM">Academic Term</SelectItem>
                                 </SelectContent>
                             </Select>

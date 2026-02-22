@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,15 +9,27 @@ import apiService from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
 export const IDCardGenerator = () => {
-    const [selectedClass, setSelectedClass] = useState<string>("");
-    const [selectedSection, setSelectedSection] = useState<string>("A");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const paramClass = searchParams.get('class');
+    const paramSection = searchParams.get('section');
+
+    // Initialize state with params if available
+    const [selectedClass, setSelectedClass] = useState<string>(paramClass || "");
+    const [selectedSection, setSelectedSection] = useState<string>(paramSection || "A");
     const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     const printRef = useRef<HTMLDivElement>(null);
 
-    const fetchStudents = async () => {
-        if (!selectedClass) {
+    // Auto-fetch if params exist on mount
+    useEffect(() => {
+        if (paramClass) {
+            fetchStudents(paramClass, paramSection || "A");
+        }
+    }, [paramClass, paramSection]);
+
+    const fetchStudents = async (classVal = selectedClass, sectionVal = selectedSection) => {
+        if (!classVal) {
             toast({ title: "Please select a class", variant: "destructive" });
             return;
         }
@@ -29,22 +42,22 @@ export const IDCardGenerator = () => {
             const filtered = data.filter((s: any) =>
                 // Check if class matches (assuming s.class or s.studentProfile.class exists)
                 // Adjusting based on likely API response structure from previous files
-                (s.class === selectedClass || s.studentProfile?.class === selectedClass) &&
-                (!selectedSection || s.section === selectedSection || s.studentProfile?.section === selectedSection)
+                (s.class === classVal || s.studentProfile?.class === classVal) &&
+                (!sectionVal || s.section === sectionVal || s.studentProfile?.section === sectionVal)
             );
 
             // Map to required format if needed
             const formatted = filtered.map((s: any) => ({
                 studentId: s.studentId || s.employeeId || "UNKNOWN",
                 fullName: s.name || s.fullName,
-                class: s.class || selectedClass,
-                section: s.section || selectedSection,
+                class: s.class || classVal,
+                section: s.section || sectionVal,
                 rollNumber: s.rollNumber || s.studentProfile?.rollNumber || "-",
                 bloodGroup: s.bloodGroup || s.studentProfile?.bloodGroup,
                 contactNumber: s.phoneNumber || s.studentProfile?.contactNumber || s.email,
                 address: s.address || s.studentProfile?.address,
                 dateOfBirth: s.dateOfBirth || s.studentProfile?.dateOfBirth,
-                photoUrl: s.photoUrl || s.avatar // Assuming photo field
+                photoUrl: s.photoUrl || s.avatar || s.studentProfile?.photoUrl // Assuming photo field
             }));
 
             if (formatted.length === 0) {
@@ -102,7 +115,7 @@ export const IDCardGenerator = () => {
                             </Select>
                         </div>
 
-                        <Button onClick={fetchStudents} disabled={loading} className="w-full md:w-auto">
+                        <Button onClick={() => fetchStudents()} disabled={loading} className="w-full md:w-auto">
                             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                             Fetch Students
                         </Button>

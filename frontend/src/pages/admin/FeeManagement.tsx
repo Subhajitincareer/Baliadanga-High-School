@@ -21,6 +21,7 @@ const FeeManagement = () => {
     const [searchId, setSearchId] = useState('');
     const [duesData, setDuesData] = useState<any>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
+    const [lastReceipt, setLastReceipt] = useState<string | null>(null);
     const [loadingDues, setLoadingDues] = useState(false);
     const [paymentProcessing, setPaymentProcessing] = useState(false);
 
@@ -73,17 +74,23 @@ const FeeManagement = () => {
         if (!duesData || !paymentAmount) return;
         setPaymentProcessing(true);
         try {
-            await apiService.recordPayment({
-                studentId: searchId, // Or duesData.student._id if mapped
+            const result = await apiService.recordPayment({
+                studentId: searchId,
                 amountPaid: Number(paymentAmount),
                 paymentMethod: 'Cash',
-                // feeStructureId: optional, generic payment for now
             });
-            toast({ title: "Payment Recorded", description: `Received ₹${paymentAmount}` });
+            const receipt = result?.receiptNumber || result?.data?.receiptNumber || null;
+            setLastReceipt(receipt);
+            toast({
+                title: 'Payment Recorded ✓',
+                description: receipt
+                    ? `₹${paymentAmount} received. Receipt: ${receipt}`
+                    : `₹${paymentAmount} received successfully.`
+            });
             setPaymentAmount('');
             handleSearchDues(); // Refresh
         } catch (error) {
-            toast({ title: "Error", description: "Payment failed", variant: "destructive" });
+            toast({ title: 'Error', description: 'Payment failed', variant: 'destructive' });
         } finally {
             setPaymentProcessing(false);
         }
@@ -154,6 +161,11 @@ const FeeManagement = () => {
                                             {paymentProcessing ? <Loader2 className="mr-2 animate-spin" /> : <DollarSign className="mr-2 h-4 w-4" />}
                                             Receive Payment
                                         </Button>
+                                        {lastReceipt && (
+                                            <div className="text-xs text-center p-2 bg-green-50 border border-green-200 rounded text-green-700 font-mono">
+                                                Receipt: {lastReceipt}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

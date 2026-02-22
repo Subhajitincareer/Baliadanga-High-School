@@ -3,6 +3,18 @@ import AdminWhitelist from '../models/AdminWhitelist.js';
 import { generateToken } from '../utils/generateToken.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 
+// ─── Cookie Helper ────────────────────────────────────────────────────────────
+// Sets a signed httpOnly JWT cookie. JS on the client can never read this value.
+const setCookieToken = (res, token) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    secure: isProduction,          // HTTPS only in production
+    sameSite: isProduction ? 'strict' : 'lax', // lax allows dev cross-origin testing
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+  });
+};
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
@@ -78,15 +90,14 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   if (user) {
-    console.log(`Login attempt for: ${email || studentId}`);
-    console.log(`User found. Role: ${user.role}`);
-
     // Check password
     const isMatch = await user.comparePassword(password);
-    console.log(`Password match: ${isMatch}`);
 
     if (isMatch) {
-      res.json({
+      // ✅ Set httpOnly cookie — token never exposed to client-side JS
+      setCookieToken(res, generateToken(user._id));
+
+      return res.json({
         success: true,
         data: {
           _id: user._id,
@@ -95,18 +106,15 @@ export const login = asyncHandler(async (req, res) => {
           studentId: user.studentId,
           role: user.role,
           permissions: user.permissions,
-          token: generateToken(user._id)
+          // No token here — it's in the cookie
         }
       });
-      return;
     }
   } else {
-    console.log(`Login failed: User not found for ${email || studentId}`);
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       message: 'Invalid credentials - User not found'
     });
-    return;
   }
 
   res.status(401).json({
@@ -132,40 +140,47 @@ export const getMe = asyncHandler(async (req, res) => {
 export const adminLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // Check for user
   const user = await User.findOne({ email }).select('+password');
 
   if (user && (await user.comparePassword(password))) {
-    // Check if user is admin
     if (user.role !== 'admin') {
-      console.log(`Admin Login Failed: User ${email} is not an admin (Role: ${user.role})`);
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
         message: 'Not authorized as an admin'
       });
     }
 
-    res.json({
+    // ✅ Set httpOnly cookie — token never exposed to client-side JS
+    setCookieToken(res, generateToken(user._id));
+
+    return res.json({
       success: true,
-      token: generateToken(user._id),
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         permissions: user.permissions
+        // No token here — it's in the cookie
       }
     });
-  } else {
-    console.log(`Admin Login Failed: Invalid credentials for ${email}`);
-    if (!user) console.log('Reason: User not found');
-    else console.log('Reason: Password mismatch');
-
-    res.status(401).json({
-      success: false,
-      message: 'Invalid credentials'
-    });
   }
+
+  res.status(401).json({
+    success: false,
+    message: 'Invalid credentials'
+  });
+});
+
+// @desc    Logout user / clear cookie
+// @route   POST /api/auth/logout
+// @access  Private
+export const logout = asyncHandler(async (req, res) => {
+  res.cookie('jwt', '', {
+    httpOnly: true,
+    expires: new Date(0), // Immediately expired
+  });
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 // @desc    Update password (authenticated user)
@@ -193,13 +208,26 @@ export const updatePassword = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Seed admin user (Temporary for production fix)
+// @desc    Seed admin user
 // @route   POST /api/auth/seed-admin
-// @access  Public (Protected by secret key)
+// @access  DISABLED in production. Only runs in 'development' or 'test' environments.
 export const seedAdmin = asyncHandler(async (req, res) => {
+  // ✅ SECURITY GUARD: Block this endpoint entirely in production.
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      success: false,
+      message: 'This endpoint is disabled in production.'
+    });
+  }
+
   const { secretKey } = req.body;
-  const adminEmail = 'admin@baliadanga.com';
-  const adminPassword = 'adminpassword123';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@baliadanga.com';
+  // ⚠️ IMPORTANT: Set SEED_ADMIN_PASSWORD in your .env file. Never hardcode passwords.
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    return res.status(500).json({ success: false, message: 'SEED_ADMIN_PASSWORD is not set in environment.' });
+  }
 
   if (secretKey !== process.env.JWT_SECRET) {
     return res.status(401).json({ success: false, message: 'Invalid secret key' });
@@ -232,5 +260,72 @@ export const seedAdmin = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Admin seeded successfully'
+  });
+});
+
+// @desc    First-run setup — create the very first admin account
+// @route   POST /api/auth/setup-admin
+// @access  Public — BUT self-locks permanently once any admin exists
+// ─────────────────────────────────────────────────────────────────────────────
+// This is the "headmaster setup" endpoint. It is safe to leave enabled because:
+//   • It checks if ANY admin/principal account already exists in the DB
+//   • If one exists → returns 403 immediately, no matter what
+//   • If ZERO admins exist → creates the account + adds to whitelist
+// There is no secret key required — the "zero admin" check IS the security.
+export const setupAdmin = asyncHandler(async (req, res) => {
+  // 1. Check if any admin already exists — if so, lock this endpoint forever
+  const existingAdmin = await User.findOne({
+    role: { $in: ['admin', 'principal'] }
+  });
+
+  if (existingAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: 'Setup already completed. An admin account already exists.',
+      setupDone: true
+    });
+  }
+
+  // 2. Validate input
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide name, email, and password'
+    });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 8 characters'
+    });
+  }
+
+  // 3. Create the admin user
+  const admin = await User.create({
+    name,
+    email: email.toLowerCase().trim(),
+    password,
+    role: 'admin'
+  });
+
+  // 4. Add to whitelist so admin-login endpoint also accepts this email
+  await AdminWhitelist.create({ email: email.toLowerCase().trim() });
+
+  // 5. Set auth cookie and return success
+  setCookieToken(res, generateToken(admin._id));
+
+  res.status(201).json({
+    success: true,
+    message: `Admin account created! Welcome, ${admin.name}. Redirecting to dashboard...`,
+    setupDone: true,
+    data: {
+      _id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role
+    }
   });
 });

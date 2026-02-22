@@ -1,52 +1,39 @@
-
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
-import { ChevronRight, Search, BookOpen, Clock, Award, Users, CheckCircle } from 'lucide-react';
+import {
+  ChevronRight, Search, BookOpen, Clock, Award, Users, CheckCircle,
+  Download, Printer, FileText, Eye, School, GraduationCap, Puzzle,
+  Microscope, Globe, FlaskConical, BookMarked, PenTool
+} from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-const primaryCourses = [
-  {
-    id: 1,
-    grade: "Class I",
-    subjects: ["Bengali", "English", "Mathematics", "Environmental Science", "Drawing", "Physical Education"],
-    description: "Foundation course focusing on basic literacy, numeracy and environmental awareness.",
-    features: ["Age-appropriate learning", "Activity-based teaching", "Regular parent-teacher interaction"],
-    icon: "🏫"
-  },
-  {
-    id: 2,
-    grade: "Class II",
-    subjects: ["Bengali", "English", "Mathematics", "Environmental Science", "Drawing", "Physical Education"],
-    description: "Building on foundational knowledge with more complex concepts and language skills.",
-    features: ["Progressive learning approach", "Basic computer awareness", "Value education"],
-    icon: "📚"
-  },
-  {
-    id: 3,
-    grade: "Class III",
-    subjects: ["Bengali", "English", "Mathematics", "Environmental Science", "Computer Awareness", "Arts", "Physical Education"],
-    description: "Introducing more structured learning with enhanced focus on languages and mathematics.",
-    features: ["Introduction to computers", "Regular field trips", "Group projects"],
-    icon: "🧩"
-  },
-  {
-    id: 4,
-    grade: "Class IV",
-    subjects: ["Bengali", "English", "Mathematics", "Environmental Science", "Computer Education", "Arts", "Physical Education"],
-    description: "Developing critical thinking skills through more advanced concepts and activities.",
-    features: ["Public speaking activities", "Science experiments", "Educational excursions"],
-    icon: "🔍"
-  },
-  {
-    id: 5,
-    grade: "Class V",
-    subjects: ["Bengali", "English", "Mathematics", "Environmental Science", "Computer Education", "Arts", "Physical Education"],
-    description: "Preparing students for middle school with comprehensive conceptual understanding.",
-    features: ["Project-based learning", "Basic coding introduction", "Leadership activities"],
-    icon: "🌟"
-  },
+// Mock Data for Exam Papers
+const examPapers = [
+  { id: 1, title: "Mid-Term Examination 2024", subject: "Mathematics", date: "2024-06-15" },
+  { id: 2, title: "Annual Examination 2023", subject: "English", date: "2023-12-10" },
+  { id: 3, title: "Unit Test I", subject: "Science", date: "2024-03-20" },
+  { id: 4, title: "Mid-Term Examination 2024", subject: "Bengali", date: "2024-06-12" },
 ];
 
 const middleCourses = [
@@ -56,7 +43,7 @@ const middleCourses = [
     subjects: ["Bengali", "English", "Mathematics", "Science", "Social Science", "Computer Science", "Physical Education", "Arts"],
     description: "Transitioning to specialized subject areas with more in-depth content knowledge.",
     features: ["Subject specialists teaching", "Introduction to laboratories", "Digital learning integration"],
-    icon: "🔬"
+    Icon: Microscope
   },
   {
     id: 7,
@@ -64,7 +51,7 @@ const middleCourses = [
     subjects: ["Bengali", "English", "Mathematics", "Science", "Social Science", "Computer Science", "Physical Education", "Arts"],
     description: "Developing analytical skills and deeper understanding of scientific and social concepts.",
     features: ["Regular science experiments", "History and geography projects", "Debate and elocution"],
-    icon: "🌎"
+    Icon: Globe
   },
   {
     id: 8,
@@ -72,7 +59,7 @@ const middleCourses = [
     subjects: ["Bengali", "English", "Mathematics", "Science", "Social Science", "Computer Science", "Physical Education", "Arts"],
     description: "Preparing students for higher classes with focus on application-based learning.",
     features: ["Career guidance sessions", "Advanced laboratory work", "Life skills education"],
-    icon: "⚗️"
+    Icon: FlaskConical
   },
 ];
 
@@ -83,7 +70,7 @@ const secondaryCourses = [
     subjects: ["Bengali", "English", "Mathematics", "Physical Science", "Life Science", "History", "Geography", "Computer Applications", "Physical Education"],
     description: "Detailed study of subjects as per the State Board curriculum, preparing for Board examination.",
     features: ["Board examination preparation", "Regular assessments", "Career counseling"],
-    icon: "📝"
+    Icon: PenTool
   },
   {
     id: 10,
@@ -91,258 +78,432 @@ const secondaryCourses = [
     subjects: ["Bengali", "English", "Mathematics", "Physical Science", "Life Science", "History", "Geography", "Computer Applications", "Physical Education"],
     description: "Final year of secondary education with comprehensive preparation for Board examinations.",
     features: ["Mock examinations", "Specialized doubt clearing sessions", "Stress management workshops"],
-    icon: "🎓"
+    Icon: GraduationCap
   },
 ];
 
+
+// Booklist Data (Mock)
+const bookLists = {
+  "Class X": [
+    { subject: "Bengali", book: "Sahitya Sanchayan", publisher: "WBBSE" },
+    { subject: "English", book: "Bliss", publisher: "WBBSE" },
+    { subject: "Mathematics", book: "Ganit Prakash", publisher: "WBBSE" },
+    { subject: "Physical Science", book: "Bhoutabigyan O Paribesh", publisher: "Chhaya Prakashani" },
+    { subject: "Life Science", book: "Jiban Bigyan", publisher: "Santra Publication" }
+  ]
+};
+
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 }
+};
+
+// Course Card Component
+const CourseCard = ({ course, onViewBooklist, onViewPapers }) => {
+  const { toast } = useToast();
+  const IconComponent = course.Icon || BookOpen;
+
+  const handleDownloadSyllabus = () => {
+    toast({
+      title: "Downloading Syllabus...",
+      description: `Syllabus for ${course.grade} has been downloaded.`,
+    });
+  };
+
+  return (
+    <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="h-full">
+      <Card className="h-full overflow-hidden border-t-4 border-t-school-primary shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white pb-3 border-b">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-bold text-slate-800">{course.grade}</CardTitle>
+            <div className="p-2 bg-white rounded-full shadow-sm text-school-primary">
+              <IconComponent className="h-8 w-8" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 flex-grow space-y-4">
+          <p className="text-muted-foreground leading-relaxed">{course.description}</p>
+
+          <div>
+            <h4 className="mb-2 text-sm font-semibold text-school-primary uppercase tracking-wide">Core Subjects</h4>
+            <div className="flex flex-wrap gap-2">
+              {course.subjects.slice(0, 5).map((subject, idx) => (
+                <span
+                  key={idx}
+                  className="rounded-md bg-school-light/50 px-2.5 py-1 text-xs font-medium text-school-primary border border-school-light"
+                >
+                  {subject}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="mb-2 text-sm font-semibold text-school-primary uppercase tracking-wide">Highlights</h4>
+            <ul className="space-y-1.5">
+              {course.features.map((feature, idx) => (
+                <li key={idx} className="flex items-start text-sm text-slate-600">
+                  <CheckCircle className="mr-2 h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2 pt-4 bg-slate-50/50 border-t p-4">
+          <div className="flex gap-2 w-full">
+            <Button variant="outline" size="sm" className="flex-1 hover:bg-school-light hover:text-school-primary" onClick={() => onViewBooklist(course.grade)}>
+              <BookOpen className="mr-2 h-4 w-4" /> Booklist
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1 hover:bg-school-light hover:text-school-primary" onClick={() => onViewPapers(course.grade)}>
+              <FileText className="mr-2 h-4 w-4" /> Papers
+            </Button>
+          </div>
+          <Button size="sm" className="w-full bg-school-primary hover:bg-school-dark text-white" onClick={handleDownloadSyllabus}>
+            <Download className="mr-2 h-4 w-4" /> Download Syllabus
+          </Button>
+        </CardFooter>
+      </Card>
+    </motion.div>
+  );
+};
+
 const Courses = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  
+  const [selectedClassBooklist, setSelectedClassBooklist] = useState<string | null>(null);
+  const [selectedClassPapers, setSelectedClassPapers] = useState<string | null>(null);
+  const [viewingPaper, setViewingPaper] = useState<any | null>(null);
+
   const filterCourses = (courses) => {
-    return courses.filter(course => 
+    return courses.filter(course =>
       course.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.subjects.some(subject => subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
       course.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
-  
-  return (
-    <div className="container py-8">
-      <div className="mb-8">
-        <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">
-          Academic Curriculum
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Explore our comprehensive educational programs from primary to secondary levels
-        </p>
-      </div>
-      
-      <div className="mb-8">
-        <SearchInput
-          placeholder="Search classes, subjects..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-          icon={Search}
-        />
-      </div>
-      
-      <div className="mb-12 grid gap-8 md:grid-cols-4">
-        <Card className="md:col-span-1 bg-school-light border-0">
-          <CardHeader>
-            <div className="h-16 w-16 rounded-full bg-school-primary/20 flex items-center justify-center mb-4">
-              <BookOpen className="h-8 w-8 text-school-primary" />
-            </div>
-            <CardTitle>Comprehensive Curriculum</CardTitle>
-            <CardDescription>
-              Well-balanced academic program following state board guidelines
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        
-        <Card className="md:col-span-1 bg-school-light border-0">
-          <CardHeader>
-            <div className="h-16 w-16 rounded-full bg-school-primary/20 flex items-center justify-center mb-4">
-              <Clock className="h-8 w-8 text-school-primary" />
-            </div>
-            <CardTitle>Structured Learning</CardTitle>
-            <CardDescription>
-              Organized approach to education with regular assessments
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        
-        <Card className="md:col-span-1 bg-school-light border-0">
-          <CardHeader>
-            <div className="h-16 w-16 rounded-full bg-school-primary/20 flex items-center justify-center mb-4">
-              <Award className="h-8 w-8 text-school-primary" />
-            </div>
-            <CardTitle>Academic Excellence</CardTitle>
-            <CardDescription>
-              Focus on high-quality education and measurable outcomes
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        
-        <Card className="md:col-span-1 bg-school-light border-0">
-          <CardHeader>
-            <div className="h-16 w-16 rounded-full bg-school-primary/20 flex items-center justify-center mb-4">
-              <Users className="h-8 w-8 text-school-primary" />
-            </div>
-            <CardTitle>Experienced Faculty</CardTitle>
-            <CardDescription>
-              Qualified teachers dedicated to student growth and learning
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-      
-      <Tabs defaultValue="primary">
-        <TabsList className="mb-6">
-          <TabsTrigger value="primary">Primary (I-V)</TabsTrigger>
-          <TabsTrigger value="middle">Middle (VI-VIII)</TabsTrigger>
-          <TabsTrigger value="secondary">Secondary (IX-X)</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="primary">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filterCourses(primaryCourses).length > 0 ? (
-              filterCourses(primaryCourses).map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))
-            ) : (
-              <div className="col-span-full py-8 text-center">
-                <p className="text-muted-foreground">No courses match your search criteria.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="middle">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filterCourses(middleCourses).length > 0 ? (
-              filterCourses(middleCourses).map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))
-            ) : (
-              <div className="col-span-full py-8 text-center">
-                <p className="text-muted-foreground">No courses match your search criteria.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="secondary">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filterCourses(secondaryCourses).length > 0 ? (
-              filterCourses(secondaryCourses).map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))
-            ) : (
-              <div className="col-span-full py-8 text-center">
-                <p className="text-muted-foreground">No courses match your search criteria.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      <Card className="mt-12 border-t-4 border-t-school-primary">
-        <CardHeader>
-          <CardTitle>Admission Information</CardTitle>
-          <CardDescription>
-            Learn about our admission process and requirements for new students
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4">
-            Baliadanga High School welcomes applications for all classes subject to seat availability. 
-            Admission tests are conducted for classes II and above, while Class I admission is based on an 
-            interview and interaction with the child and parents.
-          </p>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h3 className="mb-2 font-medium">Required Documents</h3>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Birth certificate</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Transfer certificate (for classes II and above)</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Report card of previous academic year</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Passport size photographs</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Residence proof</span>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="mb-2 font-medium">Application Timeline</h3>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Form availability: January</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Submission deadline: February</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Entrance tests/interviews: March</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Results announcement: March end</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                  <span>Fee payment deadline: April first week</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button className="bg-school-primary hover:bg-school-primary/90">
-            Contact Admissions Office
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
-};
 
-// Course Card Component
-const CourseCard = ({ course }) => {
+  const renderCourseGrid = (courses) => (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+    >
+      <AnimatePresence>
+        {courses.length > 0 ? (
+          courses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              onViewBooklist={setSelectedClassBooklist}
+              onViewPapers={setSelectedClassPapers}
+            />
+          ))
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="col-span-full py-12 text-center bg-slate-50 rounded-lg border border-dashed"
+          >
+            <Search className="h-12 w-12 mx-auto text-muted-foreground opacity-20 mb-4" />
+            <p className="text-lg text-muted-foreground font-medium">No courses found matching "{searchTerm}"</p>
+            <Button variant="link" onClick={() => setSearchTerm('')} className="mt-2 text-school-primary">Clear Search</Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
-      <CardHeader className="border-b bg-muted/50 pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">{course.grade}</CardTitle>
-          <span className="text-2xl">{course.icon}</span>
+    <div className="min-h-screen bg-slate-50/30">
+      {/* Banner Section */}
+      <div className="bg-school-primary text-white py-16 mb-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10"></div>
+        <div className="container relative z-10">
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}>
+            <h1 className="font-heading mb-4 text-4xl md:text-5xl font-bold tracking-tight">
+              Academic Excellence
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl font-light">
+              Explore our comprehensive educational programs designed to nurture, educate, and empower the leaders of tomorrow.
+            </p>
+          </motion.div>
         </div>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <p className="mb-4 text-muted-foreground">{course.description}</p>
-        
-        <div className="mb-4">
-          <h4 className="mb-2 font-medium">Core Subjects:</h4>
-          <div className="flex flex-wrap gap-2">
-            {course.subjects.map((subject, idx) => (
-              <span 
-                key={idx}
-                className="rounded-full bg-school-light px-3 py-1 text-xs font-medium text-school-primary"
-              >
-                {subject}
-              </span>
-            ))}
+      </div>
+
+      <div className="container pb-16">
+
+        {/* Search & Stats */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+          <div className="w-full md:w-1/2">
+            <SearchInput
+              placeholder="Find a class or subject..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-12 text-lg shadow-sm border-slate-200 focus:border-school-primary"
+              icon={Search}
+            />
+          </div>
+
+          <div className="flex gap-4 md:gap-8 text-sm text-muted-foreground font-medium">
+            <div className="flex items-center gap-2">
+              <BookOpen className="text-school-primary h-5 w-5" />
+              <span>State Board Curriculum</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="text-school-primary h-5 w-5" />
+              <span>Expert Faculty</span>
+            </div>
           </div>
         </div>
-        
-        <div>
-          <h4 className="mb-2 font-medium">Key Features:</h4>
-          <ul className="space-y-1">
-            {course.features.map((feature, idx) => (
-              <li key={idx} className="flex items-center text-sm">
-                <ChevronRight className="mr-1 h-3 w-3 text-school-primary" />
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
+
+        {/* Tabs Section */}
+        <Tabs defaultValue="middle" className="space-y-8">
+          <div className="flex justify-center">
+            <TabsList className="bg-white border p-1 h-12 shadow-sm rounded-full">
+              <TabsTrigger value="middle" className="rounded-full px-6 py-2 data-[state=active]:bg-school-primary data-[state=active]:text-white transition-all">Middle (VI-VIII)</TabsTrigger>
+              <TabsTrigger value="secondary" className="rounded-full px-6 py-2 data-[state=active]:bg-school-primary data-[state=active]:text-white transition-all">Secondary (IX-X)</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="middle">
+            {renderCourseGrid(filterCourses(middleCourses))}
+          </TabsContent>
+
+          <TabsContent value="secondary">
+            {renderCourseGrid(filterCourses(secondaryCourses))}
+          </TabsContent>
+        </Tabs>
+
+        {/* Admission Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-20"
+        >
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-school-primary to-blue-600"></div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                <Award className="h-6 w-6 text-school-primary" />
+                Admission Information
+              </CardTitle>
+              <CardDescription>
+                Join our vibrant learning community. Key details for the 2025 academic session.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {/* Content Same as Before */}
+              <div className="grid gap-8 md:grid-cols-2">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" /> Required Documents
+                  </h3>
+                  <ul className="space-y-3">
+                    {["Birth certificate", "Transfer certificate (Class II+)", "Previous Report Card", "Passport Photos", "Residence Proof"].map((item, i) => (
+                      <li key={i} className="flex items-center text-slate-700 bg-white p-2 rounded border border-slate-100 shadow-sm">
+                        <div className="h-2 w-2 rounded-full bg-green-500 mr-3"></div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+                    <Clock className="h-5 w-5 text-blue-600" /> Key Dates
+                  </h3>
+                  <div className="space-y-4">
+                    {[
+                      { label: "Form Out", date: "January 2025" },
+                      { label: "Submission", date: "February 2025" },
+                      { label: "Entrance Test", date: "March 2025" }
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-white p-3 rounded border border-slate-100 shadow-sm">
+                        <span className="font-medium text-slate-600">{item.label}</span>
+                        <span className="font-bold text-school-primary">{item.date}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="bg-slate-50 border-t p-6 flex justify-center">
+              <Button size="lg" className="bg-school-primary hover:bg-school-dark shadow-md px-8">
+                Contact Admissions Office <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </motion.div>
+
+        {/* Booklist Dialog */}
+        <Dialog open={!!selectedClassBooklist} onOpenChange={(open) => !open && setSelectedClassBooklist(null)}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-school-primary" />
+                Booklist for {selectedClassBooklist}
+              </DialogTitle>
+              <DialogDescription>
+                Recommended books and publishers for the academic year 2025.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              {selectedClassBooklist && bookLists[selectedClassBooklist] ? (
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-slate-50">
+                      <TableRow>
+                        <TableHead className="font-bold text-slate-700">Subject</TableHead>
+                        <TableHead className="font-bold text-slate-700">Book Name</TableHead>
+                        <TableHead className="font-bold text-slate-700">Publisher</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bookLists[selectedClassBooklist].map((item, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell className="font-medium text-school-primary">{item.subject}</TableCell>
+                          <TableCell>{item.book}</TableCell>
+                          <TableCell className="text-slate-500 italic">{item.publisher}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground bg-slate-50 rounded-md border border-dashed">
+                  <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                  <p className="font-medium">Booklist details are being updated.</p>
+                </div>
+              )}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print List</Button>
+              <Button onClick={() => setSelectedClassBooklist(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Exam Papers Dialog */}
+        <Dialog open={!!selectedClassPapers} onOpenChange={(open) => !open && setSelectedClassPapers(null)}>
+          <DialogContent className="max-w-3xl w-[90vw] md:w-full">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-school-primary" />
+                Previous Exam Papers - {selectedClassPapers}
+              </DialogTitle>
+              <DialogDescription>
+                Download or read previous year question papers for practice.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4">
+              <ScrollArea className="h-[300px] w-full pr-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {examPapers.map((paper) => (
+                    <div key={paper.id} className="flex flex-col p-4 border rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="mb-2">
+                        <h4 className="font-semibold text-slate-800">{paper.title}</h4>
+                        <span className="text-sm text-school-primary font-medium bg-school-light/50 px-2 py-0.5 rounded">{paper.subject}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{paper.date}</span>
+                      </div>
+                      <div className="mt-auto flex gap-2 pt-2">
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => setViewingPaper(paper)}>
+                          <Eye className="mr-2 h-3 w-3" /> Read Online
+                        </Button>
+                        <Button size="sm" className="flex-1" onClick={() => {
+                          toast({ title: "Downloading...", description: "Paper download started." });
+                        }}>
+                          <Download className="mr-2 h-3 w-3" /> Download
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <DialogFooter>
+              <Button onClick={() => setSelectedClassPapers(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Read Online Dialog - Full Screen/Responsive */}
+        <Dialog open={!!viewingPaper} onOpenChange={(open) => !open && setViewingPaper(null)}>
+          <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b bg-slate-50">
+              <div>
+                <h3 className="font-semibold">{viewingPaper?.title}</h3>
+                <p className="text-xs text-muted-foreground">{viewingPaper?.subject}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => window.print()}>
+                  <Printer className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setViewingPaper(null)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-grow bg-gray-100 p-4 overflow-auto flex justify-center items-start">
+              {/* PDF Placeholder */}
+              <div className="bg-white shadow-lg w-full max-w-3xl min-h-full p-8 md:p-12">
+                <div className="text-center mb-8 border-b pb-4">
+                  <h2 className="text-2xl font-serif font-bold text-school-primary mb-2">BALIADANGA HIGH SCHOOL</h2>
+                  <h3 className="text-lg font-semibold uppercase">{viewingPaper?.title}</h3>
+                  <p className="font-medium">Subject: {viewingPaper?.subject}</p>
+                  <div className="flex justify-between mt-4 text-sm font-medium">
+                    <span>Full Marks: 100</span>
+                    <span>Time: 3 Hours</span>
+                  </div>
+                </div>
+
+                <div className="space-y-6 font-serif">
+                  <div>
+                    <p className="font-bold mb-2">Group A (Multiple Choice Questions)</p>
+                    <ol className="list-decimal list-inside space-y-2 pl-4">
+                      <li>What is the process of photosynthesis?</li>
+                      <li>Calculate the area of a circle with radius 7cm.</li>
+                      <li>Who wrote 'Gitanjali'?</li>
+                      <li>Define Newton's First Law of Motion.</li>
+                      <li>Translate into English: "আমি এখন ভাত খাচ্ছি।"</li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <p className="font-bold mb-2">Group B (Short Answer Type)</p>
+                    <ol className="list-decimal list-inside space-y-2 pl-4" start={6}>
+                      <li>Explain the difference between plant cell and animal cell. (5 marks)</li>
+                      <li>Solve the equation: 2x + 5 = 15. (5 marks)</li>
+                      <li>Write a short paragraph on 'Global Warming'. (10 marks)</li>
+                    </ol>
+                  </div>
+
+                  <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded text-center text-sm text-yellow-800">
+                    This is a sample viewer. In a real application, the actual PDF file would be rendered here using a PDF viewer library like <code>react-pdf</code>.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+
+        </Dialog>
+
+      </div>
+    </div>
   );
 };
 

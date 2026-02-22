@@ -5,7 +5,12 @@ import asyncHandler from './asyncHandler.js';
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  // 1. Prefer httpOnly cookie (set by login/adminLogin)
+  if (req.cookies && req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+  // 2. Fallback: Bearer header (for API clients / Postman / mobile apps)
+  else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 

@@ -21,10 +21,27 @@ const studentProfileSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add a Class']
     },
+    // Kept in sync with `class` — used by promotionController and eligibility check
+    currentClass: {
+        type: String
+    },
     section: {
         type: String,
         required: [true, 'Please add a Section']
     },
+    session: {
+        type: String, // e.g. '2024-2025'
+        default: ''
+    },
+    // Archive of past promotions
+    previousClasses: [{
+        class: String,
+        section: String,
+        session: String,
+        percentage: Number,
+        grade: String,
+        promotedAt: { type: Date, default: Date.now }
+    }],
     dateOfBirth: {
         type: Date
     },

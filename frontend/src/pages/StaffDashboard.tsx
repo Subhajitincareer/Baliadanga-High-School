@@ -13,10 +13,15 @@ import {
     Camera,
     Lock,
     Calendar,
-    CheckSquare
+    CheckSquare,
+    BookOpen,
+    GraduationCap
 } from 'lucide-react';
 import AttendancePage from '@/pages/admin/AttendancePage';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
+import ExamManagement from '@/pages/admin/ExamManagement';
+import { HomeworkAssignment } from '@/components/staff/HomeworkAssignment';
+import { ResourceManagement } from '@/components/admin/ResourceManagement';
 import apiService, { Routine } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -173,10 +178,22 @@ const StaffDashboard = () => {
 
     const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+    const navItems = [
+        { id: 'home', label: 'Home', icon: LayoutDashboard, show: true },
+        { id: 'routine', label: 'Routine', icon: Calendar, show: true },
+        { id: 'attendance', label: 'Attendance', icon: CheckSquare, show: hasPermission('TAKE_ATTENDANCE') },
+        { id: 'marks', label: 'Marks', icon: GraduationCap, show: hasPermission('MANAGE_RESULTS') },
+        { id: 'homework', label: 'Homework', icon: BookOpen, show: ['teacher', 'principal', 'vice_principal'].includes(user?.role || '') },
+        { id: 'resources', label: 'Resources', icon: BookOpen, show: hasPermission('MANAGE_ACADEMIC') },
+        { id: 'admissions', label: 'Admissions', icon: UserIcon, show: hasPermission('MANAGE_ADMISSION') },
+        { id: 'profile', label: 'Profile', icon: UserIcon, show: true },
+    ];
+    const visibleNavItems = navItems.filter(item => item.show);
+
     return (
-        <div className="flex h-screen bg-slate-50">
-            {/* Sidebar */}
-            <aside className="w-64 bg-white border-r hidden md:flex flex-col">
+        <div className="flex h-screen bg-slate-50 overflow-hidden">
+            {/* Sidebar (Desktop) */}
+            <aside className="w-64 bg-white border-r hidden md:flex flex-col flex-shrink-0">
                 <div className="p-6 border-b">
                     <h2 className="text-xl font-bold flex items-center text-school-primary">
                         <LayoutDashboard className="mr-2 h-6 w-6" />
@@ -206,6 +223,36 @@ const StaffDashboard = () => {
                             onClick={() => setActiveTab('attendance')}
                         >
                             <CheckSquare className="mr-2 h-4 w-4" /> Take Attendance
+                        </Button>
+                    )}
+
+                    {hasPermission('MANAGE_RESULTS') && (
+                        <Button
+                            variant={activeTab === 'marks' ? 'secondary' : 'ghost'}
+                            className="w-full justify-start"
+                            onClick={() => setActiveTab('marks')}
+                        >
+                            <GraduationCap className="mr-2 h-4 w-4" /> Review Marks
+                        </Button>
+                    )}
+
+                    {['teacher', 'principal', 'vice_principal'].includes(user?.role || '') && (
+                        <Button
+                            variant={activeTab === 'homework' ? 'secondary' : 'ghost'}
+                            className="w-full justify-start"
+                            onClick={() => setActiveTab('homework')}
+                        >
+                            <BookOpen className="mr-2 h-4 w-4" /> Homework
+                        </Button>
+                    )}
+
+                    {hasPermission('MANAGE_ACADEMIC') && (
+                        <Button
+                            variant={activeTab === 'resources' ? 'secondary' : 'ghost'}
+                            className="w-full justify-start"
+                            onClick={() => setActiveTab('resources')}
+                        >
+                            <BookOpen className="mr-2 h-4 w-4" /> Resources
                         </Button>
                     )}
 
@@ -240,21 +287,86 @@ const StaffDashboard = () => {
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto p-8">
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* Mobile Header */}
+                <header className="flex h-16 items-center border-b bg-white px-4 justify-between flex-shrink-0 md:hidden shadow-sm z-10">
+                    <span className="font-bold text-lg text-school-primary flex items-center">
+                        <LayoutDashboard className="mr-2 h-6 w-6" />
+                        Staff Portal
+                    </span>
+                    <Button variant="ghost" size="icon" onClick={logout} className="text-red-500 hover:bg-red-50 hover:text-red-600">
+                        <LogOut className="h-5 w-5" />
+                    </Button>
+                </header>
+
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
                 {activeTab === 'home' && (
                     <div className="space-y-6">
-                        <h1 className="text-3xl font-bold text-gray-800">Welcome, {user?.fullName || user?.name}</h1>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <Card>
+                        <div className="bg-gradient-to-r from-school-primary to-indigo-600 rounded-xl p-8 text-white shadow-lg relative overflow-hidden">
+                            <div className="relative z-10">
+                                <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome back, {user?.fullName || user?.name}</h1>
+                                <p className="text-indigo-100 max-w-xl">
+                                    Here's what's happening at Baliadanga High Hub today. Access your classes, mark attendance, and manage student performance from your dashboard.
+                                </p>
+                            </div>
+                            <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
+                                <LayoutDashboard className="w-64 h-64" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <Card className="border-l-4 border-l-school-primary shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Role</CardTitle>
+                                    <CardTitle className="text-sm font-medium">Current Role</CardTitle>
                                     <IdCard className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold capitalize">{user?.role}</div>
+                                    <p className="text-xs text-muted-foreground mt-1">Logged in securely</p>
                                 </CardContent>
                             </Card>
+
+                            <Card className="border-l-4 border-l-amber-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:bg-slate-50" onClick={() => setActiveTab('routine')}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">My Schedule</CardTitle>
+                                    <Calendar className="h-4 w-4 text-amber-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{getDailySchedule(DAYS[new Date().getDay() === 0 ? 0 : new Date().getDay() - 1])?.length || 0}</div>
+                                    <p className="text-xs text-muted-foreground mt-1">Classes today</p>
+                                </CardContent>
+                            </Card>
+                            
+                            {hasPermission('TAKE_ATTENDANCE') && (
+                            <Card className="border-l-4 border-l-emerald-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:bg-slate-50" onClick={() => setActiveTab('attendance')}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Attendance</CardTitle>
+                                    <CheckSquare className="h-4 w-4 text-emerald-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold flex items-center">
+                                        Take <span className="ml-2 text-sm font-normal text-muted-foreground">Now</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">Record daily presence</p>
+                                </CardContent>
+                            </Card>
+                            )}
+
+                             {['teacher', 'principal', 'vice_principal'].includes(user?.role || '') && (
+                            <Card className="border-l-4 border-l-rose-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:bg-slate-50" onClick={() => setActiveTab('homework')}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Homework</CardTitle>
+                                    <BookOpen className="h-4 w-4 text-rose-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold flex items-center">
+                                        Assign <span className="ml-2 text-sm font-normal text-muted-foreground">Task</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">Manage assignments</p>
+                                </CardContent>
+                            </Card>
+                            )}
                         </div>
                     </div>
                 )}
@@ -324,6 +436,24 @@ const StaffDashboard = () => {
                 {activeTab === 'attendance' && (
                     <div className="max-w-4xl mx-auto">
                         <AttendancePage />
+                    </div>
+                )}
+
+                {activeTab === 'marks' && (
+                    <div className="max-w-5xl mx-auto">
+                        <ExamManagement />
+                    </div>
+                )}
+
+                {activeTab === 'homework' && (
+                    <div className="max-w-5xl mx-auto">
+                        <HomeworkAssignment />
+                    </div>
+                )}
+
+                {activeTab === 'resources' && (
+                    <div className="max-w-5xl mx-auto">
+                        <ResourceManagement hideHeader={true} />
                     </div>
                 )}
 
@@ -454,7 +584,22 @@ const StaffDashboard = () => {
                         </Card>
                     </div>
                 )}
-            </main>
+                </main>
+
+                {/* Mobile Bottom Navigation */}
+                <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex overflow-x-auto [&::-webkit-scrollbar]:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                    {visibleNavItems.map(item => (
+                        <button 
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`flex flex-col items-center justify-center min-w-[72px] flex-1 py-3 transition-colors ${activeTab === item.id ? 'text-school-primary bg-indigo-50/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+                        >
+                            <item.icon className={`h-5 w-5 mb-1 ${activeTab === item.id ? 'stroke-[2.5px]' : ''}`} />
+                            <span className="text-[10px] font-medium">{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
+            </div>
         </div>
     );
 };

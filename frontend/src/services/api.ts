@@ -145,6 +145,20 @@ export interface Staff {
   updatedAt?: string;
 }
 
+// Homework Interface
+export interface Homework {
+  _id?: string;
+  title: string;
+  description: string;
+  className: string;
+  section: string;
+  subject: string;
+  assignedBy?: any; // ObjectId or populated object
+  dueDate: string;
+  attachments?: { filename: string; url: string }[];
+  createdAt?: string;
+}
+
 // Notification Interface
 export interface Notification {
   _id?: string;
@@ -162,7 +176,7 @@ export interface Resource {
   _id: string;
   title: string;
   description: string;
-  type: 'policy' | 'form' | 'other';
+  type: 'policy' | 'form' | 'syllabus' | 'booklist' | 'other';
   filePath: string;
   fileName: string;
   fileSize?: number;
@@ -174,7 +188,7 @@ export interface CalendarEvent {
   _id?: string;
   title: string;
   date: string | Date;
-  type: 'HOLIDAY' | 'EXAM' | 'ACTIVITY' | 'MEETING' | 'TERM';
+  type: 'HOLIDAY' | 'EXAM' | 'ACTIVITY' | 'MEETING' | 'TERM' | 'PTM';
   description?: string;
   startTime?: string;
   endTime?: string;
@@ -215,16 +229,9 @@ class ApiService {
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      credentials: 'include', // Send httpOnly JWT cookie automatically
       ...options,
     };
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
 
     const response = await fetch(url, config);
     const data = await response.json();
@@ -242,18 +249,16 @@ class ApiService {
       ? { email: identifier, password }
       : { studentId: identifier, password };
 
-    // Backend returns flat object: { token, _id, name, email, role, ... } inside 'data'
+    // Backend sets httpOnly cookie; returns { success, data: { user fields (no token) } }
     const response = await this.request<{ success: boolean; data: any }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
 
-    const { token, ...userData } = response.data;
-
-    // Transform to expected LoginResponse format
+    // Return user data in LoginResponse shape (token field is empty — it's in the cookie)
     return {
-      token,
-      user: userData as User
+      token: '',  // Intentionally empty — JWT is in httpOnly cookie
+      user: response.data as User
     };
   }
 
@@ -265,10 +270,7 @@ class ApiService {
   }
 
   async logout(): Promise<ApiResponse> {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('user');
+    // Backend clears the httpOnly cookie; local auth state is cleared by AuthContext
     return this.request<ApiResponse>('/auth/logout', { method: 'POST' });
   }
 
@@ -470,17 +472,12 @@ class ApiService {
 
   async createResource(formData: FormData): Promise<{ success: boolean; data: Resource }> {
     const url = `${API_BASE_URL}/resources`;
-    const token = localStorage.getItem('token');
 
-    // Manual fetch to handle FormData properly (no Content-Type header)
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
+    // Use fetch directly for FormData (no Content-Type header so browser sets boundary)
+    // credentials:'include' sends the httpOnly JWT cookie automatically
     const response = await fetch(url, {
       method: 'POST',
-      headers: headers,
+      credentials: 'include',
       body: formData
     });
 
@@ -522,13 +519,16 @@ class ApiService {
     });
   }
 
-  // Admin login (returns token & user)
+  // Admin login — backend validates role='admin', sets cookie, returns user object
   async adminLogin(email: string, password: string): Promise<LoginResponse> {
-    const response = await this.request<{ success: boolean; token: string; user: User; message?: string }>('/auth/admin-login', {
+    const response = await this.request<{ success: boolean; user: User; message?: string }>('/auth/admin-login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    return response as unknown as LoginResponse; // Casting to match interface
+    return {
+      token: '', // JWT is in httpOnly cookie
+      user: response.user
+    };
   }
 
   async updatePassword(passwordData: any): Promise<ApiResponse> {
@@ -643,6 +643,152 @@ class ApiService {
     if (date) query.append('date', date);
     if (className) query.append('class', className);
     return this.request<any[]>(`/mid-day-meal?${query.toString()}`);
+  }
+  // Students filtered by class/section — used by Attendance, Marks, MDM pages
+  async getStudentsByClass(className: string, section?: string): Promise<any[]> {
+    const query = new URLSearchParams({ class: className });
+    if (section) query.append('section', section);
+    const response = await this.request<{ success: boolean; data: any[] }>(`/students/by-class?${query.toString()}`);
+    return response.data;
+  }
+
+  // ------- Fee Management -------
+  async getStudentDues(studentId: string): Promise<any> {
+    return this.request<any>(`/fees/dues/${studentId}`);
+  }
+
+  async recordPayment(data: {
+    studentId: string;
+    amountPaid: number;
+    paymentMethod?: string;
+    remarks?: string;
+    academicYear?: string;
+  }): Promise<any> {
+    return this.request<any>('/fees/pay', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  async getFeeStructures(): Promise<any[]> {
+    const response = await this.request<{ success: boolean; data: any[] }>('/fees/structure');
+    return Array.isArray(response) ? response : (response as any).data ?? [];
+  }
+
+  async createFeeStructure(data: any): Promise<any> {
+    return this.request<any>('/fees/structure', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ------- Exam & Marks (Bulk) -------
+  async bulkUpsertMarks(data: {
+    examId: string;
+    subject: string;
+    entries: Array<{ studentProfileId: string; mark: number }>;
+  }): Promise<any> {
+    return this.request<any>('/results/bulk-marks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ------- Promotion -------
+  async checkPromotionEligibility(studentId: string): Promise<any> {
+    return this.request<any>(`/promotion/check/${studentId}`);
+  }
+
+  async promoteStudent(data: {
+    studentId: string;
+    newClass: string;
+    paymentAmount?: number;
+    paymentMethod?: string;
+    newSession?: string;
+  }): Promise<any> {
+    return this.request<any>('/promotion/promote', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  async getPromotionPreview(className: string, section?: string): Promise<any> {
+    const query = new URLSearchParams({ class: className });
+    if (section) query.append('section', section);
+    return this.request<any>(`/promotion/preview?${query.toString()}`);
+  }
+
+  async bulkPromoteStudents(data: {
+    fromClass: string;
+    toClass: string;
+    newSession?: string;
+    promoteAll?: boolean;
+  }): Promise<any> {
+    return this.request<any>('/promotion/bulk', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ------- Mid-Day Meal -------
+  async getMonthlySummary(month?: string): Promise<any> {
+    const query = month ? `?month=${month}` : '';
+    return this.request<any>(`/mid-day-meal/monthly-summary${query}`);
+  }
+
+  // ------- Sprint 4 — Fees (Student-facing) -------
+  async getMyFeeHistory(): Promise<any> {
+    return this.request<any>('/fees/my-history');
+  }
+
+  // ------- Sprint 4 — Analytics -------
+  async getDashboardSummary(): Promise<any> {
+    return this.request<any>('/analytics/dashboard-summary');
+  }
+
+  // ------- Sprint 4 — Results -------
+  async getReportCard(studentProfileId: string, examId: string): Promise<any> {
+    return this.request<any>(`/results/report-card/${studentProfileId}/${examId}`);
+  }
+
+  async getPublicResult(rollNumber: string): Promise<any> {
+    return this.request<any>(`/results/public?rollNumber=${encodeURIComponent(rollNumber)}`);
+  }
+
+  // ------- Sprint 4 — Routines (by class/section for student) -------
+  async getRoutinesByClass(className: string, section?: string): Promise<Routine[]> {
+    const query = new URLSearchParams({ class: className });
+    if (section) query.append('section', section);
+    return this.request<Routine[]>(`/routines?${query.toString()}`);
+  }
+
+  // ------- Sprint 5 — Homework -------
+  async getHomeworks(filters?: { className?: string; section?: string; teacherId?: string }): Promise<Homework[]> {
+    const query = new URLSearchParams();
+    if (filters?.className) query.append('className', filters.className);
+    if (filters?.section) query.append('section', filters.section);
+    if (filters?.teacherId) query.append('teacherId', filters.teacherId);
+    
+    const response = await this.request<{ data: Homework[] }>(`/homework?${query.toString()}`);
+    return response.data || [];
+  }
+
+  async createHomework(homeworkData: Partial<Homework>): Promise<Homework> {
+    const response = await this.request<{ data: Homework }>('/homework', {
+      method: 'POST',
+      body: JSON.stringify(homeworkData),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return response.data;
+  }
+
+  async deleteHomework(id: string): Promise<any> {
+    return this.request<any>(`/homework/${id}`, { method: 'DELETE' });
   }
 }
 

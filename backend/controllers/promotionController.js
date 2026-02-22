@@ -1,39 +1,33 @@
+import { randomUUID } from 'crypto';
 import StudentProfile from '../models/StudentProfile.js';
 import FeePayment from '../models/FeePayment.js';
-import Result from '../models/Result.js'; // Assuming Result model exists
+import Result from '../models/Result.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 
-// @desc    Check promotion eligibility
+// @desc    Check promotion eligibility for a single student
 // @route   GET /api/promotion/check/:studentId
 // @access  Private (Admin/Staff)
 export const checkEligibility = asyncHandler(async (req, res) => {
     const { studentId } = req.params;
 
-    // 1. Find Student
-    let student = await StudentProfile.findOne({ studentId });
+    const student = await StudentProfile.findOne({ studentId }).populate('user', 'name email');
     if (!student) {
         res.status(404);
         throw new Error('Student not found');
     }
 
-    // 2. Find Latest Final Exam Result
-    // Assuming logic: Find result for current class, sorted by date.
-    // In a real app, we might search for specific "Final Exam" category.
-    // For now, we take the latest result.
-    const latestResult = await Result.findOne({ studentId: student._id })
-        .sort({ createdAt: -1 });
+    const latestResult = await Result.findOne({ studentId: student._id }).sort({ createdAt: -1 });
 
     if (!latestResult) {
         return res.json({
             eligible: false,
+            status: 'NO_RESULT',
             message: 'No exam results found for this student.',
             student
         });
     }
 
-    // 3. Determine Pass/Fail Logic (Mock for now if percentage > 30)
-    // You requested "check exam mark pass or fail"
-    const isPassed = latestResult.percentage >= 30; // Simple threshold
+    const isPassed = latestResult.percentage >= 30;
 
     res.json({
         eligible: isPassed,
@@ -48,68 +42,198 @@ export const checkEligibility = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Promote Student (Admission 5 to 6)
+// @desc    Get promotion preview for a full class
+// @route   GET /api/promotion/preview?class=VI
+// @access  Private (Admin)
+export const getPromotionPreview = asyncHandler(async (req, res) => {
+    const { class: className, section } = req.query;
+
+    if (!className) {
+        res.status(400);
+        throw new Error('class query param is required');
+    }
+
+    const filter = { class: className, status: 'Active' };
+    if (section) filter.section = section;
+
+    // Fetch all active students in this class
+    const students = await StudentProfile.find(filter).populate('user', 'name email');
+
+    // Attach latest result to each student
+    const studentsWithEligibility = await Promise.all(
+        students.map(async (student) => {
+            const latestResult = await Result.findOne({ studentId: student._id }).sort({ createdAt: -1 });
+
+            const eligible = latestResult ? latestResult.percentage >= 30 : false;
+            return {
+                studentId: student.studentId,
+                name: student.user?.name || 'N/A',
+                class: student.class,
+                section: student.section,
+                session: student.session,
+                rollNumber: student.rollNumber,
+                eligible,
+                percentage: latestResult?.percentage ?? null,
+                grade: latestResult?.grade ?? 'N/A',
+            };
+        })
+    );
+
+    const eligible = studentsWithEligibility.filter(s => s.eligible);
+    const ineligible = studentsWithEligibility.filter(s => !s.eligible);
+
+    res.json({
+        success: true,
+        total: studentsWithEligibility.length,
+        eligible,
+        ineligible,
+    });
+});
+
+
+// @desc    Promote a single student to a new class
 // @route   POST /api/promotion/promote
 // @access  Private (Admin)
 export const promoteStudent = asyncHandler(async (req, res) => {
-    const { studentId, newClass, paymentAmount, paymentMethod } = req.body;
+    const { studentId, newClass, paymentAmount, paymentMethod, newSession } = req.body;
 
-    // 1. Get Student
-    const student = await StudentProfile.findOne({ studentId });
+    const student = await StudentProfile.findOne({ studentId }).populate('user', 'name email');
     if (!student) {
         res.status(404);
         throw new Error('Student not found');
     }
 
-    // 2. Record Admission/Session Fee Payment
     const year = new Date().getFullYear();
-    const receiptNumber = `SLIP-${year}-${Math.floor(10000 + Math.random() * 90000)}`; // "Yellow Slip" ID
+    const receiptNumber = `SLIP-${year}-${randomUUID().slice(0, 8).toUpperCase()}`;
 
-    const payment = await FeePayment.create({
-        student: student._id,
-        amountPaid: paymentAmount,
-        paymentMethod: paymentMethod || 'Cash',
-        remarks: `Admission/Promotion Fee to Class ${newClass}`,
-        collectedBy: req.user._id,
-        academicYear: year.toString(),
-        receiptNumber
+    // Record admission/session fee payment if amount provided
+    let payment = null;
+    if (paymentAmount && paymentAmount > 0) {
+        payment = await FeePayment.create({
+            student: student._id,
+            amountPaid: paymentAmount,
+            paymentMethod: paymentMethod || 'Cash',
+            remarks: `Promotion Fee: Class ${student.class} → Class ${newClass}`,
+            collectedBy: req.user._id,
+            academicYear: year.toString(),
+            receiptNumber
+        });
+    }
+
+    // Archive current class info
+    const latestResult = await Result.findOne({ studentId: student._id }).sort({ createdAt: -1 });
+    student.previousClasses.push({
+        class: student.class,
+        section: student.section,
+        session: student.session,
+        percentage: latestResult?.percentage ?? 0,
+        grade: latestResult?.grade ?? 'N/A',
+        promotedAt: new Date()
     });
 
-    // 3. Calculate New Roll Number (Merit Based)
-    // Logic: Count how many students already in newClass. Assign next number?
-    // User asked "roll number according exam". This implies Rank.
-    // Complex logic: We should sort all PROMOTED students by marks. 
-    // Simplified Logic: Just increment for now, or Manual Override.
-    // Let's find max roll in new class.
+    const oldClass = student.class;
 
-    // Convert to number for reliable sorting if stored as string
-    // This is tricky if data is predominantly string.
-    const studentsInNewClass = await StudentProfile.find({ currentClass: newClass });
-    const nextRoll = studentsInNewClass.length + 1;
+    // Calculate new roll number in new class
+    const studentsInNewClass = await StudentProfile.countDocuments({ class: newClass, status: 'Active' });
+    const nextRoll = (studentsInNewClass + 1).toString();
 
-    // 4. Update Student Profile
-    const oldClass = student.currentClass;
+    // Update student profile
+    student.class = newClass;
     student.currentClass = newClass;
-    student.rollNumber = nextRoll.toString(); // or req.body.newRoll if manual
-    student.section = 'A'; // Default section, can be changed later
+    student.session = newSession || `${year}-${year + 1}`;
+    student.rollNumber = nextRoll;
+    student.section = 'A'; // Default; admin can reassign later
     await student.save();
 
-    // 5. Return "Yellow Slip" Data
     res.json({
         success: true,
         message: `Student promoted to Class ${newClass}`,
         slipData: {
             receiptNo: receiptNumber,
             date: new Date(),
-            studentName: student.user.name, // Assuming populated or separate fetch needed?
-            // Actually student.user is just ID in profile usually. 
-            // We need to fetch user name or rely on frontend passing it.
-            // Let's populate for safety result.
+            studentName: student.user?.name || studentId,
             studentId: student.studentId,
             oldClass,
             newClass,
-            newRoll: student.rollNumber,
-            amountPaid: paymentAmount
+            newRoll: nextRoll,
+            amountPaid: paymentAmount || 0
         }
+    });
+});
+
+// @desc    Bulk promote all students from one class to another
+// @route   POST /api/promotion/bulk
+// @access  Private (Admin)
+export const bulkPromote = asyncHandler(async (req, res) => {
+    const { fromClass, toClass, newSession, promoteAll } = req.body;
+
+    if (!fromClass || !toClass) {
+        res.status(400);
+        throw new Error('fromClass and toClass are required');
+    }
+
+    // Find eligible students (or all if promoteAll flag set)
+    const students = await StudentProfile.find({
+        class: fromClass,
+        status: 'Active'
+    });
+
+    if (students.length === 0) {
+        return res.json({
+            success: true,
+            message: `No active students found in Class ${fromClass}`,
+            promoted: 0,
+            held: 0
+        });
+    }
+
+    const year = new Date().getFullYear();
+    const targetSession = newSession || `${year}-${year + 1}`;
+
+    const results = { promoted: 0, held: 0, errors: [] };
+
+    // Find current count in destination class to assign roll numbers
+    let rollCounter = await StudentProfile.countDocuments({ class: toClass, status: 'Active' });
+
+    for (const student of students) {
+        try {
+            // Get latest result
+            const latestResult = await Result.findOne({ studentId: student._id }).sort({ createdAt: -1 });
+            const isPassed = latestResult ? latestResult.percentage >= 30 : false;
+
+            if (!isPassed && !promoteAll) {
+                results.held++;
+                continue;
+            }
+
+            // Archive current class
+            student.previousClasses.push({
+                class: student.class,
+                section: student.section,
+                session: student.session,
+                percentage: latestResult?.percentage ?? 0,
+                grade: latestResult?.grade ?? 'N/A',
+                promotedAt: new Date()
+            });
+
+            rollCounter++;
+            student.class = toClass;
+            student.currentClass = toClass;
+            student.session = targetSession;
+            student.rollNumber = rollCounter.toString();
+            student.section = 'A'; // Will need section assignment later
+
+            await student.save();
+            results.promoted++;
+
+        } catch (err) {
+            results.errors.push(`${student.studentId}: ${err.message}`);
+        }
+    }
+
+    res.json({
+        success: true,
+        message: `Bulk promotion complete: ${results.promoted} promoted, ${results.held} held back.`,
+        ...results
     });
 });

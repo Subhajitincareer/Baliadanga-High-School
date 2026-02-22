@@ -2,8 +2,15 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Config & middleware
 import connectDB from './config/db.js';
+import { validateEnv } from './config/envValidation.js';
 import errorHandler from './middlewares/errorHandler.js';
+import { globalLimiter } from './middlewares/rateLimiter.js';
 
 // Route files
 import authRoutes from './routes/auth.js';
@@ -21,20 +28,32 @@ import routineRoutes from './routes/routine.js';
 import studentRoutes from './routes/students.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import midDayMealRoutes from './routes/midDayMealRoutes.js';
+import feeRoutes from './routes/fees.js';
+import promotionRoutes from './routes/promotion.js';
+import analyticsRoutes from './routes/analytics.js';
+import homeworkRoutes from './routes/homework.js';
 
-// Load env vars
+// ─── Startup ──────────────────────────────────────────────────────────────────
+// Load env vars FIRST — must come before validateEnv and connectDB
 dotenv.config();
+
+// Validate all required env vars — exits with a clear error if any are missing
+validateEnv();
 
 // Connect to database
 connectDB();
 
+// ─── App Setup ───────────────────────────────────────────────────────────────
 const app = express();
 
-// Body parser
+// Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));
 
-// Enable CORS
+// Cookie parser — required for httpOnly JWT cookies
+app.use(cookieParser());
+
+// Enable CORS — credentials: true required for cookies to be sent cross-origin
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
@@ -49,9 +68,8 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
-
     if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
       callback(null, true);
     } else {
@@ -59,17 +77,22 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
+  credentials: true,  // Required for cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// Dev logging middleware
+// Dev logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('combined'));
 }
 
-// Mount routers
+// ─── Rate Limiting ───────────────────────────────────────────────────────────
+// Global limiter: 100 req / 15 min per IP — applied to all API routes
+// Login-specific limiter (5/15min) is applied in routes/auth.js directly
+app.use('/api', globalLimiter);
+
+// ─── Mount Routers ────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/items', items);
 app.use('/api/admin', admin);
@@ -85,15 +108,18 @@ app.use('/api/routines', routineRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/mid-day-meal', midDayMealRoutes);
+app.use('/api/fees', feeRoutes);
+app.use('/api/promotion', promotionRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/homework', homeworkRoutes);
 
-// Serve static assets (uploads)
-import path from 'path';
-import { fileURLToPath } from 'url';
+
+
+// ─── Static & Utility Routes ─────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Health check route
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -103,23 +129,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root route
 app.get('/', (req, res) => {
   res.json({
-    message: 'Welcome to MERN Backend API 🚀',
+    message: 'Welcome to Baliadanga High Hub API 🚀',
     version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      items: '/api/items',
-      health: '/health'
-    },
+    endpoints: { auth: '/api/auth', health: '/health' },
     documentation: 'See README.md for API documentation'
   });
 });
 
-// Error handler
+// ─── Error Handler ────────────────────────────────────────────────────────────
 app.use(errorHandler);
 
+// ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
@@ -128,18 +150,12 @@ const server = app.listen(PORT, () => {
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
+process.on('unhandledRejection', (err) => {
   console.log(`❌ Error: ${err.message}`);
-  server.close(() => {
-    process.exit(1);
-  });
+  server.close(() => { process.exit(1); });
 });
 
-// Handle SIGTERM
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM received');
-  server.close(() => {
-    console.log('Process terminated');
-  });
+  server.close(() => { console.log('Process terminated'); });
 });

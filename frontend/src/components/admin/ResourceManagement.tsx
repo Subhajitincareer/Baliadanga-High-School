@@ -24,7 +24,7 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
     // Form State
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [type, setType] = useState<'policy' | 'form' | 'other'>('policy');
+    const [type, setType] = useState<'policy' | 'form' | 'syllabus' | 'booklist' | 'other'>('policy');
     const [file, setFile] = useState<File | null>(null);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -191,6 +191,8 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
                                         <SelectContent>
                                             <SelectItem value="policy">Policy</SelectItem>
                                             <SelectItem value="form">Form</SelectItem>
+                                            <SelectItem value="syllabus">Syllabus</SelectItem>
+                                            <SelectItem value="booklist">Booklist</SelectItem>
                                             <SelectItem value="other">Other</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -263,6 +265,8 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
                                         <SelectItem value="all">All Types</SelectItem>
                                         <SelectItem value="policy">Policy</SelectItem>
                                         <SelectItem value="form">Form</SelectItem>
+                                        <SelectItem value="syllabus">Syllabus</SelectItem>
+                                        <SelectItem value="booklist">Booklist</SelectItem>
                                         <SelectItem value="other">Other</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -300,6 +304,8 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
                                                     <TableCell className="capitalize">
                                                         <span className={`px-2 py-1 rounded-full text-xs ${resource.type === 'policy' ? 'bg-blue-100 text-blue-800' :
                                                                 resource.type === 'form' ? 'bg-green-100 text-green-800' :
+                                                                resource.type === 'syllabus' ? 'bg-yellow-100 text-yellow-800' :
+                                                                resource.type === 'booklist' ? 'bg-purple-100 text-purple-800' :
                                                                     'bg-gray-100 text-gray-800'
                                                             }`}>
                                                             {resource.type}
