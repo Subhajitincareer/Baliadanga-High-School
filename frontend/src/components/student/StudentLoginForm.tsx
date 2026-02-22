@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { loginSchema, LoginFormValues } from '@/schemas/studentAuth';
-import { LogIn } from 'lucide-react';
+import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 
 interface StudentLoginFormProps {
   onSubmit: (data: LoginFormValues) => Promise<void>;
@@ -21,6 +22,8 @@ export const StudentLoginForm = ({ onSubmit, loading, defaultEmail = "" }: Stude
       password: "",
     },
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <>
@@ -46,7 +49,25 @@ export const StudentLoginForm = ({ onSubmit, loading, defaultEmail = "" }: Stude
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" {...field} />
+                  <div className="relative">
+                    <Input 
+                      type={showPassword ? "text" : "password"} 
+                      {...field} 
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

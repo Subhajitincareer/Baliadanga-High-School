@@ -392,6 +392,20 @@ class ApiService {
     });
   }
 
+  // Admin student management
+  async updateStudent(studentId: string, studentData: any): Promise<any> {
+    return this.request<any>(`/students/${studentId}`, {
+      method: 'PUT',
+      body: JSON.stringify(studentData),
+    });
+  }
+
+  async deleteStudent(studentId: string): Promise<ApiResponse> {
+    return this.request<ApiResponse>(`/students/${studentId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Student Results Methods
   async getStudentResults(studentId: string): Promise<StudentResult[]> {
     return this.request<StudentResult[]>(`/student-results/student/${studentId}`);
@@ -545,9 +559,12 @@ class ApiService {
     return response.data;
   }
 
-  async getStudents(): Promise<User[]> {
-    const response = await this.request<{ success: boolean; data: User[] }>('/admin/students');
-    return response.data;
+  async getStudents(): Promise<any[]> {
+    const response = await this.request<{ success: boolean; data: any[] }>('/students');
+    // The students route actually returns the array directly in studentController.js, let's just use it directly:
+    // Actually, getStudents from '/students' returns the array directly, so let's adjust based on what StudentManagement expects.
+    // If we call `/students` (which calls getStudents in studentController.js), it returns `res.status(200).json(students)` directly.
+    return this.request<any[]>('/students');
   }
 
   async createExam(examData: any): Promise<any> {

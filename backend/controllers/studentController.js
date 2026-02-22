@@ -42,7 +42,7 @@ export const getStudent = asyncHandler(async (req, res, next) => {
 export const createStudent = asyncHandler(async (req, res, next) => {
     const {
         name, email, password, // User fields
-        studentId, rollNumber, class: currentClass, section, guardianName, guardianPhone, address, dob, gender // Profile fields
+        studentId, rollNumber, class: currentClass, section, guardianName, guardianPhone, address, dob, gender, photoUrl // Profile fields
     } = req.body;
 
     // 1. Create User
@@ -82,7 +82,8 @@ export const createStudent = asyncHandler(async (req, res, next) => {
             guardianPhone,
             address,
             dateOfBirth: dob,
-            gender
+            gender,
+            photoUrl
         });
 
         res.status(201).json({
@@ -166,7 +167,8 @@ export const bulkImportStudents = asyncHandler(async (req, res, next) => {
                 guardianPhone: student.guardianPhone || 'N/A',
                 address: student.address,
                 dateOfBirth: student.dateOfBirth,
-                gender: student.gender
+                gender: student.gender,
+                photoUrl: student.photoUrl
             });
 
             results.successCount++;
@@ -198,7 +200,56 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
         res.json({ message: 'Student removed' });
     } else {
         res.status(404);
+        throw new Error('Student not found');
     }
+});
+
+// @desc    Update Student
+// @route   PUT /api/students/:id
+// @access  Private (Admin)
+export const updateStudent = asyncHandler(async (req, res, next) => {
+    let student;
+    // Find by objectId or string ID
+    if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+        student = await StudentProfile.findById(req.params.id).populate('user');
+    } else {
+        student = await StudentProfile.findOne({ studentId: req.params.id }).populate('user');
+    }
+
+    if (!student) {
+        res.status(404);
+        throw new Error('Student not found');
+    }
+
+    const {
+        name, email,
+        studentId, rollNumber, class: currentClass, section, guardianName, guardianPhone, address, dob, gender, photoUrl
+    } = req.body;
+
+    // Optional: Update User details
+    if (name || email) {
+        const user = await User.findById(student.user._id);
+        if (user) {
+            user.name = name || user.name;
+            user.email = email || user.email;
+            await user.save();
+        }
+    }
+
+    // Update Profile details
+    student.rollNumber = rollNumber || student.rollNumber;
+    student.class = currentClass || student.class;
+    student.section = section || student.section;
+    student.guardianName = guardianName || student.guardianName;
+    student.guardianPhone = guardianPhone || student.guardianPhone;
+    student.address = address || student.address;
+    if (dob) student.dateOfBirth = dob;
+    if (gender) student.gender = gender;
+    if (photoUrl) student.photoUrl = photoUrl;
+
+    const updatedProfile = await student.save();
+
+    res.json(updatedProfile);
 });
 
 // @desc    Get students filtered by class and section (lightweight)

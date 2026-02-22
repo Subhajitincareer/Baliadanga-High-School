@@ -17,6 +17,7 @@ import StudentResults from "@/pages/admin/StudentResults";
 import StudentManagement from '@/pages/admin/StudentManagement';
 import StudentDetail from '@/pages/admin/StudentDetail';
 import AddStudent from '@/pages/admin/AddStudent';
+import EditStudent from '@/pages/admin/EditStudent';
 import QuickAddStudents from '@/pages/admin/QuickAddStudents';
 import PrintableAdmissionForm from '@/pages/admin/PrintableAdmissionForm';
 import AttendancePage from '@/pages/admin/AttendancePage';
@@ -132,6 +133,14 @@ const App: FC = () => {
               element={
                 <ProtectedRoute>
                   <StudentDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/students/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditStudent />
                 </ProtectedRoute>
               }
             />

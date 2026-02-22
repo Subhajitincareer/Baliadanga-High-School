@@ -14,6 +14,7 @@ import { AttendanceGraph } from '@/components/student/AttendanceGraph';
 import { ExamResultCard } from '@/components/student/ExamResultCard';
 import { AttendanceDetailTable } from '@/components/student/AttendanceDetailTable';
 import { ClassScheduleGrid } from '@/components/shared/ClassScheduleGrid';
+import { useAuth } from '@/contexts/AuthContext';
 
 const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -36,12 +37,14 @@ const StudentDashboard = () => {
   const [homeworks, setHomeworks] = useState<Homework[]>([]);
   const [homeworksLoading, setHomeworksLoading] = useState(false);
 
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const fetchStudentData = useCallback(async () => {
     try {
-      const userId = localStorage.getItem('userId');
+      // Use user._id from AuthContext instead of localStorage
+      const userId = user?._id;
       if (!userId) {
         navigate('/student/login');
         return;
@@ -94,38 +97,20 @@ const StudentDashboard = () => {
   }, [navigate, toast]);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      const userRole = localStorage.getItem('userRole');
-
-      if (!token || userRole !== 'student') {
-        navigate('/student/login');
-        return;
-      }
-
+    if (user?.role === 'student' && user?._id) {
       fetchStudentData();
-    };
-
-    checkAuth();
-  }, [navigate, fetchStudentData]);
+    } else if (user && user.role !== 'student') {
+      navigate('/student/login');
+    }
+  }, [navigate, fetchStudentData, user]);
 
   const handleLogout = async () => {
     try {
+      // API call to clear the httpOnly cookie
       await apiService.logout();
-      localStorage.removeItem('token');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('user');
-
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
-      });
-      navigate('/student/login');
+      window.location.href = '/student/login'; // Force a full reload to clear contexts
     } catch (error) {
-      // Even if API call fails, clear local storage and redirect
-      localStorage.clear();
-      navigate('/student/login');
+      window.location.href = '/student/login';
     }
   };
 

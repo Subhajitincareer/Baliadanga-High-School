@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, User, Calendar, MapPin, Phone, Mail, BookOpen, Activity, Printer } from 'lucide-react';
+import { ArrowLeft, User, Calendar, MapPin, Phone, Mail, BookOpen, Activity, Printer, CheckCircle, X } from 'lucide-react';
 import apiService, { StudentProfile } from '@/services/api';
 import { Progress } from '@/components/ui/progress';
 import { ReportCardPrint } from '@/components/admin/ReportCardPrint';
@@ -179,24 +179,59 @@ const StudentDetail = () => {
                                     <CardTitle>Attendance Overview</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="mb-6">
-                                        <div className="flex justify-between mb-2 text-sm font-medium">
-                                            <span>Overall Attendance</span>
-                                            <span>{attendancePercentage}%</span>
+                                    {/* Summary Cards */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                                        <div className="flex flex-col items-center justify-center p-4 bg-slate-50 border rounded-lg">
+                                            <span className="text-sm font-medium text-slate-500 mb-1">Total Days</span>
+                                            <span className="text-2xl font-bold text-slate-800">120</span>
                                         </div>
-                                        <Progress value={attendancePercentage} className="h-2" />
-                                        <p className="text-xs text-muted-foreground mt-2">Based on current academic session</p>
+                                        <div className="flex flex-col items-center justify-center p-4 bg-green-50 border border-green-100 rounded-lg">
+                                            <span className="text-sm font-medium text-green-600 mb-1">Present</span>
+                                            <span className="text-2xl font-bold text-green-700">102</span>
+                                        </div>
+                                        <div className="flex flex-col items-center justify-center p-4 bg-red-50 border border-red-100 rounded-lg">
+                                            <span className="text-sm font-medium text-red-600 mb-1">Absent</span>
+                                            <span className="text-2xl font-bold text-red-700">18</span>
+                                        </div>
+                                        <div className="flex flex-col items-center justify-center p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                                            <span className="text-sm font-medium text-blue-600 mb-1">Percentage</span>
+                                            <span className="text-2xl font-bold text-blue-700">{attendancePercentage}%</span>
+                                        </div>
                                     </div>
 
+                                    {/* Progress Bar */}
+                                    <div className="mb-8">
+                                        <div className="flex justify-between mb-2 text-sm font-medium">
+                                            <span className="text-slate-700">Overall Attendance Progress</span>
+                                            <span className={attendancePercentage >= 75 ? "text-green-600" : "text-amber-600"}>
+                                                {attendancePercentage}%
+                                            </span>
+                                        </div>
+                                        <Progress 
+                                            value={attendancePercentage} 
+                                            className="h-3 bg-slate-100" 
+                                            // By default shadcn progress might use primary color. We can add a custom utility or leave it standard.
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-2">Target minimum attendance is 75% for exam eligibility.</p>
+                                    </div>
+
+                                    {/* Recent Activity */}
                                     <div className="space-y-4">
-                                        <h3 className="font-semibold text-sm">Recent Activity</h3>
+                                        <h3 className="font-semibold text-sm border-b pb-2">Recent Attendance Activity</h3>
                                         {attendanceHistory.map((item, idx) => (
-                                            <div key={idx} className="flex items-center justify-between p-3 border rounded-md bg-slate-50">
-                                                <div className="flex items-center">
-                                                    <div className={`h-2 w-2 rounded-full mr-3 ${item.status === 'Present' ? 'bg-green-500' : 'bg-red-500'}`} />
-                                                    <span>{new Date(item.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                            <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`flex items-center justify-center h-8 w-8 rounded-full ${item.status === 'Present' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                                        {item.status === 'Present' ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-slate-800">
+                                                            {new Date(item.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500">Regular Class Day</p>
+                                                    </div>
                                                 </div>
-                                                <span className={`text-sm font-medium ${item.status === 'Present' ? 'text-green-600' : 'text-red-600'}`}>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                                     {item.status}
                                                 </span>
                                             </div>

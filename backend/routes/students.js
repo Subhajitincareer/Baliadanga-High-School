@@ -5,6 +5,7 @@ import {
     createStudent,
     bulkImportStudents,
     deleteStudent,
+    updateStudent,
     getStudentsByClass
 } from '../controllers/studentController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
@@ -24,6 +25,7 @@ router.get('/by-class', authorize('admin', 'staff', 'teacher'), getStudentsByCla
 router
     .route('/:id')
     .get(getStudent)
+    .put(authorize('admin'), updateStudent)
     .delete(authorize('admin'), deleteStudent);
 
 export default router;

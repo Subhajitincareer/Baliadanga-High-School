@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, FileText, Download, CheckCircle, AlertTriangle, Loader2, Search, User, Eye, Filter, X, Zap } from 'lucide-react';
+import { Upload, FileText, Download, CheckCircle, AlertTriangle, Loader2, Search, User, Eye, Filter, X, Zap, Trash2, Edit } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -79,6 +79,28 @@ const StudentManagement = () => {
             });
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDelete = async (studentId: string) => {
+        if (!window.confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await apiService.deleteStudent(studentId);
+            toast({
+                title: 'Success',
+                description: 'Student deleted successfully',
+            });
+            fetchStudents(); // Refresh list
+        } catch (error: any) {
+            console.error('Failed to delete student:', error);
+            toast({
+                title: 'Error',
+                description: error.message || 'Failed to delete student',
+                variant: 'destructive',
+            });
         }
     };
 
@@ -375,12 +397,20 @@ const StudentManagement = () => {
                                                     <TableCell>{student.section}</TableCell>
                                                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{student.guardianName}</TableCell>
                                                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{student.guardianPhone}</TableCell>
-                                                    <TableCell className="text-right">
+                                                    <TableCell className="text-right flex items-center justify-end gap-2">
                                                         <Link to={`/admin/students/${student.studentId}`}>
                                                             <Button size="sm" variant="outline" className="h-8">
-                                                                <Eye className="mr-2 h-3 w-3" /> View
+                                                                <Eye className="h-4 w-4" />
                                                             </Button>
                                                         </Link>
+                                                        <Link to={`/admin/students/${student.studentId}/edit`}>
+                                                            <Button size="sm" variant="outline" className="h-8 text-blue-600 hover:text-blue-700">
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                        <Button size="sm" variant="outline" className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(student.studentId)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
                                                     </TableCell>
                                                 </TableRow>
                                             );
@@ -424,11 +454,19 @@ const StudentManagement = () => {
                                             </div>
 
                                             <div className="mt-4 flex justify-end">
-                                                <Link to={`/admin/students/${student.studentId}`} className="w-full">
+                                                <Link to={`/admin/students/${student.studentId}`} className="flex-1">
                                                     <Button size="sm" variant="outline" className="w-full">
-                                                        <Eye className="mr-2 h-3 w-3" /> View Details
+                                                        <Eye className="mr-2 h-4 w-4" /> View Detail
                                                     </Button>
                                                 </Link>
+                                                <Link to={`/admin/students/${student.studentId}/edit`} className="flex-1">
+                                                    <Button size="sm" variant="outline" className="w-full text-blue-600 hover:text-blue-700">
+                                                        <Edit className="mr-2 h-4 w-4" /> Edit
+                                                    </Button>
+                                                </Link>
+                                                <Button size="sm" variant="outline" className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(student.studentId)}>
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                </Button>
                                             </div>
                                         </div>
                                     );
