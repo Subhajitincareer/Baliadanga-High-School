@@ -46,6 +46,9 @@ connectDB();
 // ─── App Setup ───────────────────────────────────────────────────────────────
 const app = express();
 
+// Trust proxy - required for secure cookies on Render/Vercel
+app.set('trust proxy', 1);
+
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));

@@ -7,12 +7,15 @@ import asyncHandler from '../middlewares/asyncHandler.js';
 // Sets a signed httpOnly JWT cookie. JS on the client can never read this value.
 const setCookieToken = (res, token) => {
   const isProduction = process.env.NODE_ENV === 'production';
-  res.cookie('jwt', token, {
+  
+  const cookieOptions = {
     httpOnly: true,
     secure: isProduction,               // HTTPS only in production
     sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site (Vercel -> Render)
     maxAge: 7 * 24 * 60 * 60 * 1000,    // 7 days in ms
-  });
+  };
+
+  res.cookie('jwt', token, cookieOptions);
 };
 
 // @desc    Register user
