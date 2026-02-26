@@ -9,9 +9,9 @@ const setCookieToken = (res, token) => {
   const isProduction = process.env.NODE_ENV === 'production';
   res.cookie('jwt', token, {
     httpOnly: true,
-    secure: isProduction,          // HTTPS only in production
-    sameSite: isProduction ? 'strict' : 'lax', // lax allows dev cross-origin testing
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+    secure: isProduction,               // HTTPS only in production
+    sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site (Vercel -> Render)
+    maxAge: 7 * 24 * 60 * 60 * 1000,    // 7 days in ms
   });
 };
 
