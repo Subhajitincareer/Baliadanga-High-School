@@ -49,12 +49,12 @@ export const AttendanceDetailTable: React.FC<AttendanceDetailTableProps> = ({
         return Array.from(months).sort().reverse();
     }, [attendanceData]);
 
-    const [selectedMonth, setSelectedMonth] = useState<string>(allMonths[0] || '');
+    const [selectedMonth, setSelectedMonth] = useState<string>(allMonths[0] || 'all');
 
     const filtered = useMemo(() =>
         attendanceData
             .filter(r => {
-                if (!selectedMonth) return true;
+                if (selectedMonth === 'all' || !selectedMonth) return true;
                 const d = new Date(r.date);
                 return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === selectedMonth;
             })
@@ -88,7 +88,7 @@ export const AttendanceDetailTable: React.FC<AttendanceDetailTableProps> = ({
     };
 
     const monthLabel = (m: string) => {
-        if (!m) return 'All Months';
+        if (m === 'all' || !m) return 'All Months';
         const [y, mo] = m.split('-');
         return new Date(Number(y), Number(mo) - 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
     };
@@ -104,7 +104,7 @@ export const AttendanceDetailTable: React.FC<AttendanceDetailTableProps> = ({
                             <SelectValue placeholder="Select month" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Months</SelectItem>
+                            <SelectItem value="all">All Months</SelectItem>
                             {allMonths.map(m => (
                                 <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>
                             ))}

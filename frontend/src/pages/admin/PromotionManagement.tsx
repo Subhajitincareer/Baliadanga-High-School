@@ -220,10 +220,10 @@ const PromotionManagement = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Section (optional)</Label>
-                                    <Select onValueChange={setBulkSection} value={bulkSection}>
+                                    <Select onValueChange={(val) => setBulkSection(val === 'all' ? '' : val)} value={bulkSection || 'all'}>
                                         <SelectTrigger className="w-32"><SelectValue placeholder="All" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">All Sections</SelectItem>
+                                            <SelectItem value="all">All Sections</SelectItem>
                                             {['A','B','C','D'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
