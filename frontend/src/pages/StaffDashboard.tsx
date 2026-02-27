@@ -15,12 +15,15 @@ import {
     Calendar,
     CheckSquare,
     BookOpen,
-    GraduationCap
+    GraduationCap,
+    FileQuestion,
 } from 'lucide-react';
 import AttendancePage from '@/pages/admin/AttendancePage';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
 import ExamManagement from '@/pages/admin/ExamManagement';
 import { HomeworkAssignment } from '@/components/staff/HomeworkAssignment';
+import TeacherMidMealEntry from '@/components/staff/TeacherMidMealEntry';
+import { QuestionPaperCreator } from '@/components/staff/QuestionPaperCreator';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
 import apiService, { Routine } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -185,6 +188,7 @@ const StaffDashboard = () => {
         { id: 'marks', label: 'Marks', icon: GraduationCap, show: hasPermission('MANAGE_RESULTS') },
         { id: 'homework', label: 'Homework', icon: BookOpen, show: ['teacher', 'principal', 'vice_principal'].includes(user?.role || '') },
         { id: 'resources', label: 'Resources', icon: BookOpen, show: hasPermission('MANAGE_ACADEMIC') },
+        { id: 'question-paper', label: 'Question Paper', icon: FileQuestion, show: ['teacher', 'principal', 'vice_principal'].includes(user?.role || '') },
         { id: 'admissions', label: 'Admissions', icon: UserIcon, show: hasPermission('MANAGE_ADMISSION') },
         { id: 'profile', label: 'Profile', icon: UserIcon, show: true },
     ];
@@ -256,6 +260,16 @@ const StaffDashboard = () => {
                         </Button>
                     )}
 
+                    {['teacher', 'principal', 'vice_principal'].includes(user?.role || '') && (
+                        <Button
+                            variant={activeTab === 'question-paper' ? 'secondary' : 'ghost'}
+                            className="w-full justify-start"
+                            onClick={() => setActiveTab('question-paper')}
+                        >
+                            <FileQuestion className="mr-2 h-4 w-4" /> Question Paper
+                        </Button>
+                    )}
+
                     {hasPermission('MANAGE_ADMISSION') && (
                         <Button
                             variant={activeTab === 'admissions' ? 'secondary' : 'ghost'}
@@ -301,7 +315,7 @@ const StaffDashboard = () => {
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
-                {activeTab === 'home' && (
+                {activeTab === 'home' && (<>
                     <div className="space-y-6">
                         <div className="bg-gradient-to-r from-school-primary to-indigo-600 rounded-xl p-8 text-white shadow-lg relative overflow-hidden">
                             <div className="relative z-10">
@@ -369,7 +383,12 @@ const StaffDashboard = () => {
                             )}
                         </div>
                     </div>
-                )}
+
+                    {/* Mid-Day Meal Quick Entry Widget */}
+                    <div className="mt-6">
+                        <TeacherMidMealEntry />
+                    </div>
+                </>)}
 
                 {activeTab === 'routine' && (
                     <div className="max-w-5xl mx-auto space-y-6">
@@ -448,6 +467,12 @@ const StaffDashboard = () => {
                 {activeTab === 'homework' && (
                     <div className="max-w-5xl mx-auto">
                         <HomeworkAssignment />
+                    </div>
+                )}
+
+                {activeTab === 'question-paper' && (
+                    <div className="max-w-5xl mx-auto">
+                        <QuestionPaperCreator />
                     </div>
                 )}
 

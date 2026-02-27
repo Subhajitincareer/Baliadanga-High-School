@@ -27,9 +27,10 @@ import PermissionManagement from '@/pages/admin/PermissionManagement';
 import { IDCardGenerator } from '@/pages/admin/IDCardGenerator';
 import MidDayMealPage from '@/pages/admin/MidDayMealPage';
 import PromotionManagement from '@/pages/admin/PromotionManagement';
-import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle, LayoutTemplate, Utensils } from 'lucide-react';
+import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, FileText, Calendar as CalendarIcon, Table as TableIcon, DollarSign, CheckSquare, Shield, ArrowUpCircle, LayoutTemplate, Utensils, Globe } from 'lucide-react';
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 import { DashboardStats } from '@/components/admin/DashboardStats';
+import { SiteSettingsManagement } from '@/components/admin/SiteSettingsManagement';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +49,7 @@ const Dashboard = () => {
   const canAccess = (tab: string) => {
     if (userRole === 'admin' || userRole === 'principal') return true;
 
-    const teacherTabs = ['announcements', 'attendance', 'meal', 'calendar', 'results', 'marks', 'exams', 'routines', 'idcards', 'students']; // Added students for view
+    const teacherTabs = ['announcements', 'attendance', 'meal', 'calendar', 'results', 'marks', 'exams', 'routines', 'idcards', 'students'];
     const staffTabs = ['announcements', 'attendance', 'meal', 'fees', 'students', 'idcards', 'admissions'];
 
     if (userRole === 'teacher') return teacherTabs.includes(tab);
@@ -232,6 +233,15 @@ const Dashboard = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+
+              {/* Site Settings — admin/principal only */}
+              {canAccess('site-settings') && (
+                <div className="w-full px-3 py-2">
+                  <TabsTrigger value="site-settings" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                    <Globe className="mr-2 h-4 w-4" /> Site Settings
+                  </TabsTrigger>
+                </div>
+              )}
             </TabsList>
           </Tabs>
         </div>
@@ -299,6 +309,7 @@ const Dashboard = () => {
             <TabsContent value="permissions" className="space-y-4 border-none p-0 outline-none"><PermissionManagement /></TabsContent>
             <TabsContent value="idcards" className="space-y-4 border-none p-0 outline-none"><IDCardGenerator /></TabsContent>
             <TabsContent value="meal" className="space-y-4 border-none p-0 outline-none"><MidDayMealPage /></TabsContent>
+            <TabsContent value="site-settings" className="space-y-4 border-none p-0 outline-none"><SiteSettingsManagement /></TabsContent>
           </Tabs>
         </main>
       </div>

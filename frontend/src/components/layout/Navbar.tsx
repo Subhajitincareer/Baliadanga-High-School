@@ -75,6 +75,10 @@ const navigationItems = [
     href: "/contact"
   },
   {
+    title: "Mid-Day Meal",
+    href: "/mid-meal"
+  },
+  {
     title: "Admin",
     href: "/admin"
   }

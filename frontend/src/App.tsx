@@ -47,6 +47,7 @@ import RoutinePage from "@/pages/Routine";
 
 import StudentLogin from "@/pages/student/StudentLogin";
 import StudentDashboard from "@/pages/student/StudentDashboard";
+import MidMealSummaryPage from "@/pages/MidMealSummaryPage";
 import StaffLogin from "@/pages/StaffLogin";
 import StaffDashboard from "@/pages/StaffDashboard";
 import { StaffProvider } from "@/contexts/StaffContext";
@@ -256,6 +257,7 @@ const App: FC = () => {
               <Route path="admission-status" element={<AdmissionStatus />} />
               <Route path="routine" element={<RoutinePage />} />
               <Route path="results" element={<ResultDisplay />} />
+              <Route path="mid-meal" element={<MidMealSummaryPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

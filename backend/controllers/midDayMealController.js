@@ -113,3 +113,68 @@ export const getMonthlySummary = asyncHandler(async (req, res) => {
     });
 });
 
+// @desc    Get today's daily meal summary grouped by class (PUBLIC)
+// @route   GET /api/mid-day-meal/daily-summary?date=YYYY-MM-DD
+// @access  Public
+export const getDailySummary = asyncHandler(async (req, res) => {
+    const dateStr = req.query.date || new Date().toISOString().split('T')[0];
+    const startOfDay = new Date(dateStr);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(dateStr);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const records = await MidDayMeal.find({
+        date: { $gte: startOfDay, $lte: endOfDay }
+    }).select('class section totalCount menuItem markedBy').sort({ class: 1, section: 1 });
+
+    // Group by class
+    const byClass = {};
+    for (const r of records) {
+        const cls = r.class;
+        if (!byClass[cls]) byClass[cls] = { class: cls, sections: [], classTotal: 0 };
+        byClass[cls].sections.push({ section: r.section, count: r.totalCount, menu: r.menuItem });
+        byClass[cls].classTotal += r.totalCount;
+    }
+
+    const grouped = Object.values(byClass).sort((a, b) =>
+        parseInt(a.class) - parseInt(b.class)
+    );
+    const grandTotal = grouped.reduce((s, g) => s + g.classTotal, 0);
+
+    res.json({ success: true, date: dateStr, data: grouped, grandTotal });
+});
+
+// @desc    Teacher saves count for a class without individual student IDs
+// @route   POST /api/mid-day-meal/count
+// @access  Private (Teacher/Admin)
+export const saveClassCount = asyncHandler(async (req, res) => {
+    const { date, className, section, count, menuItem } = req.body;
+
+    if (!className || count === undefined || count === null) {
+        return res.status(400).json({ success: false, message: 'className and count are required' });
+    }
+
+    const dateStr = date || new Date().toISOString().split('T')[0];
+    const startOfDay = new Date(dateStr);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(dateStr);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const sec = section || 'All';
+
+    const record = await MidDayMeal.findOneAndUpdate(
+        { date: { $gte: startOfDay, $lte: endOfDay }, class: className, section: sec },
+        {
+            date: startOfDay,
+            class: className,
+            section: sec,
+            totalCount: Number(count),
+            studentIds: [], // no individual tracking in this quick-entry mode
+            markedBy: req.user._id,
+            menuItem: menuItem || 'Standard Meal',
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(200).json({ success: true, data: record });
+});
