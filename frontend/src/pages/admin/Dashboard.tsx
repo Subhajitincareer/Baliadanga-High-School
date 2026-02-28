@@ -21,6 +21,7 @@ import StudentManagement from '@/pages/admin/StudentManagement';
 import FeeManagement from '@/pages/admin/FeeManagement';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
 import { RoutineManagement } from '@/components/admin/RoutineManagement';
+import CourseMaterialManagement from '@/components/admin/CourseMaterialManagement';
 import { EventManagement } from '@/components/admin/EventManagement';
 import AttendancePage from '@/pages/admin/AttendancePage';
 import PermissionManagement from '@/pages/admin/PermissionManagement';
@@ -49,8 +50,8 @@ const Dashboard = () => {
   const canAccess = (tab: string) => {
     if (userRole === 'admin' || userRole === 'principal') return true;
 
-    const teacherTabs = ['announcements', 'attendance', 'meal', 'calendar', 'results', 'marks', 'exams', 'routines', 'idcards', 'students'];
-    const staffTabs = ['announcements', 'attendance', 'meal', 'fees', 'students', 'idcards', 'admissions'];
+    const teacherTabs = ['announcements', 'attendance', 'meal', 'calendar', 'results', 'marks', 'exams', 'routines', 'idcards', 'students', 'resources', 'course-materials'];
+    const staffTabs = ['announcements', 'attendance', 'meal', 'fees', 'students', 'idcards', 'admissions', 'resources', 'course-materials'];
 
     if (userRole === 'teacher') return teacherTabs.includes(tab);
     if (userRole === 'staff') return staffTabs.includes(tab);
@@ -189,6 +190,11 @@ const Dashboard = () => {
                           <Award className="mr-2 h-4 w-4" /> Results
                         </TabsTrigger>
                       )}
+                      {canAccess('course-materials') && (
+                        <TabsTrigger value="course-materials" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <BookOpen className="mr-2 h-4 w-4" /> Course Materials
+                        </TabsTrigger>
+                      )}
                       {canAccess('calendar') && (
                         <TabsTrigger value="calendar" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
                           <CalendarIcon className="mr-2 h-4 w-4" /> Calendar
@@ -303,6 +309,7 @@ const Dashboard = () => {
             <TabsContent value="marks" className="space-y-4 border-none p-0 outline-none"><MarksEntry /></TabsContent>
             <TabsContent value="calendar" className="space-y-4 border-none p-0 outline-none"><EventManagement /></TabsContent>
             <TabsContent value="resources" className="space-y-4 border-none p-0 outline-none"><ResourceManagement hideHeader={true} /></TabsContent>
+            <TabsContent value="course-materials" className="space-y-4 border-none p-0 outline-none"><CourseMaterialManagement hideHeader={true} /></TabsContent>
             <TabsContent value="attendance" className="space-y-4 border-none p-0 outline-none"><AttendancePage /></TabsContent>
             <TabsContent value="routines" className="space-y-4 border-none p-0 outline-none"><RoutineManagement /></TabsContent>
             <TabsContent value="promotion" className="space-y-4 border-none p-0 outline-none"><PromotionManagement /></TabsContent>

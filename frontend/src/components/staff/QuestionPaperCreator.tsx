@@ -145,36 +145,19 @@ const makeSection = (): Section => ({
 
 // ────────────────────── Print CSS ─────────────────────────────────────────
 const PRINT_STYLE = `
-/* Hide print area off-screen on screen view — NOT display:none so it stays in DOM */
+/* Hide print area on screen */
 @media screen {
-  #qp-print {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    width: 210mm;
-    overflow: hidden;
-    height: 0;
-    pointer-events: none;
-  }
+  #qp-print { display: none; }
 }
 
-/* Print: hide everything, then show only #qp-print */
+/* Print rules */
 @media print {
-  * { visibility: hidden !important; }
-  #qp-print,
-  #qp-print * { visibility: visible !important; }
+  body > * { display: none !important; }
+  #qp-print { display: block !important; }
   #qp-print {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-    padding: 24px;
-    background: white !important;
-    font-family: "Times New Roman", serif;
-    font-size: 12pt;
-    color: #000 !important;
+    position: fixed; top: 0; left: 0; width: 100%;
+    padding: 28px; background: white;
+    font-family: "Times New Roman", serif; font-size: 12pt; color: #000;
   }
   .no-print { display: none !important; }
 }

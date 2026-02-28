@@ -17,6 +17,7 @@ import {
     BookOpen,
     GraduationCap,
     FileQuestion,
+    Library,
 } from 'lucide-react';
 import AttendancePage from '@/pages/admin/AttendancePage';
 import AdmissionManagement from '@/pages/admin/AdmissionManagement';
@@ -25,6 +26,7 @@ import { HomeworkAssignment } from '@/components/staff/HomeworkAssignment';
 import TeacherMidMealEntry from '@/components/staff/TeacherMidMealEntry';
 import { QuestionPaperCreator } from '@/components/staff/QuestionPaperCreator';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
+import CourseMaterialManagement from '@/components/admin/CourseMaterialManagement';
 import apiService, { Routine } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -250,15 +252,21 @@ const StaffDashboard = () => {
                         </Button>
                     )}
 
-                    {hasPermission('MANAGE_ACADEMIC') && (
-                        <Button
-                            variant={activeTab === 'resources' ? 'secondary' : 'ghost'}
-                            className="w-full justify-start"
-                            onClick={() => setActiveTab('resources')}
-                        >
-                            <BookOpen className="mr-2 h-4 w-4" /> Resources
-                        </Button>
-                    )}
+                    <Button
+                        variant={activeTab === 'resources' ? 'secondary' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setActiveTab('resources')}
+                    >
+                        <BookOpen className="mr-2 h-4 w-4" /> Resources
+                    </Button>
+
+                    <Button
+                        variant={activeTab === 'course-materials' ? 'secondary' : 'ghost'}
+                        className="w-full justify-start"
+                        onClick={() => setActiveTab('course-materials')}
+                    >
+                        <Library className="mr-2 h-4 w-4" /> Course Materials
+                    </Button>
 
                     {['teacher', 'principal', 'vice_principal'].includes(user?.role || '') && (
                         <Button
@@ -479,6 +487,12 @@ const StaffDashboard = () => {
                 {activeTab === 'resources' && (
                     <div className="max-w-5xl mx-auto">
                         <ResourceManagement hideHeader={true} />
+                    </div>
+                )}
+
+                {activeTab === 'course-materials' && (
+                    <div className="max-w-5xl mx-auto">
+                        <CourseMaterialManagement hideHeader={true} />
                     </div>
                 )}
 

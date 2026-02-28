@@ -1,32 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import {
-  ChevronRight, Search, BookOpen, Clock, Award, Users, CheckCircle,
-  Download, Printer, FileText, Eye, School, GraduationCap, Puzzle,
-  Microscope, Globe, FlaskConical, BookMarked, PenTool
+  ChevronRight, Search, BookOpen, CheckCircle, Users, Award, Clock,
+  Download, FileText, Eye,
+  GraduationCap, Microscope, Globe, FlaskConical, BookMarked, PenTool,
+  Loader2, Lightbulb, Star
 } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import apiService, { CourseMaterial } from "@/services/api";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+
 
 // Mock Data for Exam Papers
 const examPapers = [
@@ -37,6 +27,14 @@ const examPapers = [
 ];
 
 const middleCourses = [
+  {
+    id: 5,
+    grade: "Class V",
+    subjects: ["Bengali", "English", "Mathematics", "Environmental Science", "Social Studies", "Computer Science", "Physical Education", "Arts & Craft"],
+    description: "Building a strong foundation by transitioning from primary to middle school with broader subject exposure.",
+    features: ["Activity-based learning", "Environmental awareness projects", "Foundational science concepts"],
+    Icon: BookMarked
+  },
   {
     id: 6,
     grade: "Class VI",
@@ -83,16 +81,88 @@ const secondaryCourses = [
 ];
 
 
-// Booklist Data (Mock)
-const bookLists = {
-  "Class X": [
-    { subject: "Bengali", book: "Sahitya Sanchayan", publisher: "WBBSE" },
-    { subject: "English", book: "Bliss", publisher: "WBBSE" },
-    { subject: "Mathematics", book: "Ganit Prakash", publisher: "WBBSE" },
-    { subject: "Physical Science", book: "Bhoutabigyan O Paribesh", publisher: "Chhaya Prakashani" },
-    { subject: "Life Science", book: "Jiban Bigyan", publisher: "Santra Publication" }
-  ]
+// Export so CourseMaterialDialog can use it
+export const MATERIAL_TYPES: { value: CourseMaterial['type']; label: string; icon: React.ReactNode; color: string }[] = [
+  { value: 'booklist',   label: 'Booklist',       icon: <BookOpen className="h-3.5 w-3.5" />,  color: 'text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100' },
+  { value: 'paper',      label: 'Exam Papers',    icon: <FileText className="h-3.5 w-3.5" />,  color: 'text-violet-600 bg-violet-50 border-violet-200 hover:bg-violet-100' },
+  { value: 'syllabus',   label: 'Syllabus',       icon: <Eye className="h-3.5 w-3.5" />,       color: 'text-green-600 bg-green-50 border-green-200 hover:bg-green-100' },
+  { value: 'note',       label: 'Notes',          icon: <Lightbulb className="h-3.5 w-3.5" />, color: 'text-amber-600 bg-amber-50 border-amber-200 hover:bg-amber-100' },
+  { value: 'suggestion', label: 'Exam Suggestion',icon: <Star className="h-3.5 w-3.5" />,      color: 'text-rose-600 bg-rose-50 border-rose-200 hover:bg-rose-100' },
+];
+
+// ── CourseMaterialDialog (view + download only) ──────────────────────────────
+const CourseMaterialDialog: React.FC<{
+  grade: string | null;
+  type: CourseMaterial['type'] | null;
+  onClose: () => void;
+}> = ({ grade, type, onClose }) => {
+  const [materials, setMaterials] = useState<CourseMaterial[]>([]);
+  const [loading, setLoading] = useState(false);
+  const typeInfo = MATERIAL_TYPES.find(t => t.value === type);
+  const fmtSize = (b?: number) => !b ? '' : b < 1024*1024 ? `${(b/1024).toFixed(0)} KB` : `${(b/1024/1024).toFixed(1)} MB`;
+
+  useEffect(() => {
+    if (grade && type) {
+      setLoading(true);
+      apiService.getCourseMaterials(grade, type)
+        .then(setMaterials)
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [grade, type]);
+
+  return (
+    <Dialog open={!!(grade && type)} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="max-w-xl w-[95vw]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {typeInfo?.icon} {typeInfo?.label} — {grade}
+          </DialogTitle>
+          <DialogDescription>Download available materials for this class.</DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="max-h-80">
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-school-primary" />
+            </div>
+          ) : materials.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-10 w-10 mx-auto mb-2 opacity-20" />
+              <p className="text-sm">No {typeInfo?.label} uploaded yet.</p>
+              <p className="text-xs mt-1 text-slate-400">Check back later.</p>
+            </div>
+          ) : (
+            <div className="space-y-2 pr-2">
+              {materials.map(m => (
+                <div key={m._id}
+                  className="flex items-center justify-between gap-3 border rounded-lg px-3 py-2.5 bg-white hover:bg-slate-50">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{m.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {m.subject && m.subject !== 'General' && <span>{m.subject} · </span>}
+                      {m.year && <span>{m.year}</span>}
+                      {m.fileSize && <span> · {fmtSize(m.fileSize)}</span>}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0"
+                    onClick={() => window.open(m.filePath, '_blank')}>
+                    <Download className="h-3 w-3" /> Download
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 };
+
 
 // Animation Variants
 const containerVariants = {
@@ -108,18 +178,12 @@ const itemVariants = {
   visible: { y: 0, opacity: 1 }
 };
 
-// Course Card Component
-const CourseCard = ({ course, onViewBooklist, onViewPapers }) => {
-  const { toast } = useToast();
+// ── CourseCard ────────────────────────────────────────────────────────────────
+const CourseCard = ({ course, onOpenMaterial }: {
+  course: any;
+  onOpenMaterial: (grade: string, type: CourseMaterial['type']) => void;
+}) => {
   const IconComponent = course.Icon || BookOpen;
-
-  const handleDownloadSyllabus = () => {
-    toast({
-      title: "Downloading Syllabus...",
-      description: `Syllabus for ${course.grade} has been downloaded.`,
-    });
-  };
-
   return (
     <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="h-full">
       <Card className="h-full overflow-hidden border-t-4 border-t-school-primary shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
@@ -133,25 +197,20 @@ const CourseCard = ({ course, onViewBooklist, onViewPapers }) => {
         </CardHeader>
         <CardContent className="pt-6 flex-grow space-y-4">
           <p className="text-muted-foreground leading-relaxed">{course.description}</p>
-
           <div>
             <h4 className="mb-2 text-sm font-semibold text-school-primary uppercase tracking-wide">Core Subjects</h4>
             <div className="flex flex-wrap gap-2">
-              {course.subjects.slice(0, 5).map((subject, idx) => (
-                <span
-                  key={idx}
-                  className="rounded-md bg-school-light/50 px-2.5 py-1 text-xs font-medium text-school-primary border border-school-light"
-                >
+              {course.subjects.slice(0, 5).map((subject: string, idx: number) => (
+                <span key={idx} className="rounded-md bg-school-light/50 px-2.5 py-1 text-xs font-medium text-school-primary border border-school-light">
                   {subject}
                 </span>
               ))}
             </div>
           </div>
-
           <div>
             <h4 className="mb-2 text-sm font-semibold text-school-primary uppercase tracking-wide">Highlights</h4>
             <ul className="space-y-1.5">
-              {course.features.map((feature, idx) => (
+              {course.features.map((feature: string, idx: number) => (
                 <li key={idx} className="flex items-start text-sm text-slate-600">
                   <CheckCircle className="mr-2 h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                   {feature}
@@ -160,40 +219,49 @@ const CourseCard = ({ course, onViewBooklist, onViewPapers }) => {
             </ul>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 pt-4 bg-slate-50/50 border-t p-4">
-          <div className="flex gap-2 w-full">
-            <Button variant="outline" size="sm" className="flex-1 hover:bg-school-light hover:text-school-primary" onClick={() => onViewBooklist(course.grade)}>
-              <BookOpen className="mr-2 h-4 w-4" /> Booklist
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1 hover:bg-school-light hover:text-school-primary" onClick={() => onViewPapers(course.grade)}>
-              <FileText className="mr-2 h-4 w-4" /> Papers
-            </Button>
+
+        {/* ── Material Buttons ── */}
+        <CardFooter className="flex-col gap-2 pt-4 bg-slate-50/50 border-t p-4">
+          <div className="grid grid-cols-2 gap-1.5 w-full">
+            {MATERIAL_TYPES.map(mt => (
+              <Button
+                key={mt.value}
+                variant="outline"
+                size="sm"
+                className={`text-xs justify-start gap-1.5 border ${mt.color}`}
+                onClick={() => onOpenMaterial(course.grade, mt.value)}
+              >
+                {mt.icon} {mt.label}
+              </Button>
+            ))}
           </div>
-          <Button size="sm" className="w-full bg-school-primary hover:bg-school-dark text-white" onClick={handleDownloadSyllabus}>
-            <Download className="mr-2 h-4 w-4" /> Download Syllabus
-          </Button>
         </CardFooter>
       </Card>
     </motion.div>
   );
 };
 
-const Courses = () => {
-  const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClassBooklist, setSelectedClassBooklist] = useState<string | null>(null);
-  const [selectedClassPapers, setSelectedClassPapers] = useState<string | null>(null);
-  const [viewingPaper, setViewingPaper] = useState<any | null>(null);
 
-  const filterCourses = (courses) => {
+const Courses = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [materialGrade, setMaterialGrade] = useState<string | null>(null);
+  const [materialType, setMaterialType] = useState<CourseMaterial['type'] | null>(null);
+
+  const openMaterial = (grade: string, type: CourseMaterial['type']) => {
+    setMaterialGrade(grade);
+    setMaterialType(type);
+  };
+  const closeMaterial = () => { setMaterialGrade(null); setMaterialType(null); };
+
+  const filterCourses = (courses: any[]) => {
     return courses.filter(course =>
       course.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.subjects.some(subject => subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      course.subjects.some((subject: string) => subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
       course.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  const renderCourseGrid = (courses) => (
+  const renderCourseGrid = (courses: any[]) => (
     <motion.div
       variants={containerVariants}
       initial="hidden"
@@ -206,8 +274,7 @@ const Courses = () => {
             <CourseCard
               key={course.id}
               course={course}
-              onViewBooklist={setSelectedClassBooklist}
-              onViewPapers={setSelectedClassPapers}
+              onOpenMaterial={openMaterial}
             />
           ))
         ) : (
@@ -272,7 +339,7 @@ const Courses = () => {
         <Tabs defaultValue="middle" className="space-y-8">
           <div className="flex justify-center">
             <TabsList className="bg-white border p-1 h-12 shadow-sm rounded-full">
-              <TabsTrigger value="middle" className="rounded-full px-6 py-2 data-[state=active]:bg-school-primary data-[state=active]:text-white transition-all">Middle (VI-VIII)</TabsTrigger>
+              <TabsTrigger value="middle" className="rounded-full px-6 py-2 data-[state=active]:bg-school-primary data-[state=active]:text-white transition-all">Middle (V-VIII)</TabsTrigger>
               <TabsTrigger value="secondary" className="rounded-full px-6 py-2 data-[state=active]:bg-school-primary data-[state=active]:text-white transition-all">Secondary (IX-X)</TabsTrigger>
             </TabsList>
           </div>
@@ -347,160 +414,12 @@ const Courses = () => {
           </Card>
         </motion.div>
 
-        {/* Booklist Dialog */}
-        <Dialog open={!!selectedClassBooklist} onOpenChange={(open) => !open && setSelectedClassBooklist(null)}>
-          <DialogContent className="max-w-xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-school-primary" />
-                Booklist for {selectedClassBooklist}
-              </DialogTitle>
-              <DialogDescription>
-                Recommended books and publishers for the academic year 2025.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              {selectedClassBooklist && bookLists[selectedClassBooklist] ? (
-                <div className="rounded-md border overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-slate-50">
-                      <TableRow>
-                        <TableHead className="font-bold text-slate-700">Subject</TableHead>
-                        <TableHead className="font-bold text-slate-700">Book Name</TableHead>
-                        <TableHead className="font-bold text-slate-700">Publisher</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {bookLists[selectedClassBooklist].map((item, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-medium text-school-primary">{item.subject}</TableCell>
-                          <TableCell>{item.book}</TableCell>
-                          <TableCell className="text-slate-500 italic">{item.publisher}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground bg-slate-50 rounded-md border border-dashed">
-                  <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                  <p className="font-medium">Booklist details are being updated.</p>
-                </div>
-              )}
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print List</Button>
-              <Button onClick={() => setSelectedClassBooklist(null)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Exam Papers Dialog */}
-        <Dialog open={!!selectedClassPapers} onOpenChange={(open) => !open && setSelectedClassPapers(null)}>
-          <DialogContent className="max-w-3xl w-[90vw] md:w-full">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-school-primary" />
-                Previous Exam Papers - {selectedClassPapers}
-              </DialogTitle>
-              <DialogDescription>
-                Download or read previous year question papers for practice.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="py-4">
-              <ScrollArea className="h-[300px] w-full pr-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  {examPapers.map((paper) => (
-                    <div key={paper.id} className="flex flex-col p-4 border rounded-lg hover:bg-slate-50 transition-colors">
-                      <div className="mb-2">
-                        <h4 className="font-semibold text-slate-800">{paper.title}</h4>
-                        <span className="text-sm text-school-primary font-medium bg-school-light/50 px-2 py-0.5 rounded">{paper.subject}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{paper.date}</span>
-                      </div>
-                      <div className="mt-auto flex gap-2 pt-2">
-                        <Button size="sm" variant="outline" className="flex-1" onClick={() => setViewingPaper(paper)}>
-                          <Eye className="mr-2 h-3 w-3" /> Read Online
-                        </Button>
-                        <Button size="sm" className="flex-1" onClick={() => {
-                          toast({ title: "Downloading...", description: "Paper download started." });
-                        }}>
-                          <Download className="mr-2 h-3 w-3" /> Download
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-
-            <DialogFooter>
-              <Button onClick={() => setSelectedClassPapers(null)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Read Online Dialog - Full Screen/Responsive */}
-        <Dialog open={!!viewingPaper} onOpenChange={(open) => !open && setViewingPaper(null)}>
-          <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b bg-slate-50">
-              <div>
-                <h3 className="font-semibold">{viewingPaper?.title}</h3>
-                <p className="text-xs text-muted-foreground">{viewingPaper?.subject}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => window.print()}>
-                  <Printer className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setViewingPaper(null)}>
-                  Close
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex-grow bg-gray-100 p-4 overflow-auto flex justify-center items-start">
-              {/* PDF Placeholder */}
-              <div className="bg-white shadow-lg w-full max-w-3xl min-h-full p-8 md:p-12">
-                <div className="text-center mb-8 border-b pb-4">
-                  <h2 className="text-2xl font-serif font-bold text-school-primary mb-2">BALIADANGA HIGH SCHOOL</h2>
-                  <h3 className="text-lg font-semibold uppercase">{viewingPaper?.title}</h3>
-                  <p className="font-medium">Subject: {viewingPaper?.subject}</p>
-                  <div className="flex justify-between mt-4 text-sm font-medium">
-                    <span>Full Marks: 100</span>
-                    <span>Time: 3 Hours</span>
-                  </div>
-                </div>
-
-                <div className="space-y-6 font-serif">
-                  <div>
-                    <p className="font-bold mb-2">Group A (Multiple Choice Questions)</p>
-                    <ol className="list-decimal list-inside space-y-2 pl-4">
-                      <li>What is the process of photosynthesis?</li>
-                      <li>Calculate the area of a circle with radius 7cm.</li>
-                      <li>Who wrote 'Gitanjali'?</li>
-                      <li>Define Newton's First Law of Motion.</li>
-                      <li>Translate into English: "আমি এখন ভাত খাচ্ছি।"</li>
-                    </ol>
-                  </div>
-
-                  <div>
-                    <p className="font-bold mb-2">Group B (Short Answer Type)</p>
-                    <ol className="list-decimal list-inside space-y-2 pl-4" start={6}>
-                      <li>Explain the difference between plant cell and animal cell. (5 marks)</li>
-                      <li>Solve the equation: 2x + 5 = 15. (5 marks)</li>
-                      <li>Write a short paragraph on 'Global Warming'. (10 marks)</li>
-                    </ol>
-                  </div>
-
-                  <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded text-center text-sm text-yellow-800">
-                    This is a sample viewer. In a real application, the actual PDF file would be rendered here using a PDF viewer library like <code>react-pdf</code>.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-
-        </Dialog>
+        {/* ── Course Material Dialog ── */}
+        <CourseMaterialDialog
+          grade={materialGrade}
+          type={materialType}
+          onClose={closeMaterial}
+        />
 
       </div>
     </div>

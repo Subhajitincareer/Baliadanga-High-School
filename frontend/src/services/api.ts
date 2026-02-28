@@ -807,6 +807,43 @@ class ApiService {
   async deleteHomework(id: string): Promise<any> {
     return this.request<any>(`/homework/${id}`, { method: 'DELETE' });
   }
+
+  // ------- Course Materials -------
+  async getCourseMaterials(grade?: string, type?: string): Promise<CourseMaterial[]> {
+    const query = new URLSearchParams();
+    if (grade) query.append('grade', grade);
+    if (type)  query.append('type', type);
+    const res = await this.request<{ data: CourseMaterial[] }>(`/course-materials?${query.toString()}`);
+    return res.data || [];
+  }
+
+  async uploadCourseMaterial(formData: FormData): Promise<CourseMaterial> {
+    const res = await this.request<{ data: CourseMaterial }>('/course-materials', {
+      method: 'POST',
+      body: formData,
+      // no Content-Type header — browser sets multipart boundary automatically
+    });
+    return res.data;
+  }
+
+  async deleteCourseMaterial(id: string): Promise<any> {
+    return this.request<any>(`/course-materials/${id}`, { method: 'DELETE' });
+  }
+}
+
+export interface CourseMaterial {
+  _id: string;
+  grade: string;
+  type: 'booklist' | 'paper' | 'syllabus' | 'note' | 'suggestion';
+  title: string;
+  description?: string;
+  subject?: string;
+  year?: string;
+  filePath: string;
+  fileName: string;
+  fileSize?: number;
+  createdAt: string;
+  uploadedBy?: { name: string };
 }
 
 export default new ApiService();
