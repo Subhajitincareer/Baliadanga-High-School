@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw, Printer, Utensils, CalendarDays, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -19,6 +20,7 @@ const MidMealSummaryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const { settings } = useSiteSettings();
 
   const fetchSummary = async (d: string) => {
     setLoading(true);
@@ -95,7 +97,7 @@ const MidMealSummaryPage: React.FC = () => {
         <div id="mid-meal-print" ref={printRef}>
           {/* Print header */}
           <div className="hidden print:block text-center mb-6">
-            <h2 className="text-2xl font-bold">Baliadanga High School</h2>
+            <h2 className="text-2xl font-bold">{settings.schoolInfo.name}</h2>
             <p className="text-lg">Mid-Day Meal Register — {date}</p>
           </div>
 

@@ -1,40 +1,35 @@
-
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, ImageOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const events = [
-  {
-    id: 1,
-    title: "Annual Science Exhibition",
-    date: "2025-05-05",
-    time: "9:00 AM - 4:00 PM",
-    location: "School Auditorium",
-    description: "Showcasing innovative science projects by our students across all grades",
-    image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
-  },
-  {
-    id: 2,
-    title: "Inter-School Cricket Tournament",
-    date: "2025-05-12",
-    time: "10:00 AM - 5:00 PM",
-    location: "School Playground",
-    description: "Annual cricket tournament featuring top schools from the district",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
-  },
-  {
-    id: 3,
-    title: "Cultural Program: Unity in Diversity",
-    date: "2025-05-25",
-    time: "5:00 PM - 8:00 PM",
-    location: "School Auditorium",
-    description: "Celebrating India's rich cultural heritage through music, dance and drama",
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
-  }
-];
+import apiService, { EventItem } from '@/services/api';
 
 const FeaturedEvents = () => {
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await apiService.getSchoolEvents();
+        if (res.success) {
+          const today = new Date().toISOString().split('T')[0];
+          // Show only upcoming events, max 3
+          const upcoming = res.data
+            .filter(e => e.date >= today)
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(0, 3);
+          setEvents(upcoming);
+        }
+      } catch { /* silent */ }
+      finally { setLoading(false); }
+    })();
+  }, []);
+
+  // Don't render the section at all if no upcoming events
+  if (!loading && events.length === 0) return null;
+
   return (
     <section className="py-12 md:py-16 bg-gray-50">
       <div className="container">
@@ -47,50 +42,67 @@ const FeaturedEvents = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <Card key={event.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg">
-              <div className="h-48 overflow-hidden">
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-xl">{event.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <Calendar size={16} className="mr-2" />
-                    <time dateTime={event.date}>
-                      {new Date(event.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </time>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock size={16} className="mr-2" />
-                    <span>{event.time}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <MapPin size={16} className="mr-2" />
-                    <span>{event.location}</span>
-                  </div>
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-64 rounded-xl bg-gray-200 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {events.map((event) => (
+              <Card key={event._id} className="overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col">
+                <div className="h-48 overflow-hidden bg-gray-100">
+                  {event.imageUrl ? (
+                    <img
+                      src={event.imageUrl}
+                      alt={event.title}
+                      className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <ImageOff className="h-10 w-10 text-gray-300" />
+                    </div>
+                  )}
                 </div>
-                <p className="line-clamp-2 text-muted-foreground">{event.description}</p>
-              </CardContent>
-              <CardFooter>
-                <Button variant="ghost" className="text-school-primary hover:bg-school-light hover:text-school-primary">
-                  View Details
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                <CardHeader>
+                  <CardTitle className="text-xl line-clamp-2">{event.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <div className="mb-4 space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                      <Calendar size={16} className="mr-2" />
+                      <time dateTime={event.date}>
+                        {new Date(event.date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      </time>
+                    </div>
+                    {event.time && (
+                      <div className="flex items-center">
+                        <Clock size={16} className="mr-2" />
+                        <span>{event.time}</span>
+                      </div>
+                    )}
+                    {event.location && (
+                      <div className="flex items-center">
+                        <MapPin size={16} className="mr-2" />
+                        <span>{event.location}</span>
+                      </div>
+                    )}
+                  </div>
+                  {event.description && <p className="line-clamp-2 text-muted-foreground">{event.description}</p>}
+                </CardContent>
+                <CardFooter>
+                  <Link to="/events">
+                    <Button variant="ghost" className="text-school-primary hover:bg-school-light hover:text-school-primary">
+                      View Details
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

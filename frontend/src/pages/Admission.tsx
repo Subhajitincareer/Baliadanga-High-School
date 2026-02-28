@@ -10,6 +10,7 @@ import AdmissionFormJunior from "@/components/admission/AdmissionFormJunior";
 import AdmissionFormSenior from "@/components/admission/AdmissionFormSenior";
 import AdmissionSuccessDialog from "@/components/admission/AdmissionSuccessDialog";
 import apiService from '@/services/api';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 const classOptions = [
   { value: "5", label: "Class 5" },
@@ -27,6 +28,7 @@ const Admission = () => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { settings } = useSiteSettings();
 
   const handleClassChange = (value: string) => {
     setSelectedClass(value);
@@ -80,7 +82,7 @@ const Admission = () => {
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Admission Application</h1>
         <p className="text-muted-foreground">
-          Fill out the form below to apply for admission to Baliadanga High School
+          Fill out the form below to apply for admission to {settings.schoolInfo.name}
         </p>
       </div>
       <Card className="max-w-3xl mx-auto">

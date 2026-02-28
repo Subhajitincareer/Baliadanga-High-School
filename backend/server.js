@@ -34,6 +34,8 @@ import analyticsRoutes from './routes/analytics.js';
 import homeworkRoutes from './routes/homework.js';
 import siteSettingsRoutes from './routes/siteSettings.js';
 import courseMaterialRoutes from './routes/courseMaterials.js';
+import eventRoutes from './routes/events.js';
+import galleryRoutes from './routes/gallery.js';
 
 // ─── Startup ──────────────────────────────────────────────────────────────────
 // Load env vars FIRST — must come before validateEnv and connectDB
@@ -119,6 +121,8 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/homework', homeworkRoutes);
 app.use('/api/site-settings', siteSettingsRoutes);
 app.use('/api/course-materials', courseMaterialRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/gallery', galleryRoutes);
 
 
 

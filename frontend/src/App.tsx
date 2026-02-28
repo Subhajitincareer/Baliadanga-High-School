@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { TopLoader } from "@/components/common/TopLoader";
+import { GlobalPopup } from "@/components/common/GlobalPopup";
 
 import AdminLogin from "@/pages/AdminLogin";
 import AdminSetup from "@/pages/AdminSetup";
@@ -51,6 +52,7 @@ import MidMealSummaryPage from "@/pages/MidMealSummaryPage";
 import StaffLogin from "@/pages/StaffLogin";
 import StaffDashboard from "@/pages/StaffDashboard";
 import { StaffProvider } from "@/contexts/StaffContext";
+import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 
 // ProtectedRoute for Admin routes — uses AuthContext (httpOnly cookie session)
 const ProtectedRoute: FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -78,7 +80,9 @@ const App: FC = () => {
     <Router basename="/">
       <ScrollToTop />
       <TopLoader />
-      <AuthProvider>
+      <SiteSettingsProvider>
+        <GlobalPopup />
+        <AuthProvider>
         <StaffProvider>
           <AdminProvider>
           <Routes>
@@ -264,6 +268,7 @@ const App: FC = () => {
         </AdminProvider>
       </StaffProvider>
       </AuthProvider>
+      </SiteSettingsProvider>
       <Toaster />
     </Router >
   );

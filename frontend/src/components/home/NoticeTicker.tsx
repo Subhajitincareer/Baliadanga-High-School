@@ -1,9 +1,16 @@
 import React from 'react';
 import Marquee from 'react-fast-marquee';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 export const NoticeTicker = () => {
     const { t } = useLanguage();
+    const { settings } = useSiteSettings();
+
+    // Do not show if ticker is inactive or has no messages
+    if (!settings?.ticker?.active || !settings?.ticker?.messages?.length) {
+        return null;
+    }
 
     return (
         <div className="bg-school-dark text-white text-sm py-2 flex items-center relative z-50">
@@ -11,10 +18,9 @@ export const NoticeTicker = () => {
                 {t('ticker.label')}
             </div>
             <Marquee gradient={false} speed={40} className="pl-24">
-                <span className="mx-4">• Admission Open for Class V to IX (2025)</span>
-                <span className="mx-4">• School will remain closed tomorrow due to heavy rainfall.</span>
-                <span className="mx-4">• Annual Sports Day scheduled for Dec 20, 2024.</span>
-                <span className="mx-4">• Result of Half-Yearly Exam published. Check Portal.</span>
+                {settings.ticker.messages.map((msg, i) => (
+                    <span key={i} className="mx-4">• {msg}</span>
+                ))}
             </Marquee>
         </div>
     );

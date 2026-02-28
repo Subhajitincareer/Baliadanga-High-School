@@ -14,75 +14,11 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { cn } from "@/lib/utils";
 import { Menu, X } from 'lucide-react';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
-const navigationItems = [
-  {
-    title: "Home",
-    href: "/"
-  },
-  {
-    title: "Announcements",
-    href: "/announcements"
-  },
-  {
-    title: "Academics",
-    submenu: [
-      {
-        title: "Courses",
-        href: "/courses",
-        description: "Explore our comprehensive academic curriculum"
-      },
-      {
-        title: "Academic Calendar",
-        href: "/academic-calendar",
-        description: "View important academic dates and events"
-      },
-      {
-        title: "Resources",
-        href: "/resources",
-        description: "Access learning materials and educational resources"
-      },
-      {
-        title: "Class Routine",
-        href: "/routine",
-        description: "View weekly class timetables and schedules"
-      }
-    ]
-  },
-  {
-    title: "Campus Life",
-    submenu: [
-      {
-        title: "Events",
-        href: "/events",
-        description: "Stay updated with school events and activities"
-      },
-      {
-        title: "Gallery",
-        href: "/gallery",
-        description: "Browse photos of our school and events"
-      },
-      {
-        title: "Staff",
-        href: "/staff",
-        description: "Meet our dedicated teachers and staff members"
-      }
-    ]
-  },
-  {
-    title: "Contact",
-    href: "/contact"
-  },
-  {
-    title: "Mid-Day Meal",
-    href: "/mid-meal"
-  },
-  {
-    title: "Admin",
-    href: "/admin"
-  }
-];
+// Moved inside Navbar to use translations
 
 const ListItem = React.forwardRef<
   HTMLAnchorElement,
@@ -113,12 +49,40 @@ ListItem.displayName = "ListItem";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { settings } = useSiteSettings();
+  const { t } = useLanguage();
+  const schoolName = settings.schoolInfo.name;
+
+  const navigationItems = [
+    { title: t('nav.home'), href: "/" },
+    { title: t('nav.announcements'), href: "/announcements" },
+    {
+      title: t('nav.academics'),
+      submenu: [
+        { title: t('nav.sub.courses'), href: "/courses", description: t('nav.sub.courses.desc') },
+        { title: t('nav.sub.calendar'), href: "/academic-calendar", description: t('nav.sub.calendar.desc') },
+        { title: t('nav.sub.resources'), href: "/resources", description: t('nav.sub.resources.desc') },
+        { title: t('nav.sub.routine'), href: "/routine", description: t('nav.sub.routine.desc') }
+      ]
+    },
+    {
+      title: t('nav.campus'),
+      submenu: [
+        { title: t('nav.sub.events'), href: "/events", description: t('nav.sub.events.desc') },
+        { title: t('nav.sub.gallery'), href: "/gallery", description: t('nav.sub.gallery.desc') },
+        { title: t('nav.sub.staff'), href: "/staff", description: t('nav.sub.staff.desc') }
+      ]
+    },
+    { title: t('nav.contact'), href: "/contact" },
+    { title: t('nav.midmeal'), href: "/mid-meal" },
+    { title: t('nav.admin'), href: "/admin" }
+  ];
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
       <div className="container flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center space-x-2 overflow-hidden">
-          <span className="text-lg md:text-xl font-bold text-school-primary truncate">Baliadanga High School</span>
+          <span className="text-lg md:text-xl font-bold text-school-primary truncate">{schoolName}</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -164,7 +128,7 @@ const Navbar = () => {
             <LanguageToggle />
             <Link to="/portal">
               <Button className="bg-school-primary hover:bg-school-dark">
-                Student Portal
+                {t('btn.studentPortal')}
               </Button>
             </Link>
           </div>
@@ -183,7 +147,7 @@ const Navbar = () => {
               <SheetHeader className="text-left mb-6">
                 <SheetTitle>
                   <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-school-primary">Baliadanga High School</span>
+                     <span className="text-xl font-bold text-school-primary">{schoolName}</span>
                   </Link>
                 </SheetTitle>
                 <SheetDescription>
@@ -234,10 +198,10 @@ const Navbar = () => {
 
                 <div className="flex flex-col gap-3 mt-4">
                   <Link to="/portal" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-school-primary hover:bg-school-dark">Student Portal</Button>
+                    <Button className="w-full bg-school-primary hover:bg-school-dark">{t('btn.studentPortal')}</Button>
                   </Link>
                   <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full" variant="secondary">Admin Portal</Button>
+                    <Button className="w-full" variant="secondary">{t('btn.adminPortal')}</Button>
                   </Link>
                 </div>
               </div>

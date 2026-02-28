@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SearchInput } from "@/components/ui/search-input";
 import {
-  ChevronRight, Search, BookOpen, CheckCircle, Users, Award, Clock,
+  ChevronRight, BookOpen, CheckCircle, Award, Clock,
   Download, FileText, Eye,
   GraduationCap, Microscope, Globe, FlaskConical, BookMarked, PenTool,
   Loader2, Lightbulb, Star
@@ -26,58 +24,15 @@ const examPapers = [
   { id: 4, title: "Mid-Term Examination 2024", subject: "Bengali", date: "2024-06-12" },
 ];
 
-const middleCourses = [
-  {
-    id: 5,
-    grade: "Class V",
-    subjects: ["Bengali", "English", "Mathematics", "Environmental Science", "Social Studies", "Computer Science", "Physical Education", "Arts & Craft"],
-    description: "Building a strong foundation by transitioning from primary to middle school with broader subject exposure.",
-    features: ["Activity-based learning", "Environmental awareness projects", "Foundational science concepts"],
-    Icon: BookMarked
-  },
-  {
-    id: 6,
-    grade: "Class VI",
-    subjects: ["Bengali", "English", "Mathematics", "Science", "Social Science", "Computer Science", "Physical Education", "Arts"],
-    description: "Transitioning to specialized subject areas with more in-depth content knowledge.",
-    features: ["Subject specialists teaching", "Introduction to laboratories", "Digital learning integration"],
-    Icon: Microscope
-  },
-  {
-    id: 7,
-    grade: "Class VII",
-    subjects: ["Bengali", "English", "Mathematics", "Science", "Social Science", "Computer Science", "Physical Education", "Arts"],
-    description: "Developing analytical skills and deeper understanding of scientific and social concepts.",
-    features: ["Regular science experiments", "History and geography projects", "Debate and elocution"],
-    Icon: Globe
-  },
-  {
-    id: 8,
-    grade: "Class VIII",
-    subjects: ["Bengali", "English", "Mathematics", "Science", "Social Science", "Computer Science", "Physical Education", "Arts"],
-    description: "Preparing students for higher classes with focus on application-based learning.",
-    features: ["Career guidance sessions", "Advanced laboratory work", "Life skills education"],
-    Icon: FlaskConical
-  },
-];
-
-const secondaryCourses = [
-  {
-    id: 9,
-    grade: "Class IX",
-    subjects: ["Bengali", "English", "Mathematics", "Physical Science", "Life Science", "History", "Geography", "Computer Applications", "Physical Education"],
-    description: "Detailed study of subjects as per the State Board curriculum, preparing for Board examination.",
-    features: ["Board examination preparation", "Regular assessments", "Career counseling"],
-    Icon: PenTool
-  },
-  {
-    id: 10,
-    grade: "Class X",
-    subjects: ["Bengali", "English", "Mathematics", "Physical Science", "Life Science", "History", "Geography", "Computer Applications", "Physical Education"],
-    description: "Final year of secondary education with comprehensive preparation for Board examinations.",
-    features: ["Mock examinations", "Specialized doubt clearing sessions", "Stress management workshops"],
-    Icon: GraduationCap
-  },
+const classes = [
+  { grade: "Class V",   Icon: BookMarked },
+  { grade: "Class VI",  Icon: Microscope },
+  { grade: "Class VII", Icon: Globe },
+  { grade: "Class VIII",Icon: FlaskConical },
+  { grade: "Class IX",  Icon: PenTool },
+  { grade: "Class X",   Icon: GraduationCap },
+  { grade: "Class XI",  Icon: BookOpen },
+  { grade: "Class XII", Icon: GraduationCap },
 ];
 
 
@@ -187,41 +142,17 @@ const CourseCard = ({ course, onOpenMaterial }: {
   return (
     <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="h-full">
       <Card className="h-full overflow-hidden border-t-4 border-t-school-primary shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
-        <CardHeader className="bg-gradient-to-r from-slate-50 to-white pb-3 border-b">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white pb-6 border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-bold text-slate-800">{course.grade}</CardTitle>
-            <div className="p-2 bg-white rounded-full shadow-sm text-school-primary">
+            <CardTitle className="text-2xl font-bold text-slate-800">{course.grade}</CardTitle>
+            <div className="p-3 bg-white rounded-full shadow-sm text-school-primary">
               <IconComponent className="h-8 w-8" />
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6 flex-grow space-y-4">
-          <p className="text-muted-foreground leading-relaxed">{course.description}</p>
-          <div>
-            <h4 className="mb-2 text-sm font-semibold text-school-primary uppercase tracking-wide">Core Subjects</h4>
-            <div className="flex flex-wrap gap-2">
-              {course.subjects.slice(0, 5).map((subject: string, idx: number) => (
-                <span key={idx} className="rounded-md bg-school-light/50 px-2.5 py-1 text-xs font-medium text-school-primary border border-school-light">
-                  {subject}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h4 className="mb-2 text-sm font-semibold text-school-primary uppercase tracking-wide">Highlights</h4>
-            <ul className="space-y-1.5">
-              {course.features.map((feature: string, idx: number) => (
-                <li key={idx} className="flex items-start text-sm text-slate-600">
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </CardContent>
-
+        
         {/* ── Material Buttons ── */}
-        <CardFooter className="flex-col gap-2 pt-4 bg-slate-50/50 border-t p-4">
+        <CardFooter className="flex-col gap-2 pt-6 bg-slate-50/50 border-t p-4 flex-grow justify-start">
           <div className="grid grid-cols-2 gap-1.5 w-full">
             {MATERIAL_TYPES.map(mt => (
               <Button
@@ -243,7 +174,6 @@ const CourseCard = ({ course, onOpenMaterial }: {
 
 
 const Courses = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [materialGrade, setMaterialGrade] = useState<string | null>(null);
   const [materialType, setMaterialType] = useState<CourseMaterial['type'] | null>(null);
 
@@ -253,15 +183,7 @@ const Courses = () => {
   };
   const closeMaterial = () => { setMaterialGrade(null); setMaterialType(null); };
 
-  const filterCourses = (courses: any[]) => {
-    return courses.filter(course =>
-      course.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.subjects.some((subject: string) => subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
-
-  const renderCourseGrid = (courses: any[]) => (
+  const renderCourseGrid = () => (
     <motion.div
       variants={containerVariants}
       initial="hidden"
@@ -269,25 +191,13 @@ const Courses = () => {
       className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
     >
       <AnimatePresence>
-        {courses.length > 0 ? (
-          courses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              onOpenMaterial={openMaterial}
-            />
-          ))
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="col-span-full py-12 text-center bg-slate-50 rounded-lg border border-dashed"
-          >
-            <Search className="h-12 w-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-            <p className="text-lg text-muted-foreground font-medium">No courses found matching "{searchTerm}"</p>
-            <Button variant="link" onClick={() => setSearchTerm('')} className="mt-2 text-school-primary">Clear Search</Button>
-          </motion.div>
-        )}
+        {classes.map((course, idx) => (
+          <CourseCard
+            key={idx}
+            course={course}
+            onOpenMaterial={openMaterial}
+          />
+        ))}
       </AnimatePresence>
     </motion.div>
   );
@@ -300,7 +210,7 @@ const Courses = () => {
         <div className="container relative z-10">
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}>
             <h1 className="font-heading mb-4 text-4xl md:text-5xl font-bold tracking-tight">
-              Academic Excellence
+              Course Details & Study Materials
             </h1>
             <p className="text-xl text-white/90 max-w-2xl font-light">
               Explore our comprehensive educational programs designed to nurture, educate, and empower the leaders of tomorrow.
@@ -311,47 +221,8 @@ const Courses = () => {
 
       <div className="container pb-16">
 
-        {/* Search & Stats */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
-          <div className="w-full md:w-1/2">
-            <SearchInput
-              placeholder="Find a class or subject..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-12 text-lg shadow-sm border-slate-200 focus:border-school-primary"
-              icon={Search}
-            />
-          </div>
-
-          <div className="flex gap-4 md:gap-8 text-sm text-muted-foreground font-medium">
-            <div className="flex items-center gap-2">
-              <BookOpen className="text-school-primary h-5 w-5" />
-              <span>State Board Curriculum</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="text-school-primary h-5 w-5" />
-              <span>Expert Faculty</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs Section */}
-        <Tabs defaultValue="middle" className="space-y-8">
-          <div className="flex justify-center">
-            <TabsList className="bg-white border p-1 h-12 shadow-sm rounded-full">
-              <TabsTrigger value="middle" className="rounded-full px-6 py-2 data-[state=active]:bg-school-primary data-[state=active]:text-white transition-all">Middle (V-VIII)</TabsTrigger>
-              <TabsTrigger value="secondary" className="rounded-full px-6 py-2 data-[state=active]:bg-school-primary data-[state=active]:text-white transition-all">Secondary (IX-X)</TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="middle">
-            {renderCourseGrid(filterCourses(middleCourses))}
-          </TabsContent>
-
-          <TabsContent value="secondary">
-            {renderCourseGrid(filterCourses(secondaryCourses))}
-          </TabsContent>
-        </Tabs>
+        {/* Grid Section */}
+        {renderCourseGrid()}
 
         {/* Admission Info */}
         <motion.div

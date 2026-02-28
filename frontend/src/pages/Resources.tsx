@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { FileText, Download, Book, Info, FileQuestion, Calendar, Mail, Phone, Search } from 'lucide-react';
 import apiService, { Resource } from '@/services/api';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 const faqs = [
   {
@@ -49,6 +50,7 @@ const Resources = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     fetchResources();
@@ -124,7 +126,7 @@ const Resources = () => {
     <div className="container py-8">
       <div className="mb-8">
         <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">School Resources</h1>
-        <p className="text-lg text-muted-foreground mb-6">Access important documents, forms, and information about Baliadanga High School</p>
+        <p className="text-lg text-muted-foreground mb-6">Access important documents, forms, and information about {settings.schoolInfo.name}</p>
 
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />

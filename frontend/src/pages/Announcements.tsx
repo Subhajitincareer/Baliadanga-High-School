@@ -5,12 +5,14 @@ import { Link } from 'react-router-dom';
 import { Calendar, Bell, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
 import apiService, { Announcement } from '@/services/api';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isAdmin } = useAdmin();
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -59,7 +61,7 @@ const Announcements = () => {
       <div className="mb-8 flex flex-col justify-between md:flex-row md:items-center">
         <div>
           <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">Announcements & Notices</h1>
-          <p className="text-lg text-muted-foreground">Stay updated with the latest information from Baliadanga High School</p>
+          <p className="text-lg text-muted-foreground">Stay updated with the latest information from {settings.schoolInfo.name}</p>
         </div>
 
         {isAdmin && (

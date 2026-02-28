@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 interface Subject {
     name: string;
@@ -50,9 +51,11 @@ export const ReportCardPrint: React.FC<ReportCardPrintProps> = ({
     data,
     open,
     onClose,
-    schoolName = 'Baliadanga High School'
+    schoolName
 }) => {
     const printRef = useRef<HTMLDivElement>(null);
+    const { settings } = useSiteSettings();
+    const displaySchoolName = schoolName ?? settings.schoolInfo.name;
 
     const handlePrint = () => {
         if (!printRef.current) return;
@@ -114,7 +117,7 @@ export const ReportCardPrint: React.FC<ReportCardPrintProps> = ({
                 <div ref={printRef} className="p-6 space-y-4 font-serif text-gray-800">
                     {/* Header */}
                     <div className="text-center border-b-2 border-double border-gray-700 pb-4">
-                        <div className="text-2xl font-bold tracking-wide">{schoolName}</div>
+                        <div className="text-2xl font-bold tracking-wide">{displaySchoolName}</div>
                         <div className="text-sm text-gray-500 mt-1">
                             Official Report Card — Academic Year {exam.academicYear}
                         </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { User, MapPin, Phone } from 'lucide-react';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 interface StudentProfile {
     studentId: string;
@@ -24,10 +25,12 @@ interface StudentIDCardProps {
 
 export const StudentIDCard: React.FC<StudentIDCardProps> = ({
     student,
-    schoolName = "BALIADANGA HIGH SCHOOL",
+    schoolName,
     schoolAddress = "Baliadanga, Kaliachak, Malda",
     academicYear = "2025-2026"
 }) => {
+    const { settings } = useSiteSettings();
+    const displayName = schoolName ?? settings.schoolInfo.name.toUpperCase();
     return (
         <div className="w-[350px] h-[220px] border-2 border-school-primary/20 rounded-xl bg-white relative overflow-hidden flex flex-row shadow-sm print:shadow-none print:border-school-primary">
             {/* Background design element */}
@@ -63,7 +66,7 @@ export const StudentIDCard: React.FC<StudentIDCardProps> = ({
             <div className="w-2/3 p-3 flex flex-col z-10">
                 {/* Header */}
                 <div className="text-center mb-2 border-b pb-1">
-                    <h3 className="font-bold text-school-primary text-sm leading-tight">{schoolName}</h3>
+                    <h3 className="font-bold text-school-primary text-sm leading-tight">{displayName}</h3>
                     <p className="text-[9px] text-muted-foreground">{schoolAddress}</p>
                 </div>
 

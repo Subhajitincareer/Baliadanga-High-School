@@ -363,6 +363,7 @@ export const RoutineManagement = () => {
                                                                                     key={teacher._id}
                                                                                     value={teacher.fullName}
                                                                                     className={conflict ? 'text-red-600 bg-red-50' : 'text-green-700'}
+                                                                                    disabled={!!conflict}
                                                                                 >
                                                                                     <div className="flex items-center justify-between w-full gap-2">
                                                                                         <span>

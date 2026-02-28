@@ -32,6 +32,8 @@ import { BellRing, Users, GraduationCap, Award, BookOpen, PenTool, UserPlus, Fil
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 import { DashboardStats } from '@/components/admin/DashboardStats';
 import { SiteSettingsManagement } from '@/components/admin/SiteSettingsManagement';
+import EventsManagement from '@/components/admin/EventsManagement';
+import GalleryManagement from '@/components/admin/GalleryManagement';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,8 +52,8 @@ const Dashboard = () => {
   const canAccess = (tab: string) => {
     if (userRole === 'admin' || userRole === 'principal') return true;
 
-    const teacherTabs = ['announcements', 'attendance', 'meal', 'calendar', 'results', 'marks', 'exams', 'routines', 'idcards', 'students', 'resources', 'course-materials'];
-    const staffTabs = ['announcements', 'attendance', 'meal', 'fees', 'students', 'idcards', 'admissions', 'resources', 'course-materials'];
+    const teacherTabs = ['announcements', 'attendance', 'meal', 'calendar', 'results', 'marks', 'exams', 'routines', 'idcards', 'students', 'resources', 'course-materials', 'events', 'gallery'];
+    const staffTabs = ['announcements', 'attendance', 'meal', 'fees', 'students', 'idcards', 'admissions', 'resources', 'course-materials', 'events', 'gallery'];
 
     if (userRole === 'teacher') return teacherTabs.includes(tab);
     if (userRole === 'staff') return staffTabs.includes(tab);
@@ -235,6 +237,16 @@ const Dashboard = () => {
                           <FileText className="mr-2 h-4 w-4" /> Resources
                         </TabsTrigger>
                       )}
+                      {canAccess('events') && (
+                        <TabsTrigger value="events" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <CalendarIcon className="mr-2 h-4 w-4" /> Events
+                        </TabsTrigger>
+                      )}
+                      {canAccess('gallery') && (
+                        <TabsTrigger value="gallery" className="w-full justify-start px-2 py-2 font-medium data-[state=active]:bg-school-primary/10 data-[state=active]:text-school-primary">
+                          <LayoutTemplate className="mr-2 h-4 w-4" /> Gallery
+                        </TabsTrigger>
+                      )}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -317,6 +329,8 @@ const Dashboard = () => {
             <TabsContent value="idcards" className="space-y-4 border-none p-0 outline-none"><IDCardGenerator /></TabsContent>
             <TabsContent value="meal" className="space-y-4 border-none p-0 outline-none"><MidDayMealPage /></TabsContent>
             <TabsContent value="site-settings" className="space-y-4 border-none p-0 outline-none"><SiteSettingsManagement /></TabsContent>
+            <TabsContent value="events" className="space-y-4 border-none p-0 outline-none"><EventsManagement /></TabsContent>
+            <TabsContent value="gallery" className="space-y-4 border-none p-0 outline-none"><GalleryManagement /></TabsContent>
           </Tabs>
         </main>
       </div>

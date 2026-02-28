@@ -829,6 +829,34 @@ class ApiService {
   async deleteCourseMaterial(id: string): Promise<any> {
     return this.request<any>(`/course-materials/${id}`, { method: 'DELETE' });
   }
+
+  // ── School Events ────────────────────────────────────────────────────────────
+  async getSchoolEvents(): Promise<{ success: boolean; data: EventItem[] }> {
+    return this.request<{ success: boolean; data: EventItem[] }>('/events');
+  }
+  async createSchoolEvent(payload: Partial<EventItem>): Promise<{ success: boolean; data: EventItem }> {
+    return this.request<{ success: boolean; data: EventItem }>('/events', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  async updateSchoolEvent(id: string, payload: Partial<EventItem>): Promise<{ success: boolean; data: EventItem }> {
+    return this.request<{ success: boolean; data: EventItem }>(`/events/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+  }
+  async deleteSchoolEvent(id: string): Promise<any> {
+    return this.request<any>(`/events/${id}`, { method: 'DELETE' });
+  }
+
+  // ── Gallery ─────────────────────────────────────────────────────────────────
+  async getGallery(): Promise<{ success: boolean; data: GalleryItem[] }> {
+    return this.request<{ success: boolean; data: GalleryItem[] }>('/gallery');
+  }
+  async createGalleryImage(payload: Partial<GalleryItem>): Promise<{ success: boolean; data: GalleryItem }> {
+    return this.request<{ success: boolean; data: GalleryItem }>('/gallery', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  async updateGalleryImage(id: string, payload: Partial<GalleryItem>): Promise<{ success: boolean; data: GalleryItem }> {
+    return this.request<{ success: boolean; data: GalleryItem }>(`/gallery/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+  }
+  async deleteGalleryImage(id: string): Promise<any> {
+    return this.request<any>(`/gallery/${id}`, { method: 'DELETE' });
+  }
 }
 
 export interface CourseMaterial {
@@ -844,6 +872,28 @@ export interface CourseMaterial {
   fileSize?: number;
   createdAt: string;
   uploadedBy?: { name: string };
+}
+
+export interface EventItem {
+  _id: string;
+  title: string;
+  date: string;
+  time?: string;
+  location?: string;
+  category: 'Academic' | 'Sports' | 'Cultural' | 'Administrative' | 'Other';
+  description?: string;
+  imageUrl?: string;
+  imageFileId?: string;
+  createdAt: string;
+}
+
+export interface GalleryItem {
+  _id: string;
+  url: string;
+  fileId?: string;
+  caption?: string;
+  category: 'Campus' | 'Events' | 'Activities' | 'Other';
+  createdAt: string;
 }
 
 export default new ApiService();

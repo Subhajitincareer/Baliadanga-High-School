@@ -3,8 +3,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { School, FileText, Award, User, Users, Calendar, UserPlus, LogIn, GraduationCap } from 'lucide-react';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
 
 const Portal = () => {
+  const { settings } = useSiteSettings();
   const portalLinks = [
     {
       title: 'Student Admission',
@@ -79,7 +81,7 @@ const Portal = () => {
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Student & Parent Portal</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Access school resources, check academic information, and stay connected with Baliadanga High School
+          Access school resources, check academic information, and stay connected with {settings.schoolInfo.name}
         </p>
       </div>
 
