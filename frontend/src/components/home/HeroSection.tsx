@@ -27,7 +27,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="font-heading mb-6 text-4xl font-extrabold md:text-6xl lg:text-7xl leading-tight tracking-tight drop-shadow-md"
+            className="font-heading mb-6 text-3xl sm:text-4xl font-extrabold md:text-6xl lg:text-7xl leading-tight tracking-tight drop-shadow-md"
           >
             {t('hero.welcome')} {firstPart && <span>{firstPart} </span>}<span className="text-school-secondary">{lastWord}</span>
           </motion.h1>
@@ -36,7 +36,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mb-10 text-lg md:text-2xl text-gray-100 max-w-2xl mx-auto drop-shadow-sm font-light"
+            className="mb-8 sm:mb-10 text-base sm:text-lg md:text-2xl text-gray-100 max-w-2xl mx-auto drop-shadow-sm font-light px-2"
           >
             {tagline}
           </motion.p>

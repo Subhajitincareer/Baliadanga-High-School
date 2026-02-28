@@ -15,6 +15,7 @@ import { ExamResultCard } from '@/components/student/ExamResultCard';
 import { AttendanceDetailTable } from '@/components/student/AttendanceDetailTable';
 import { ClassScheduleGrid } from '@/components/shared/ClassScheduleGrid';
 import { useAuth } from '@/contexts/AuthContext';
+import { StudentMobileNav } from '@/components/student/StudentMobileNav';
 
 const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -308,9 +309,6 @@ const StudentDashboard = () => {
             <GraduationCap className="mr-2 h-6 w-6" />
             Student Portal
           </span>
-          <Button variant="ghost" size="icon" onClick={() => {/* Toggle sidebar logic could go here */ }}>
-            {/* <Menu className="h-6 w-6" /> */}
-          </Button>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
@@ -661,6 +659,9 @@ const StudentDashboard = () => {
 
           </Tabs>
         </main>
+        
+        {/* Mobile Navigation */}
+        <StudentMobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
     </div>
   );

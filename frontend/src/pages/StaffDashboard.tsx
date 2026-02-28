@@ -26,6 +26,7 @@ import { HomeworkAssignment } from '@/components/staff/HomeworkAssignment';
 import TeacherMidMealEntry from '@/components/staff/TeacherMidMealEntry';
 import { QuestionPaperCreator } from '@/components/staff/QuestionPaperCreator';
 import { ResourceManagement } from '@/components/admin/ResourceManagement';
+import { StaffMobileNav } from '@/components/staff/StaffMobileNav';
 import CourseMaterialManagement from '@/components/admin/CourseMaterialManagement';
 import apiService, { Routine } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -626,18 +627,12 @@ const StaffDashboard = () => {
                 </main>
 
                 {/* Mobile Bottom Navigation */}
-                <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex overflow-x-auto [&::-webkit-scrollbar]:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                    {visibleNavItems.map(item => (
-                        <button 
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`flex flex-col items-center justify-center min-w-[72px] flex-1 py-3 transition-colors ${activeTab === item.id ? 'text-school-primary bg-indigo-50/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-                        >
-                            <item.icon className={`h-5 w-5 mb-1 ${activeTab === item.id ? 'stroke-[2.5px]' : ''}`} />
-                            <span className="text-[10px] font-medium">{item.label}</span>
-                        </button>
-                    ))}
-                </nav>
+                <StaffMobileNav
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    hasPermission={hasPermission}
+                    userRole={user?.role || ''}
+                />
             </div>
         </div>
     );
