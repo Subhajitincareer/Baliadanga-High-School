@@ -19,9 +19,13 @@ const Layout: React.FC = () => {
           <PageTransition>
             <Outlet />
           </PageTransition>
-          <FloatingAction />
+          <div className="print:hidden">
+            <FloatingAction />
+          </div>
         </main>
-        <PublicMobileNav />
+        <div className="print:hidden">
+          <PublicMobileNav />
+        </div>
         <Footer />
       </div>
     </LanguageProvider>

@@ -26,10 +26,11 @@ interface StudentIDCardProps {
 export const StudentIDCard: React.FC<StudentIDCardProps> = ({
     student,
     schoolName,
-    schoolAddress = "Baliadanga, Kaliachak, Malda",
+    schoolAddress,
     academicYear = "2025-2026"
 }) => {
     const { settings } = useSiteSettings();
+    const finalAddress = schoolAddress || settings.idCard.address || "Baliadanga, Kaliachak, Malda";
     const displayName = schoolName ?? settings.schoolInfo.name.toUpperCase();
     return (
         <div className="w-[350px] h-[220px] border-2 border-school-primary/20 rounded-xl bg-white relative overflow-hidden flex flex-row shadow-sm print:shadow-none print:border-school-primary">
@@ -67,7 +68,7 @@ export const StudentIDCard: React.FC<StudentIDCardProps> = ({
                 {/* Header */}
                 <div className="text-center mb-2 border-b pb-1">
                     <h3 className="font-bold text-school-primary text-sm leading-tight">{displayName}</h3>
-                    <p className="text-[9px] text-muted-foreground">{schoolAddress}</p>
+                    <p className="text-[9px] text-muted-foreground">{finalAddress}</p>
                 </div>
 
                 {/* Student Info */}
@@ -109,9 +110,13 @@ export const StudentIDCard: React.FC<StudentIDCardProps> = ({
                             <span className="truncate">{student.address || "N/A"}</span>
                         </div>
                     </div>
-                    <div className="text-center">
-                        <div className="h-6 w-16 border-b border-dashed border-gray-400 mb-0.5"></div>
-                        <p className="text-[8px] text-muted-foreground">Authority Sign</p>
+                    <div className="text-center flex flex-col items-center justify-end">
+                        {settings.idCard.signatureUrl ? (
+                            <img src={settings.idCard.signatureUrl} alt="Signature" className="h-8 object-contain mb-0.5" />
+                        ) : (
+                            <div className="h-6 w-16 border-b border-dashed border-gray-400 mb-0.5"></div>
+                        )}
+                        <p className="text-[8px] text-muted-foreground leading-none">Authority Sign</p>
                     </div>
                 </div>
             </div>

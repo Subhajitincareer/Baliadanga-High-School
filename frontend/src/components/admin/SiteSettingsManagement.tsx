@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Upload, Plus, ImageIcon, User, Link as LinkIcon, School, Phone, MapPin, Layout, Palette } from 'lucide-react';
+import { Trash2, Upload, Plus, ImageIcon, User, Link as LinkIcon, School, Phone, MapPin, Layout, BadgeCheck, Palette } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
@@ -71,6 +71,11 @@ export const SiteSettingsManagement: React.FC = () => {
   const [uploadingPopup, setUploadingPopup] = useState(false);
   const popupFileRef = useRef<HTMLInputElement>(null);
 
+  /* ── idCard ────────────────────────────────────── */
+  const [idCard, setIdCard]           = useState(liveSettings.idCard);
+  const [uploadingIdSign, setUploadingIdSign] = useState(false);
+  const signFileRef = useRef<HTMLInputElement>(null);
+
   const [savingGeneral, setSavingGeneral] = useState(false);
 
   /* Sync state when live settings load (after context fetches) */
@@ -84,6 +89,7 @@ export const SiteSettingsManagement: React.FC = () => {
     setMap(liveSettings.map);
     setTicker(liveSettings.ticker);
     setPopup(liveSettings.popup);
+    setIdCard(liveSettings.idCard);
   }, [liveSettings]);
 
   /* ─────────────────── hero handlers ─────────────────── */
@@ -143,7 +149,7 @@ export const SiteSettingsManagement: React.FC = () => {
       setSavingGeneral(true);
       await apiFetch('/site-settings/general', {
         method: 'PUT',
-        body: JSON.stringify({ schoolInfo, theme, contact, footer, map, ticker, popup }),
+        body: JSON.stringify({ schoolInfo, theme, contact, footer, map, ticker, popup, idCard }),
       });
       toast({ title: '✅ Settings saved! Changes apply instantly.' });
       refresh(); // re-apply theme vars via context
@@ -165,6 +171,7 @@ export const SiteSettingsManagement: React.FC = () => {
           <TabsTrigger value="map"        className="gap-1"><MapPin    className="h-4 w-4" /> Map</TabsTrigger>
           <TabsTrigger value="ticker"     className="gap-1">📢 Ticker</TabsTrigger>
           <TabsTrigger value="popup"      className="gap-1">🖼️ Popup</TabsTrigger>
+          <TabsTrigger value="idcard"     className="gap-1"><BadgeCheck className="h-4 w-4" /> ID Card</TabsTrigger>
         </TabsList>
 
         {/* ══ Hero Carousel Tab ══════════════════════════════════════════ */}
@@ -559,6 +566,61 @@ export const SiteSettingsManagement: React.FC = () => {
           <div className="flex justify-end mt-4">
             <Button disabled={savingGeneral} onClick={saveGeneral} className="min-w-[160px]">
               {savingGeneral ? 'Saving…' : '💾 Save settings'}
+            </Button>
+          </div>
+        </TabsContent>
+
+        {/* ══ ID Card Tab ═══════════════════════════════════════════════ */}
+        <TabsContent value="idcard">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BadgeCheck className="h-4 w-4" /> ID Card Print Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">Adjust the address format and primary signature printed directly onto the bottom of student ID cards.</p>
+              
+              <div className="space-y-1">
+                <Label>School Address Line</Label>
+                <Input value={idCard.address} onChange={e => setIdCard(p => ({ ...p, address: e.target.value }))} placeholder="Baliadanga, Kaliachak, Malda" />
+                <p className="text-xs text-muted-foreground">Keep it short so it fits in the small ID card header space.</p>
+              </div>
+
+              <div className="space-y-2 mt-4">
+                <Label>Authority Signature Image (Optional)</Label>
+                {idCard.signatureUrl ? (
+                  <div className="relative group w-32 h-16 rounded-sm overflow-hidden border bg-white p-1 shadow-inner">
+                    <img src={idCard.signatureUrl} alt="Authority Signature" className="w-full h-full object-contain" />
+                    <button onClick={() => setIdCard(p => ({ ...p, signatureUrl: '', signatureFileId: '' }))}
+                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-32 h-16 rounded-sm border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground text-xs p-2 text-center">No Sign Uploaded</div>
+                )}
+                
+                <div className="flex items-center gap-2 pt-2">
+                  <input ref={signFileRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    try {
+                      setUploadingIdSign(true);
+                      const { url, fileId } = await uploadToImageKit(file, '/idcardsig');
+                      setIdCard(p => ({ ...p, signatureUrl: url, signatureFileId: fileId }));
+                    } catch (err: any) { toast({ title: 'Upload failed', variant: 'destructive' }); } 
+                    finally { setUploadingIdSign(false); e.target.value = ''; }
+                  }} />
+                  <Button variant="outline" size="sm" disabled={uploadingIdSign} onClick={() => signFileRef.current?.click()}>
+                    {uploadingIdSign ? 'Uploading…' : <Upload className="h-4 w-4 mr-2" />} Upload Signature
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="flex justify-end mt-4">
+            <Button disabled={savingGeneral} onClick={saveGeneral} className="min-w-[160px]">
+              {savingGeneral ? 'Saving…' : '💾 Save ID Card Settings'}
             </Button>
           </div>
         </TabsContent>

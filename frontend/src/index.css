@@ -103,6 +103,36 @@ body {
   textarea,
   select {
     -webkit-appearance: none;
-    appearance: none;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*                         GLOBAL PRINT OPTIMIZATION                          */
+/* ────────────────────────────────────────────────────────────────────────── */
+@media print {
+  /* Hide all common navigation/sidebar/action shells globally */
+  nav, footer, aside, .print-hidden, [role="navigation"] {
+    display: none !important;
+  }
+
+  /* Reset body and main sizing so that printed content uses 100% of the A4 page */
+  body, html {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Ensure main content containers lose their browser-level padding constraints */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Keep structural cards flat and without heavy shadows on paper */
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl {
+    box-shadow: none !important;
   }
 }

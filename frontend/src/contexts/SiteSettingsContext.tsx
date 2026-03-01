@@ -18,6 +18,7 @@ export interface SiteSettingsData {
   map: { embedUrl: string; directionsUrl: string };
   ticker: { active: boolean; messages: string[] };
   popup: { active: boolean; title: string; content: string; imageUrl: string };
+  idCard: { signatureUrl: string; signatureFileId: string; address: string };
 }
 
 const DEFAULTS: SiteSettingsData = {
@@ -38,6 +39,7 @@ const DEFAULTS: SiteSettingsData = {
   },
   ticker: { active: true, messages: ['Admission Open for Class V to IX (2025)'] },
   popup: { active: false, title: 'Important Notice', content: 'Welcome to Baliadanga High School. Please check our latest notifications.', imageUrl: '' },
+  idCard: { signatureUrl: '', signatureFileId: '', address: 'Baliadanga, Kaliachak, Malda' },
 };
 
 interface SiteSettingsContextType {
@@ -93,6 +95,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           map:        { ...DEFAULTS.map,        ...json.data.map },
           ticker:     { ...DEFAULTS.ticker,     ...json.data.ticker },
           popup:      { ...DEFAULTS.popup,      ...json.data.popup },
+          idCard:     { ...DEFAULTS.idCard,     ...json.data.idCard },
         };
         setSettings(merged);
         applyTheme(merged.theme);

@@ -31,7 +31,7 @@ export const StudentMobileNav: React.FC<StudentMobileNavProps> = ({ activeTab, s
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t bg-white px-4 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] md:hidden">
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t bg-white px-4 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] md:hidden print:hidden">
             {/* Quick Access Items */}
             <Button
                 variant="ghost"

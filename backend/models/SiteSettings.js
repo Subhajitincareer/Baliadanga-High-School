@@ -72,6 +72,13 @@ const siteSettingsSchema = new mongoose.Schema({
     imageUrl: { type: String, default: '' },
   },
 
+  // ── ID Card ──────────────────────────────────────────────────
+  idCard: {
+    signatureUrl: { type: String, default: '' },
+    signatureFileId: { type: String, default: '' },
+    address:      { type: String, default: 'Baliadanga, Kaliachak, Malda' },
+  },
+
 }, { timestamps: true });
 
 const SiteSettings = mongoose.model('SiteSettings', siteSettingsSchema);

@@ -209,6 +209,10 @@ const StudentManagement = () => {
                     throw new Error("No valid data found in CSV");
                 }
 
+                if (parsedData.length > 200) {
+                    throw new Error("Maximum of 200 students can be uploaded at a time. Please split your CSV.");
+                }
+
                 const response = await apiService.bulkImportStudents(parsedData);
                 setUploadResult(response);
                 toast({

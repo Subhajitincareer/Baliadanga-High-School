@@ -117,7 +117,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100/40">
-      <div className="hidden border-r bg-white md:block md:w-64 lg:w-72">
+      <div className="hidden border-r bg-white md:block md:w-64 lg:w-72 print:hidden">
         <div className="flex h-16 items-center border-b px-6">
           <span className="font-bold text-lg text-school-primary">Admin Portal</span>
         </div>
