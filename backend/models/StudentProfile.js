@@ -71,6 +71,51 @@ const studentProfileSchema = new mongoose.Schema({
         type: String,
         enum: ['Active', 'Inactive', 'Alumni', 'Suspended'],
         default: 'Active'
+    },
+    ePortalDetails: {
+        aadhaarNo: String,
+        nameAsPerAadhaar: String,
+        motherTongue: String,
+        socialCategory: String,
+        religion: String,
+        heightCms: String,
+        weightKgs: String,
+        isBplBeneficiary: String, // Yes/No
+        isAayBeneficiary: String, // Yes/No
+        bplNo: String,
+        belongsToEws: String, // Yes/No
+        isCwsn: String, // Yes/No
+        cwsnDisabilityPercent: String,
+        cwsnImpairmentType: String,
+        specificLearningDisabilityType: String,
+        nationality: String,
+        isOutOfSchoolChild: String, // Yes/No
+        bloodGroup: String,
+        identificationMark: String,
+        healthId: String,
+        relationshipWithGuardian: String,
+        annualFamilyIncome: String,
+        guardianQualification: String,
+        admissionNumberInSchool: String,
+        admittedEnrolledUnder: String,
+        admissionDateEportal: String,
+        statusInPreviousYear: String,
+        appearedForExamsPreviousYear: String, // Yes/No
+        resultPreviousYear: String,
+        marksPercentagePreviousYear: String,
+        daysAttendedPreviousYear: String,
+        previousClassStudied: String,
+        facilitiesGiven: String,
+        freeUniforms: String, // Yes/No
+        freeTransport: String, // Yes/No
+        freeEscort: String, // Yes/No
+        freeHostel: String, // Yes/No
+        freeBicycle: String, // Yes/No
+        freeMobileTablet: String, // Yes/No
+        vocationalCourse: String, // Yes/No
+        tradeSector: String,
+        jobRole: String,
+        capableOfHandlingDigitalDevices: String // Yes/No
     }
 }, {
     timestamps: true

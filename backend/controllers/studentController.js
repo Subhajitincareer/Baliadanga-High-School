@@ -42,7 +42,8 @@ export const getStudent = asyncHandler(async (req, res, next) => {
 export const createStudent = asyncHandler(async (req, res, next) => {
     const {
         name, email, password, // User fields
-        studentId, rollNumber, class: currentClass, section, guardianName, guardianPhone, address, dob, gender, photoUrl // Profile fields
+        studentId, rollNumber, class: currentClass, section, guardianName, guardianPhone, address, dob, gender, photoUrl, // Profile fields
+        ePortalDetails // ePORTAL specific fields
     } = req.body;
 
     // 1. Create User
@@ -83,7 +84,8 @@ export const createStudent = asyncHandler(async (req, res, next) => {
             address,
             dateOfBirth: dob,
             gender,
-            photoUrl
+            photoUrl,
+            ePortalDetails
         });
 
         res.status(201).json({
@@ -168,7 +170,8 @@ export const bulkImportStudents = asyncHandler(async (req, res, next) => {
                 address: student.address,
                 dateOfBirth: student.dateOfBirth,
                 gender: student.gender,
-                photoUrl: student.photoUrl
+                photoUrl: student.photoUrl,
+                ePortalDetails: student.ePortalDetails
             });
 
             results.successCount++;
@@ -223,7 +226,8 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
 
     const {
         name, email,
-        studentId, rollNumber, class: currentClass, section, guardianName, guardianPhone, address, dob, gender, photoUrl
+        studentId, rollNumber, class: currentClass, section, guardianName, guardianPhone, address, dob, gender, photoUrl,
+        ePortalDetails
     } = req.body;
 
     // Optional: Update User details
@@ -246,6 +250,9 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     if (dob) student.dateOfBirth = dob;
     if (gender) student.gender = gender;
     if (photoUrl) student.photoUrl = photoUrl;
+    if (ePortalDetails) {
+        student.ePortalDetails = { ...student.ePortalDetails, ...ePortalDetails };
+    }
 
     const updatedProfile = await student.save();
 

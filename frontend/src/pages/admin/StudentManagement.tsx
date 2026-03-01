@@ -118,15 +118,76 @@ const StudentManagement = () => {
         const result = [];
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
-            const currentLine = lines[i].split(',');
-            const obj: any = {};
+            // Handle commas inside quotes for standard CSV exported from Excel
+            // Fallback to simple split if regex fails logic
+            const currentLine = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+
+            const obj: any = { ePortalDetails: {} };
 
             headers.forEach((header, index) => {
-                let val = currentLine[index]?.trim();
-                obj[header] = val;
+                let val = currentLine[index]?.trim() || '';
+                // Strip quotes if any
+                if (val && val.startsWith('"') && val.endsWith('"')) {
+                    val = val.substring(1, val.length - 1);
+                }
+
+                // Map based on ePORTAL template names
+                if (header === 'Email' || header === 'email') obj.email = val;
+                else if (header === 'Name of the Student *' || header === 'name') obj.name = val;
+                else if (header === 'Present Class*' || header === 'class') obj.class = val;
+                else if (header === 'Present Section *' || header === 'section') obj.section = val;
+                else if (header === 'Present Roll No *' || header === 'rollNumber') obj.rollNumber = val;
+                else if (header === "Guardian's Name *" || header === 'guardianName') obj.guardianName = val;
+                else if (header === 'Date of Birth * yyyy-mm-dd' || header === 'dateOfBirth') obj.dateOfBirth = val;
+                else if (header === 'Gender *' || header === 'gender') obj.gender = val;
+                else if (header === 'Guardian Phone' || header === 'guardianPhone') obj.guardianPhone = val;
+                else if (header === 'Address' || header === 'address') obj.address = val;
+                else if (header === 'Student ID (Optional)' || header === 'studentId') obj.studentId = val;
+                // ePortal specific deep nesting
+                else if (header === 'Aadhaar No of Child') obj.ePortalDetails.aadhaarNo = val;
+                else if (header === 'Name of Student as Per Aadhaar') obj.ePortalDetails.nameAsPerAadhaar = val;
+                else if (header === 'Mother Tongue of the Child*') obj.ePortalDetails.motherTongue = val;
+                else if (header === 'Social Category *') obj.ePortalDetails.socialCategory = val;
+                else if (header === 'Religion *') obj.ePortalDetails.religion = val;
+                else if (header === "Student's Height in cms *") obj.ePortalDetails.heightCms = val;
+                else if (header === "Student's Weight in Kgs *") obj.ePortalDetails.weightKgs = val;
+                else if (header === 'Whether BPL beneficiary *') obj.ePortalDetails.isBplBeneficiary = val;
+                else if (header === 'Whether Antyodaya Anna Yojana (AAY) beneficiary? *') obj.ePortalDetails.isAayBeneficiary = val;
+                else if (header === 'BPL No. *') obj.ePortalDetails.bplNo = val;
+                else if (header === 'Whether belongs to EWS / Disadvantaged Group *') obj.ePortalDetails.belongsToEws = val;
+                else if (header === 'Whether CWSN *') obj.ePortalDetails.isCwsn = val;
+                else if (header === 'If CWSN Disability (%)') obj.ePortalDetails.cwsnDisabilityPercent = val;
+                else if (header === 'IF CWSN = YES Type of impairment *') obj.ePortalDetails.cwsnImpairmentType = val;
+                else if (header === 'Nationality *') obj.ePortalDetails.nationality = val;
+                else if (header === 'Is this Child identified as Out-of-School-Child *') obj.ePortalDetails.isOutOfSchoolChild = val;
+                else if (header === 'Blood Group') obj.ePortalDetails.bloodGroup = val;
+                else if (header === 'Identification Mark') obj.ePortalDetails.identificationMark = val;
+                else if (header === 'Health ID') obj.ePortalDetails.healthId = val;
+                else if (header === 'Relationship with Guardian*') obj.ePortalDetails.relationshipWithGuardian = val;
+                else if (header === 'Annual Family Income *') obj.ePortalDetails.annualFamilyIncome = val;
+                else if (header === "Guardian's Qualification *") obj.ePortalDetails.guardianQualification = val;
+                else if (header === 'Admission Number in School *') obj.ePortalDetails.admissionNumberInSchool = val;
+                else if (header === 'Admission Date * yyyy-mm-dd') obj.ePortalDetails.admissionDateEportal = val;
+                else if (header === 'Status of student in Previous Academic Year of Schooling *') obj.ePortalDetails.statusInPreviousYear = val;
+                else if (header === 'In the Previous class studied - whether appeared for examinations *') obj.ePortalDetails.appearedForExamsPreviousYear = val;
+                else if (header === 'In the previous class studied - Result of the examination *') obj.ePortalDetails.resultPreviousYear = val;
+                else if (header === 'In the previous class studied - % of overall marks obtained in the examination *') obj.ePortalDetails.marksPercentagePreviousYear = val;
+                else if (header === 'No. of days child attended school (in the previous academic year) *') obj.ePortalDetails.daysAttendedPreviousYear = val;
+                else if (header === 'Grade/Class Studied in the Previous/Last Academic Year (Previous Class)*') obj.ePortalDetails.previousClassStudied = val;
+                else if (header === 'Whether capable of handling digital devices including internet? *') obj.ePortalDetails.capableOfHandlingDigitalDevices = val;
+                // Map anything else back normally
+                else {
+                    obj[header] = val;
+                }
             });
 
-            if (obj.name && obj.email) {
+            // Ensure standard email (required by backend User model) exists if imported from raw ePORTAL sheet
+            if (obj.name && !obj.email) {
+                // Generate a generic dummy email for login purposes if the sheet doesn't include emails
+                obj.email = `student_${obj.rollNumber || Math.floor(Math.random() * 10000)}_${obj.class || 'na'}@baliadanga.in`.toLowerCase().replace(/\s+/g, '');
+            }
+
+            if (obj.name) {
                 result.push({ ...obj });
             }
         }
@@ -172,14 +233,13 @@ const StudentManagement = () => {
     };
 
     const downloadTemplate = () => {
-        // Note: Removed studentId as it is now auto-generated if missing
-        const headers = "name,email,rollNumber,class,section,guardianName,guardianPhone,address,dateOfBirth,gender,studentId";
-        const sample = "John Doe,john@example.com,01,X,A,Mr. Doe,9876543210,Village+PO,2010-01-01,Male,";
+        const headers = "Email,Name of the Student *,Present Class*,Present Section *,Present Roll No *,Guardian's Name *,Date of Birth * yyyy-mm-dd,Gender *,Guardian Phone,Address,Aadhaar No of Child,Name of Student as Per Aadhaar,Mother Tongue of the Child*,Social Category *,Religion *,Student's Height in cms *,Student's Weight in Kgs *,Whether BPL beneficiary *,Whether Antyodaya Anna Yojana (AAY) beneficiary? *,BPL No. *,Whether belongs to EWS / Disadvantaged Group *,Whether CWSN *,If CWSN Disability (%),IF CWSN = YES Type of impairment *,Nationality *,Is this Child identified as Out-of-School-Child *,Blood Group,Identification Mark,Health ID,Relationship with Guardian*,Annual Family Income *,Guardian's Qualification *,Admission Number in School *,Admission Date * yyyy-mm-dd,Status of student in Previous Academic Year of Schooling *,In the Previous class studied - whether appeared for examinations *,In the previous class studied - Result of the examination *,In the previous class studied - % of overall marks obtained in the examination *,No. of days child attended school (in the previous academic year) *,Grade/Class Studied in the Previous/Last Academic Year (Previous Class)*,Whether capable of handling digital devices including internet? *";
+        const sample = "student1@example.com,John Doe,5,A,01,Mr Doe,2010-01-01,Male,9876543210,Village PO,123412341234,John Doe,BENGALI,General,HINDUISM,150,45,NO,NO,NA,NO,NO,0,NA,INDIAN,NO,O+,Mole on hand,H123,Father,50000,Graduate,ADM123,2024-01-01,Studied at Current/Same School,Appeared,Passed,85,200,4,YES";
         const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + sample;
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "student_import_template_v2.csv");
+        link.setAttribute("download", "ePORTAL_Student_Upload_Template.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

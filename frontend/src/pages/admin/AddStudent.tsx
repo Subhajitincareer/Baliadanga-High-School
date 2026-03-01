@@ -29,15 +29,35 @@ const AddStudent = () => {
         address: '',
         dateOfBirth: '',
         gender: 'Male',
-        photoUrl: ''
+        photoUrl: '',
+        ePortalDetails: {
+            aadhaarNo: '', nameAsPerAadhaar: '', motherTongue: 'BENGALI', socialCategory: 'General', religion: 'Hinduism',
+            heightCms: '', weightKgs: '', isBplBeneficiary: 'No', isAayBeneficiary: 'No', bplNo: '', belongsToEws: 'No',
+            isCwsn: 'No', cwsnDisabilityPercent: '', cwsnImpairmentType: '', nationality: 'Indian', isOutOfSchoolChild: 'No',
+            bloodGroup: '', identificationMark: '', healthId: '', relationshipWithGuardian: 'Father', annualFamilyIncome: '',
+            guardianQualification: '', admissionNumberInSchool: '', admissionDateEportal: '', statusInPreviousYear: 'Studied at Current/Same School',
+            appearedForExamsPreviousYear: 'Appeared', resultPreviousYear: 'Passed', marksPercentagePreviousYear: '',
+            daysAttendedPreviousYear: '', previousClassStudied: '', capableOfHandlingDigitalDevices: 'Yes'
+        }
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name.startsWith('ep_')) {
+            const key = name.replace('ep_', '');
+            setFormData(prev => ({ ...prev, ePortalDetails: { ...prev.ePortalDetails, [key]: value } }));
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleSelectChange = (name: string, value: string) => {
-        setFormData({ ...formData, [name]: value });
+        if (name.startsWith('ep_')) {
+            const key = name.replace('ep_', '');
+            setFormData(prev => ({ ...prev, ePortalDetails: { ...prev.ePortalDetails, [key]: value } }));
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,6 +221,35 @@ const AddStudent = () => {
                             <Label htmlFor="address">Address</Label>
                             <Input id="address" name="address" value={formData.address} onChange={handleChange} />
                         </div>
+
+                        {/* ePORTAL Details Collapsible Section */}
+                        <details className="group border p-4 rounded bg-gray-50/50">
+                            <summary className="font-semibold cursor-pointer text-blue-800 hover:text-blue-600 outline-none">
+                                ePORTAL Details (Optional) - Click to Expand
+                            </summary>
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                                {/* Sample Top Level Fields, limiting raw HTML weight by omitting standard repetitive selects if empty texts work in import */}
+                                <div className="space-y-2"><Label>Aadhaar No</Label><Input name="ep_aadhaarNo" value={formData.ePortalDetails.aadhaarNo} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Name as Per Aadhaar</Label><Input name="ep_nameAsPerAadhaar" value={formData.ePortalDetails.nameAsPerAadhaar} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Mother Tongue</Label><Input name="ep_motherTongue" value={formData.ePortalDetails.motherTongue} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Social Category</Label><Input name="ep_socialCategory" placeholder="General, SC, ST..." value={formData.ePortalDetails.socialCategory} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Religion</Label><Input name="ep_religion" value={formData.ePortalDetails.religion} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Height (cms)</Label><Input name="ep_heightCms" type="number" value={formData.ePortalDetails.heightCms} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Weight (kgs)</Label><Input name="ep_weightKgs" type="number" value={formData.ePortalDetails.weightKgs} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Is BPL?</Label><Input name="ep_isBplBeneficiary" placeholder="Yes/No" value={formData.ePortalDetails.isBplBeneficiary} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>BPL No.</Label><Input name="ep_bplNo" value={formData.ePortalDetails.bplNo} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Is CWSN?</Label><Input name="ep_isCwsn" placeholder="Yes/No" value={formData.ePortalDetails.isCwsn} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>CWSN Dis. %</Label><Input name="ep_cwsnDisabilityPercent" type="number" value={formData.ePortalDetails.cwsnDisabilityPercent} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Nationality</Label><Input name="ep_nationality" value={formData.ePortalDetails.nationality} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Blood Group</Label><Input name="ep_bloodGroup" value={formData.ePortalDetails.bloodGroup} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Health ID</Label><Input name="ep_healthId" value={formData.ePortalDetails.healthId} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Family Income</Label><Input name="ep_annualFamilyIncome" type="number" value={formData.ePortalDetails.annualFamilyIncome} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Previous Class</Label><Input name="ep_previousClassStudied" value={formData.ePortalDetails.previousClassStudied} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Previous Result</Label><Input name="ep_resultPreviousYear" placeholder="Passed/Failed" value={formData.ePortalDetails.resultPreviousYear} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Previous Marks %</Label><Input name="ep_marksPercentagePreviousYear" type="number" value={formData.ePortalDetails.marksPercentagePreviousYear} onChange={handleChange} /></div>
+                                <div className="space-y-2"><Label>Attended Days</Label><Input name="ep_daysAttendedPreviousYear" type="number" value={formData.ePortalDetails.daysAttendedPreviousYear} onChange={handleChange} /></div>
+                            </div>
+                        </details>
 
                         <Button type="submit" className="w-full bg-school-primary hover:bg-school-dark" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
