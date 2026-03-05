@@ -199,7 +199,7 @@ const AttendancePage = () => {
                             <SelectValue placeholder="Class" />
                         </SelectTrigger>
                         <SelectContent>
-                            {["V","VI","VII","VIII","IX","X","XI","XII"].map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
+                            {["5","6","7","8","9","10","11","12"].map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <div className="h-6 w-px bg-slate-200"></div>
