@@ -157,6 +157,28 @@ const AttendancePage = () => {
         };
     }, [activeTab]);
 
+    const playBeep = () => {
+        try {
+            const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+            if (context.state === 'suspended') {
+                context.resume();
+            }
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, context.currentTime); // High pitch beep
+            gain.gain.setValueAtTime(0, context.currentTime);
+            gain.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.1);
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.1);
+        } catch (e) {
+            console.error("Audio beep failed", e);
+        }
+    };
+
     const onScanSuccess = async (decodedText: string) => {
         if (recentScans.some(s => s.studentId === decodedText && (Date.now() - s.time < 30000))) {
             return; // Prevent duplicate scan within 30 seconds
@@ -173,12 +195,28 @@ const AttendancePage = () => {
             const studentInfo = res.lastMarkedStudent || { studentId: decodedText, name: "Scanning..." };
             
             setRecentScans(prev => [{ ...studentInfo, time: Date.now() }, ...prev].slice(0, 10));
+            playBeep();
             
             toast({
                 title: "Scan Successful",
                 description: `${studentInfo.name} marked Present.`,
                 className: "bg-green-600 text-white border-none"
             });
+
+            // Auto-select class/section if they don't match or aren't set
+            if (studentInfo.class && studentInfo.section) {
+                // Normalize roman to numeric for the dropdown if needed
+                const classMap: any = { 'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9', 'X': '10', 'XI': '11', 'XII': '12' };
+                const numericClass = classMap[studentInfo.class] || studentInfo.class;
+                
+                if (selectedClass !== numericClass || selectedSection !== studentInfo.section) {
+                    setSelectedClass(numericClass);
+                    setSelectedSection(studentInfo.section);
+                } else {
+                    // Just refresh if we are already in the right view
+                    fetchAttendance();
+                }
+            }
         } catch (error: any) {
             toast({ title: "Scan Failed", description: error.message, variant: "destructive" });
         }

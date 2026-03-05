@@ -3,6 +3,14 @@ import User from '../models/User.js';
 import StudentProfile from '../models/StudentProfile.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 
+const normalizeClass = (cls) => {
+    const map = {
+        '5': 'V', '6': 'VI', '7': 'VII', '8': 'VIII', '9': 'IX', '10': 'X', '11': 'XI', '12': 'XII',
+        'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9', 'X': '10', 'XI': '11', 'XII': '12'
+    };
+    return map[cls] || cls;
+};
+
 // @desc    Mark Attendance (Single or Bulk)
 // @route   POST /api/attendance
 // @access  Private (Teacher/Admin)
@@ -59,7 +67,9 @@ export const markAttendance = asyncHandler(async (req, res) => {
                     name: studentProfile.user.name,
                     studentId: studentProfile.studentId,
                     rollNumber: studentProfile.rollNumber,
-                    status: payload.status
+                    status: payload.status,
+                    class: studentProfile.class,
+                    section: studentProfile.section
                 };
             }
         } catch (error) {
@@ -87,14 +97,24 @@ export const getClassAttendance = asyncHandler(async (req, res) => {
     const nextDay = new Date(queryDate);
     nextDay.setDate(nextDay.getDate() + 1);
 
-    // 1. Get all students in this class/section
-    const studentQuery = { class: className };
+    const targetClass = normalizeClass(className);
+
+    // 1. Get all students in this class/section (Search both versions if numeric/roman mismatch)
+    const studentQuery = { 
+        $or: [
+            { class: className },
+            { class: targetClass }
+        ]
+    };
     if (section) studentQuery.section = section;
     const students = await StudentProfile.find(studentQuery).populate('user', 'name email');
 
     // 2. Get existing attendance for this date/class/section
     const attendanceRecords = await Attendance.find({
-        class: className,
+        $or: [
+            { class: className },
+            { class: targetClass }
+        ],
         section: section ? section : { $exists: true },
         date: { $gte: queryDate, $lt: nextDay }
     });
