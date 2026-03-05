@@ -431,6 +431,57 @@ class ApiService {
     });
   }
 
+  // --- Exam Methods ---
+  async getExams(filters?: { session?: string; class?: string; isPublic?: boolean }): Promise<any[]> {
+    let query = '';
+    const params = new URLSearchParams();
+    if (filters) {
+      if (filters.session) params.append('session', filters.session);
+      if (filters.class) params.append('class', filters.class);
+      if (filters.isPublic) params.append('isPublic', 'true');
+    }
+    query = params.toString() ? `?${params.toString()}` : '';
+    const response = await this.request<{ success: boolean; data: any[] }>(`/exams${query}`);
+    return Array.isArray(response) ? response : (response?.data ?? []);
+  }
+
+  async getExamById(id: string): Promise<any> {
+    const response = await this.request<{ success: boolean; data: any }>(`/exams/${id}`);
+    return response.data;
+  }
+
+  async createExam(examData: any): Promise<any> {
+    const response = await this.request<{ success: boolean; data: any }>('/exams', {
+      method: 'POST',
+      body: JSON.stringify(examData),
+    });
+    return response.data;
+  }
+
+  async updateExam(id: string, examData: any): Promise<any> {
+    const response = await this.request<{ success: boolean; data: any }>(`/exams/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(examData),
+    });
+    return response.data;
+  }
+
+  async deleteExam(id: string): Promise<ApiResponse> {
+    return this.request<ApiResponse>(`/exams/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // --- Marks Entry Methods ---
+  async getExamResults(examId: string): Promise<any[]> {
+    try {
+      const response = await this.request<{ success: boolean; data: any[]; count?: number }>(`/results/exam/${examId}`);
+      return Array.isArray(response) ? response : (response?.data ?? []);
+    } catch {
+      return [];
+    }
+  }
+
   // Notification Methods
   async getNotifications(studentId: string): Promise<Notification[]> {
     return this.request<Notification[]>(`/notifications/student/${studentId}`);
@@ -552,27 +603,13 @@ class ApiService {
     });
   }
 
-  // Exam & Result Methods
-  async getExams(filters?: any): Promise<any[]> {
-    // Construct query string if filters exist
-    const response = await this.request<{ success: boolean; data: any[] }>('/exams');
-    return response.data;
-  }
+  // --- Other Exam & Result Admin Methods ---
 
   async getStudents(): Promise<any[]> {
-    const response = await this.request<{ success: boolean; data: any[] }>('/students');
-    // The students route actually returns the array directly in studentController.js, let's just use it directly:
-    // Actually, getStudents from '/students' returns the array directly, so let's adjust based on what StudentManagement expects.
-    // If we call `/students` (which calls getStudents in studentController.js), it returns `res.status(200).json(students)` directly.
     return this.request<any[]>('/students');
   }
 
-  async createExam(examData: any): Promise<any> {
-    return this.request<any>('/exams', {
-      method: 'POST',
-      body: JSON.stringify(examData),
-    });
-  }
+
 
   async updateMarks(data: { studentId: string; examId: string; marks: any }): Promise<any> {
     return this.request<any>('/results/marks', {
@@ -581,9 +618,7 @@ class ApiService {
     });
   }
 
-  async getExamResults(examId: string): Promise<any[]> {
-    return this.request<any[]>(`/results/exam/${examId}`);
-  }
+
 
   async publishResult(examId: string): Promise<any> {
     return this.request<any>(`/results/publish/${examId}`, {
@@ -773,8 +808,20 @@ class ApiService {
     return this.request<any>(`/results/report-card/${studentProfileId}/${examId}`);
   }
 
-  async getPublicResult(rollNumber: string): Promise<any> {
-    return this.request<any>(`/results/public?rollNumber=${encodeURIComponent(rollNumber)}`);
+  async getPublicResult(params: {
+    rollNumber?: string;
+    class?: string;
+    section?: string;
+    name?: string;
+    examId?: string;
+  }): Promise<any> {
+    const query = new URLSearchParams();
+    if (params.rollNumber) query.append('rollNumber', params.rollNumber);
+    if (params.class)      query.append('class', params.class);
+    if (params.section)    query.append('section', params.section);
+    if (params.name)       query.append('name', params.name);
+    if (params.examId)     query.append('examId', params.examId);
+    return this.request<any>(`/results/public?${query.toString()}`);
   }
 
   // ------- Sprint 4 — Routines (by class/section for student) -------
@@ -857,7 +904,12 @@ class ApiService {
   async deleteGalleryImage(id: string): Promise<any> {
     return this.request<any>(`/gallery/${id}`, { method: 'DELETE' });
   }
+
+  async getPublicExams(cls?: string): Promise<any[]> {
+    return this.getExams({ class: cls, isPublic: true });
+  }
 }
+
 
 export interface CourseMaterial {
   _id: string;

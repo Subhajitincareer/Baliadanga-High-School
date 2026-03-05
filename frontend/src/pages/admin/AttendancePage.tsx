@@ -8,70 +8,106 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import apiService from '@/services/api';
-import { Loader2, CheckCircle2, XCircle, QrCode } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, QrCode, Search, UserCheck, UserMinus, History, CheckCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const AttendancePage = () => {
     const { toast } = useToast();
-    const [activeTab, setActiveTab] = useState("manual");
+    const [activeTab, setActiveTab] = useState("overview");
 
-    // Manual State
+    // Common State
     const [selectedClass, setSelectedClass] = useState("");
     const [selectedSection, setSelectedSection] = useState("");
     const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [loading, setLoading] = useState(false);
+
+    // Manual/Overview Shared State
     const [students, setStudents] = useState<any[]>([]);
     const [attendanceData, setAttendanceData] = useState<Record<string, string>>({}); // studentId -> status
-    const [loading, setLoading] = useState(false);
+
+    // Manual Entry State
     const [saving, setSaving] = useState(false);
     const [quickAbsentInput, setQuickAbsentInput] = useState("");
 
     // QR State
-    const [scanResult, setScanResult] = useState("");
-    const [lastScanned, setLastScanned] = useState("");
+    const [recentScans, setRecentScans] = useState<any[]>([]);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
-    // Load students when class+section change
+    // Stats
+    const stats = {
+        total: students.length,
+        present: students.filter(s => attendanceData[s.userId] === 'Present' || s.status === 'Present').length,
+        absent: students.filter(s => attendanceData[s.userId] === 'Absent' || s.status === 'Absent').length,
+        unmarked: students.filter(s => (attendanceData[s.userId] || s.status) === 'N/A').length
+    };
+
+    // Load data when class+section+date change
     useEffect(() => {
         if (selectedClass && selectedSection) {
-            fetchStudents();
+            fetchAttendance();
         }
-    }, [selectedClass, selectedSection]);
+    }, [selectedClass, selectedSection, attendanceDate]);
 
-    const fetchStudents = async () => {
+    const fetchAttendance = async () => {
         setLoading(true);
         try {
-            const data = await apiService.getStudentsByClass(selectedClass, selectedSection);
+            const data = await apiService.getClassAttendance(selectedClass, selectedSection, attendanceDate);
             setStudents(data);
-
-            // Initialize all as Present by default
-            const initialStatus: Record<string, string> = {};
+            
+            // Sync status to local state for manual editing
+            const statusMap: Record<string, string> = {};
             data.forEach((s: any) => {
-                initialStatus[s._id] = 'Present';
+                statusMap[s.userId] = s.status;
             });
-            setAttendanceData(initialStatus);
+            setAttendanceData(statusMap);
             setQuickAbsentInput("");
         } catch (error) {
             console.error(error);
-            toast({ title: "Error fetching students", variant: "destructive" });
+            toast({ title: "Error fetching attendance", variant: "destructive" });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleManualSubmit = async () => {
+    const handleSaveStatus = async (userId: string, status: string) => {
+        try {
+            const student = students.find(s => s.userId === userId);
+            await apiService.markAttendance({
+                student: userId,
+                studentId: student?.studentId,
+                date: attendanceDate,
+                status,
+                method: 'Manual',
+                class: selectedClass,
+                section: selectedSection
+            });
+            
+            setAttendanceData(prev => ({ ...prev, [userId]: status }));
+            // Partial update local students list to reflect change immediately in UI if not re-fetching
+            setStudents(prev => prev.map(s => s.userId === userId ? { ...s, status } : s));
+
+            toast({ title: `${student?.name} marked ${status}` });
+        } catch (error: any) {
+            toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+        }
+    };
+
+    const handleBulkSubmit = async () => {
         setSaving(true);
         try {
             const payload = students.map(student => ({
-                student: student.userId,   // User ObjectId from populated profile
+                student: student.userId,
                 studentId: student.studentId,
                 date: attendanceDate,
-                status: attendanceData[student._id] || 'Present',
+                status: attendanceData[student.userId] || 'Present',
                 method: 'Manual',
                 class: selectedClass,
                 section: selectedSection
             }));
 
             await apiService.markAttendance(payload);
-            toast({ title: "Attendance Saved", description: `Marked ${students.length} students for ${attendanceDate}.` });
+            toast({ title: "Attendance Saved", description: `Updated ${students.length} records.` });
+            fetchAttendance(); // Refresh
         } catch (error: any) {
             toast({ title: "Failed to save", description: error.message, variant: "destructive" });
         } finally {
@@ -80,17 +116,9 @@ const AttendancePage = () => {
     };
 
     const markAllPresent = () => {
-        const newData: Record<string, string> = {};
-        students.forEach(s => newData[s._id] = 'Present');
+        const newData: Record<string, string> = { ...attendanceData };
+        students.forEach(s => newData[s.userId] = 'Present');
         setAttendanceData(newData);
-        setQuickAbsentInput("");
-    };
-
-    const markAllAbsent = () => {
-        const newData: Record<string, string> = {};
-        students.forEach(s => newData[s._id] = 'Absent');
-        setAttendanceData(newData);
-        setQuickAbsentInput("");
     };
 
     const handleQuickAbsentChange = (val: string) => {
@@ -100,9 +128,9 @@ const AttendancePage = () => {
         const newData: Record<string, string> = {};
         students.forEach(s => {
             if (absentRolls.includes(String(s.rollNumber))) {
-                newData[s._id] = 'Absent';
+                newData[s.userId] = 'Absent';
             } else {
-                newData[s._id] = 'Present';
+                newData[s.userId] = 'Present';
             }
         });
         setAttendanceData(newData);
@@ -111,11 +139,10 @@ const AttendancePage = () => {
     // QR Logic
     useEffect(() => {
         if (activeTab === 'qr' && !scannerRef.current) {
-            // Initialize Scanner
             const scanner = new Html5QrcodeScanner(
                 "reader",
                 { fps: 10, qrbox: { width: 250, height: 250 } },
-                /* verbose= */ false
+                false
             );
 
             scanner.render(onScanSuccess, onScanFailure);
@@ -130,159 +157,246 @@ const AttendancePage = () => {
         };
     }, [activeTab]);
 
-    const onScanSuccess = async (decodedText: string, decodedResult: any) => {
-        if (decodedText === lastScanned) return; // Prevent duplicate rapid scans
-
-        setLastScanned(decodedText);
-        setScanResult(decodedText);
+    const onScanSuccess = async (decodedText: string) => {
+        if (recentScans.some(s => s.studentId === decodedText && (Date.now() - s.time < 30000))) {
+            return; // Prevent duplicate scan within 30 seconds
+        }
 
         try {
-            // Assume decodedText is the Student ID
-            await apiService.markAttendance({
+            const res = await apiService.markAttendance({
                 studentId: decodedText,
-                date: new Date(),
+                date: new Date().toISOString(),
                 status: 'Present',
                 method: 'QR'
             });
 
+            const studentInfo = res.lastMarkedStudent || { studentId: decodedText, name: "Scanning..." };
+            
+            setRecentScans(prev => [{ ...studentInfo, time: Date.now() }, ...prev].slice(0, 10));
+            
             toast({
-                title: "Attendance Marked",
-                description: `Student ID: ${decodedText} marked Present.`,
-                className: "bg-green-500 text-white"
+                title: "Scan Successful",
+                description: `${studentInfo.name} marked Present.`,
+                className: "bg-green-600 text-white border-none"
             });
-
-            // Play success sound (optional)
         } catch (error: any) {
-            toast({
-                title: "Scan Failed",
-                description: error.message,
-                variant: "destructive"
-            });
+            toast({ title: "Scan Failed", description: error.message, variant: "destructive" });
         }
     };
 
-    const onScanFailure = (error: any) => {
-        // console.warn(`Code scan error = ${error}`);
-    };
+    const onScanFailure = () => {};
 
     return (
-        <div className="container py-8 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Attendance Management</h1>
+        <div className="container py-8 max-w-6xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Live Attendance</h1>
+                    <p className="text-muted-foreground">Manage real-time attendance and verify student records.</p>
+                </div>
+                <div className="flex items-center gap-3 bg-white p-2 rounded-xl border shadow-sm">
+                    <Select onValueChange={setSelectedClass} value={selectedClass}>
+                        <SelectTrigger className="w-[130px] border-none shadow-none focus:ring-0">
+                            <SelectValue placeholder="Class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {["V","VI","VII","VIII","IX","X","XI","XII"].map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <div className="h-6 w-px bg-slate-200"></div>
+                    <Select onValueChange={setSelectedSection} value={selectedSection}>
+                        <SelectTrigger className="w-[100px] border-none shadow-none focus:ring-0">
+                            <SelectValue placeholder="Sec" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {["A","B","C","D"].map(s => <SelectItem key={s} value={s}>Sec {s}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <div className="h-6 w-px bg-slate-200"></div>
+                    <Input 
+                        type="date" 
+                        value={attendanceDate} 
+                        onChange={e => setAttendanceDate(e.target.value)} 
+                        className="w-[150px] border-none shadow-none focus-visible:ring-0"
+                    />
+                </div>
+            </div>
 
-            <Tabs defaultValue="manual" className="w-full" onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 mb-8">
-                    <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                    <TabsTrigger value="qr">QR Scanner</TabsTrigger>
+            <Tabs defaultValue="overview" className="w-full space-y-6" onValueChange={setActiveTab}>
+                <TabsList className="bg-slate-100 p-1 rounded-xl w-fit">
+                    <TabsTrigger value="overview" className="rounded-lg px-6 data-[state=active]:bg-white data-[state=active]:shadow-sm">Overview</TabsTrigger>
+                    <TabsTrigger value="manual" className="rounded-lg px-6 data-[state=active]:bg-white data-[state=active]:shadow-sm">Bulk Entry</TabsTrigger>
+                    <TabsTrigger value="qr" className="rounded-lg px-6 data-[state=active]:bg-white data-[state=active]:shadow-sm flex gap-2"><QrCode className="h-4 w-4" /> Live Scanner</TabsTrigger>
                 </TabsList>
 
+                <TabsContent value="overview">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        {/* Stats Cards */}
+                        <div className="lg:col-span-1 space-y-4">
+                            <Card className="bg-indigo-600 text-white overflow-hidden relative">
+                                <CardContent className="p-6">
+                                    <p className="text-indigo-100 text-sm font-medium">Total Students</p>
+                                    <h3 className="text-4xl font-bold mt-1">{stats.total}</h3>
+                                    <UserCheck className="absolute top-4 right-4 h-12 w-12 opacity-10" />
+                                </CardContent>
+                            </Card>
+                            <Card className="border-green-100 bg-green-50/30">
+                                <CardContent className="p-4 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-green-700 text-xs font-semibold uppercase tracking-wider">Present</p>
+                                        <h3 className="text-2xl font-bold text-green-800">{stats.present}</h3>
+                                    </div>
+                                    <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                                        <CheckCircle className="h-6 w-6" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="border-red-100 bg-red-50/30">
+                                <CardContent className="p-4 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-red-700 text-xs font-semibold uppercase tracking-wider">Absent</p>
+                                        <h3 className="text-2xl font-bold text-red-800">{stats.absent}</h3>
+                                    </div>
+                                    <div className="h-10 w-10 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                                        <XCircle className="h-6 w-6" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="border-slate-200 bg-slate-50/30">
+                                <CardContent className="p-4 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider">Not Marked</p>
+                                        <h3 className="text-2xl font-bold text-slate-800">{stats.unmarked}</h3>
+                                    </div>
+                                    <div className="h-10 w-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500">
+                                        <Loader2 className="h-6 w-6" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Attendance Table */}
+                        <Card className="lg:col-span-3 shadow-sm border-slate-200">
+                            <CardHeader className="border-b bg-slate-50/50 flex flex-row items-center justify-between py-4">
+                                <div>
+                                    <CardTitle className="text-lg">Class List & Status</CardTitle>
+                                    <CardDescription>Real-time checking for {selectedClass} {selectedSection}</CardDescription>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={fetchAttendance} disabled={loading}>
+                                    <History className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Sync Data
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                {selectedClass && selectedSection ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm text-left">
+                                            <thead className="text-xs uppercase bg-slate-100 text-slate-600 font-bold border-b">
+                                                <tr>
+                                                    <th className="px-4 py-3">Roll</th>
+                                                    <th className="px-4 py-3">Name</th>
+                                                    <th className="px-4 py-3">Status</th>
+                                                    <th className="px-4 py-3">Update</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loading ? (
+                                                    <tr><td colSpan={4} className="py-20 text-center text-muted-foreground"><Loader2 className="animate-spin inline mr-2" /> Initializing...</td></tr>
+                                                ) : students.length === 0 ? (
+                                                    <tr><td colSpan={4} className="py-20 text-center text-muted-foreground">No students found for this class.</td></tr>
+                                                ) : (
+                                                    students.map(s => (
+                                                        <tr key={s.userId} className="border-b hover:bg-slate-50/80 transition-colors">
+                                                            <td className="px-4 py-3 font-semibold">{s.rollNumber}</td>
+                                                            <td className="px-4 py-3">
+                                                                <div className="font-medium text-slate-900">{s.name}</div>
+                                                                <div className="text-[10px] text-slate-400 font-mono tracking-tighter">{s.studentId}</div>
+                                                            </td>
+                                                            <td className="px-4 py-3">
+                                                                <Badge variant={s.status === 'Present' ? "default" : s.status === 'Absent' ? "destructive" : "secondary"}>
+                                                                    {s.status}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="px-4 py-3">
+                                                                <div className="flex gap-1">
+                                                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={() => handleSaveStatus(s.userId, 'Present')}>
+                                                                        <UserCheck className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => handleSaveStatus(s.userId, 'Absent')}>
+                                                                        <UserMinus className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 hover:bg-amber-50" onClick={() => handleSaveStatus(s.userId, 'Late')}>
+                                                                        <History className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="p-20 text-center text-muted-foreground">
+                                        <Search className="h-10 w-10 mx-auto mb-4 opacity-10" />
+                                        Please select Class and Section to view overview.
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
                 <TabsContent value="manual">
-                    <Card>
+                    <Card className="border-slate-200">
                         <CardHeader>
-                            <CardTitle>Class Attendance</CardTitle>
-                            <CardDescription>Select Class & Section to mark attendance</CardDescription>
+                            <CardTitle>Bulk Entry Mode</CardTitle>
+                            <CardDescription>Assign attendance to the whole class at once.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex flex-wrap gap-4 mb-6">
-                                <Select onValueChange={setSelectedClass}>
-                                    <SelectTrigger className="w-[160px]">
-                                        <SelectValue placeholder="Select Class" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                                <Select onValueChange={setSelectedSection}>
-                                    <SelectTrigger className="w-[140px]">
-                                        <SelectValue placeholder="Section" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {["A","B","C","D"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                                <div className="flex flex-col gap-1">
-                                    <Label className="text-xs text-muted-foreground">Date</Label>
-                                    <Input
-                                        type="date"
-                                        className="w-[160px]"
-                                        value={attendanceDate}
-                                        onChange={e => setAttendanceDate(e.target.value)}
+                            <div className="flex flex-col sm:flex-row gap-4 mb-8 p-6 bg-slate-50 rounded-xl border border-slate-100">
+                                <div className="flex-1 space-y-2">
+                                    <Label className="text-sm font-bold text-slate-700">Quick Absent List (By Roll No)</Label>
+                                    <Input 
+                                        placeholder="Enter roll numbers: 5, 12, 18..." 
+                                        value={quickAbsentInput}
+                                        onChange={(e) => handleQuickAbsentChange(e.target.value)}
+                                        className="bg-white border-slate-200"
                                     />
+                                    <p className="text-[10px] text-slate-500 font-medium">Any roll number NOT in this list will be marked 'Present'.</p>
+                                </div>
+                                <div className="flex items-end gap-2 shrink-0">
+                                    <Button variant="outline" className="border-indigo-200 text-indigo-700 bg-white" onClick={markAllPresent}>Mark All Present</Button>
                                 </div>
                             </div>
 
-                            {/* Fast Attendance Controls */}
-                            {students.length > 0 && !loading && (
-                                <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-indigo-50/50 rounded-md border border-indigo-100">
-                                    <div className="flex-1 space-y-1">
-                                        <Label className="text-sm font-semibold text-indigo-900">Quick Absent (By Roll No)</Label>
-                                        <div className="flex gap-2">
-                                            <Input 
-                                                placeholder="e.g. 5, 12, 18" 
-                                                value={quickAbsentInput}
-                                                onChange={(e) => handleQuickAbsentChange(e.target.value)}
-                                                className="bg-white border-indigo-200 focus-visible:ring-indigo-500"
-                                            />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {students.map(s => (
+                                    <div key={s.userId} className={`p-3 rounded-lg border transition-all flex items-center justify-between ${attendanceData[s.userId] === 'Absent' ? 'bg-red-50 border-red-200' : 'bg-white hover:border-indigo-200'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-slate-100 rounded-full flex items-center justify-center text-xs font-bold text-slate-600">{s.rollNumber}</div>
+                                            <div className="font-medium text-sm">{s.name}</div>
                                         </div>
-                                        <p className="text-xs text-indigo-600">Type roll numbers separated by commas. Others will be marked 'Present'.</p>
-                                    </div>
-                                    <div className="flex items-end gap-2 shrink-0">
-                                        <Button variant="outline" className="border-green-200 bg-white text-green-700 hover:bg-green-50" onClick={markAllPresent}>Mark All Present</Button>
-                                        <Button variant="outline" className="border-red-200 bg-white text-red-700 hover:bg-red-50" onClick={markAllAbsent}>Mark All Absent</Button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Student List */}
-                            <div className="border rounded-md p-4 min-h-[300px]">
-                                <div className="grid grid-cols-4 font-bold mb-4 bg-muted p-2 rounded">
-                                    <div>Roll No</div>
-                                    <div>Name</div>
-                                    <div>Student ID</div>
-                                    <div>Status</div>
-                                </div>
-                                {loading ? (
-                                    <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
-                                ) : students.length === 0 ? (
-                                    <p className="text-center text-muted-foreground mt-8">Select class/section to load students or no students found.</p>
-                                ) : (
-                                    students.map(student => (
-                                        <div key={student._id} className="grid grid-cols-4 items-center p-2 border-b last:border-0 hover:bg-muted/50">
-                                            <div>{student.rollNumber || "-"}</div>
-                                            <div>{student.name}</div>
-                                            <div className="text-xs text-muted-foreground">{student.studentId}</div>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant={attendanceData[student._id] === 'Present' ? "default" : "outline"}
-                                                    onClick={() => {
-                                                        setAttendanceData({ ...attendanceData, [student._id]: 'Present' });
-                                                        setQuickAbsentInput("");
-                                                    }}
-                                                    className="h-8"
-                                                >
-                                                    P
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant={attendanceData[student._id] === 'Absent' ? "destructive" : "outline"}
-                                                    onClick={() => {
-                                                        setAttendanceData({ ...attendanceData, [student._id]: 'Absent' });
-                                                        setQuickAbsentInput("");
-                                                    }}
-                                                    className="h-8"
-                                                >
-                                                    A
-                                                </Button>
-                                            </div>
+                                        <div className="flex gap-1">
+                                            <Button 
+                                                variant={attendanceData[s.userId] === 'Present' ? "default" : "outline"} 
+                                                size="sm" 
+                                                className="h-7 px-2 text-[10px]"
+                                                onClick={() => setAttendanceData({...attendanceData, [s.userId]: 'Present'})}
+                                            >P</Button>
+                                            <Button 
+                                                variant={attendanceData[s.userId] === 'Absent' ? "destructive" : "outline"} 
+                                                size="sm" 
+                                                className="h-7 px-2 text-[10px]"
+                                                onClick={() => setAttendanceData({...attendanceData, [s.userId]: 'Absent'})}
+                                            >A</Button>
                                         </div>
-                                    ))
-                                )}
+                                    </div>
+                                ))}
                             </div>
 
-                            <div className="mt-6 flex justify-end">
-                                <Button onClick={handleManualSubmit} disabled={saving || students.length === 0}>
-                                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                                    Save Attendance
+                            <div className="mt-8 flex justify-end border-t pt-6">
+                                <Button size="lg" className="px-10" onClick={handleBulkSubmit} disabled={saving || students.length === 0}>
+                                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Save Class Attendance
                                 </Button>
                             </div>
                         </CardContent>
@@ -290,29 +404,51 @@ const AttendancePage = () => {
                 </TabsContent>
 
                 <TabsContent value="qr">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>QR Code Scanner</CardTitle>
-                            <CardDescription>Scan User ID Card to mark present</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex flex-col items-center">
-                            <div id="reader" className="w-full max-w-md bg-black rounded-lg overflow-hidden"></div>
-
-                            <div className="mt-6 text-center">
-                                <p className="text-sm text-muted-foreground mb-2">Last Scanned:</p>
-                                <div className="text-2xl font-mono font-bold">{lastScanned || "Waiting..."}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <Card className="md:col-span-12 lg:col-span-5 flex flex-col items-center p-6 border-slate-200 overflow-hidden">
+                            <h3 className="text-xl font-bold mb-4 self-start">Scan QR Code</h3>
+                            <div id="reader" className="w-full aspect-square bg-slate-900 rounded-2xl overflow-hidden border-8 border-slate-100 mb-6"></div>
+                            <div className="w-full p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-900 text-sm">
+                                <p className="font-bold flex items-center gap-2"><QrCode className="h-4 w-4" /> Scanner Ready</p>
+                                <p className="mt-1 opacity-80">Point the camera at the student ID card's QR code to record attendance automatically.</p>
                             </div>
+                        </Card>
 
-                            <div className="mt-8 p-4 bg-blue-50 text-blue-800 rounded-lg text-sm max-w-md">
-                                <p className="font-semibold flex items-center gap-2"><QrCode className="h-4 w-4" /> Instructions:</p>
-                                <ul className="list-disc ml-5 mt-2 space-y-1">
-                                    <li>Ensure valid camera permissions.</li>
-                                    <li>Hold ID card steady in front of camera.</li>
-                                    <li>System will beep and show success message upon scan.</li>
-                                </ul>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        <Card className="md:col-span-12 lg:col-span-7 border-slate-200 shadow-sm overflow-hidden">
+                            <CardHeader className="bg-slate-50/50 border-b py-4">
+                                <CardTitle className="text-lg flex items-center gap-2"><History className="h-5 w-5 text-indigo-600" /> Recent Scans</CardTitle>
+                                <CardDescription>Live feedback from current session</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0 max-h-[500px] overflow-y-auto">
+                                {recentScans.length === 0 ? (
+                                    <div className="p-20 text-center text-muted-foreground">
+                                        <Loader2 className="h-10 w-10 mx-auto mb-4 animate-pulse opacity-10" />
+                                        Waitng for first scan...
+                                    </div>
+                                ) : (
+                                    <div className="divide-y">
+                                        {recentScans.map((scan, i) => (
+                                            <div key={i} className={`p-4 flex items-center justify-between animate-in slide-in-from-left duration-300 ${i === 0 ? 'bg-green-50/50' : ''}`}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+                                                        {scan.rollNumber || '?'}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-slate-900">{scan.name}</div>
+                                                        <div className="text-xs text-slate-500">{scan.studentId} • {new Date(scan.time).toLocaleTimeString()}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge className="bg-green-600 h-6">PRESENT</Badge>
+                                                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

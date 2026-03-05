@@ -71,8 +71,13 @@ export const updateMarks = asyncHandler(async (req, res) => {
 // @access  Private (Admin/Teacher)
 export const getExamResults = asyncHandler(async (req, res) => {
     const results = await Result.find({ examId: req.params.examId })
-        .populate('studentId', 'name email rollNumber') // Assuming Student has name/roll
-        .sort({ rank: 1 });
+        .populate({
+            path: 'studentId',
+            model: 'StudentProfile',
+            select: 'rollNumber studentId class section',
+            populate: { path: 'user', select: 'name email' }
+        })
+        .sort({ rank: 1, totalObtained: -1 });
 
     res.json({
         success: true,
@@ -225,44 +230,82 @@ export const bulkUpsertMarks = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Public roll-number lookup — only published results
-// @route   GET /api/results/public?rollNumber=X
+// @desc    Public result lookup — only published results
+// @route   GET /api/results/public?rollNumber=X&class=5&section=A&name=Raj&examId=...
 // @access  Public (no auth)
 export const getPublicResult = asyncHandler(async (req, res) => {
-    const { rollNumber } = req.query;
-    if (!rollNumber) {
+    const { rollNumber, class: cls, section, name, examId } = req.query;
+
+    // At least one identifier must be provided
+    if (!rollNumber && !name && !cls) {
         res.status(400);
-        throw new Error('rollNumber query param is required');
+        throw new Error('Provide at least rollNumber, name, or class to search');
     }
 
-    const profile = await StudentProfile.findOne({ rollNumber }).populate('user', 'name email');
-    if (!profile) {
+    // Build student profile filter
+    const profileFilter = {};
+    if (rollNumber) profileFilter.rollNumber = rollNumber;
+    if (cls)        profileFilter.class = cls;
+    if (section)    profileFilter.section = section;
+    if (name)       profileFilter.$or = [
+        { name: { $regex: name, $options: 'i' } }
+    ];
+
+    let profiles = await StudentProfile.find(profileFilter).populate('user', 'name email');
+
+    // If searching by name also check user.name (via user join)
+    if (name && profiles.length === 0) {
+        // Try to find by user name
+        const User = (await import('../models/User.js')).default;
+        const users = await User.find({ name: { $regex: name, $options: 'i' } });
+        const userIds = users.map(u => u._id);
+        profiles = await StudentProfile.find({
+            ...( cls ? { class: cls } : {} ),
+            ...( section ? { section } : {} ),
+            user: { $in: userIds }
+        }).populate('user', 'name email');
+    }
+
+    if (!profiles.length) {
         res.status(404);
-        throw new Error('No student found with that roll number');
+        throw new Error('No student found matching your search');
     }
 
-    // Get only published results
-    const results = await Result.find({ studentId: profile._id })
-        .populate({
-            path: 'examId',
-            select: 'name type class academicYear subjects isPublished',
-            match: { isPublished: true }
-        })
-        .sort({ createdAt: -1 });
+    // For each student profile, get their published results
+    const allData = await Promise.all(profiles.map(async (profile) => {
+        const resultFilter = { studentId: profile._id };
+        if (examId) resultFilter.examId = examId;
 
-    const published = results.filter(r => r.examId !== null);
+        const results = await Result.find(resultFilter)
+            .populate({
+                path: 'examId',
+                select: 'name type class academicYear subjects isPublished',
+                match: { isPublished: true }
+            })
+            .sort({ createdAt: -1 });
 
-    res.json({
-        success: true,
-        student: {
-            name: profile.user?.name || profile.name,
-            rollNumber: profile.rollNumber,
-            class: profile.class,
-            section: profile.section
-        },
-        results: published
-    });
+        const published = results.filter(r => r.examId !== null);
+        return {
+            student: {
+                name: profile.user?.name || profile.name,
+                rollNumber: profile.rollNumber,
+                class: profile.class,
+                section: profile.section,
+            },
+            results: published
+        };
+    }));
+
+    // If only one student found, return single object (backwards compatible)
+    if (allData.length === 1) {
+        return res.json({ success: true, ...allData[0] });
+    }
+
+    // Multiple students: return array
+    res.json({ success: true, students: allData });
 });
+
+
 
 // @desc    Get full report card for print (admin)
 // @route   GET /api/results/report-card/:studentProfileId/:examId

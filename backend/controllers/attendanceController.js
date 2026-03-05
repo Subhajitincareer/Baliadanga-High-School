@@ -7,29 +7,24 @@ import asyncHandler from '../middlewares/asyncHandler.js';
 // @route   POST /api/attendance
 // @access  Private (Teacher/Admin)
 export const markAttendance = asyncHandler(async (req, res) => {
-    // Accepts array of attendance objects OR a single object
     const data = Array.isArray(req.body) ? req.body : [req.body];
-
     if (data.length === 0) {
         res.status(400);
         throw new Error('No attendance data provided');
     }
 
-    const results = { success: 0, failed: 0, errors: [] };
+    const results = { success: 0, failed: 0, errors: [], lastMarkedStudent: null };
 
     for (const item of data) {
         try {
-            // Find student user ID if only studentId provided
-            let userId = item.student; // Assuming _id sent
+            let userId = item.student;
+            let studentProfile = null;
+
             if (!userId && item.studentId) {
-                const studentUser = await User.findOne({ studentId: item.studentId });
-                if (studentUser) {
-                    userId = studentUser._id;
-                } else {
-                    // Try profile fall back
-                    const profile = await StudentProfile.findOne({ studentId: item.studentId });
-                    if (profile) userId = profile.user;
-                }
+                studentProfile = await StudentProfile.findOne({ studentId: item.studentId }).populate('user', 'name email');
+                if (studentProfile) userId = studentProfile.user._id;
+            } else if (userId) {
+                studentProfile = await StudentProfile.findOne({ user: userId }).populate('user', 'name email');
             }
 
             if (!userId) {
@@ -39,37 +34,44 @@ export const markAttendance = asyncHandler(async (req, res) => {
             }
 
             const date = new Date(item.date || Date.now());
-            date.setHours(0, 0, 0, 0); // Normalize to midnight
+            date.setHours(0, 0, 0, 0);
 
             const payload = {
                 student: userId,
-                studentId: item.studentId, // Keep string ID too
+                studentId: studentProfile?.studentId || item.studentId,
                 date: date,
                 status: item.status || 'Present',
                 method: item.method || 'Manual',
                 markedBy: req.user._id,
-                class: item.class,
-                section: item.section
+                class: item.class || studentProfile?.class,
+                section: item.section || studentProfile?.section
             };
 
-            // Upsert (Update if exists, Insert if new)
             await Attendance.findOneAndUpdate(
                 { student: userId, date: date },
                 payload,
                 { upsert: true, new: true, setDefaultsOnInsert: true }
             );
-            results.success++;
 
+            results.success++;
+            if (data.length === 1 && studentProfile) {
+                results.lastMarkedStudent = {
+                    name: studentProfile.user.name,
+                    studentId: studentProfile.studentId,
+                    rollNumber: studentProfile.rollNumber,
+                    status: payload.status
+                };
+            }
         } catch (error) {
             results.failed++;
             results.errors.push(error.message);
         }
     }
 
-    res.status(200).json({ message: 'Attendance processed', results });
+    res.status(200).json({ message: 'Attendance processed', ...results });
 });
 
-// @desc    Get Attendance by Class & Date
+// @desc    Get Attendance by Class & Date (Complete list including not-marked)
 // @route   GET /api/attendance/class
 // @access  Private (Teacher/Admin)
 export const getClassAttendance = asyncHandler(async (req, res) => {
@@ -85,25 +87,40 @@ export const getClassAttendance = asyncHandler(async (req, res) => {
     const nextDay = new Date(queryDate);
     nextDay.setDate(nextDay.getDate() + 1);
 
-    const attendance = await Attendance.find({
-        class: className,
-        section: section ? section : { $exists: true }, // Optional section
-        date: { $gte: queryDate, $lt: nextDay }
-    }).populate('student', 'name email studentId rollNumber');
+    // 1. Get all students in this class/section
+    const studentQuery = { class: className };
+    if (section) studentQuery.section = section;
+    const students = await StudentProfile.find(studentQuery).populate('user', 'name email');
 
-    res.status(200).json(attendance);
+    // 2. Get existing attendance for this date/class/section
+    const attendanceRecords = await Attendance.find({
+        class: className,
+        section: section ? section : { $exists: true },
+        date: { $gte: queryDate, $lt: nextDay }
+    });
+
+    // 3. Map students to records
+    const fullAttendanceList = students.map(student => {
+        const record = attendanceRecords.find(r => r.student.toString() === student.user._id.toString());
+        return {
+            studentId: student.studentId,
+            userId: student.user._id,
+            name: student.user.name,
+            rollNumber: student.rollNumber,
+            status: record ? record.status : 'N/A', // Default to N/A if not marked
+            markedBy: record ? record.markedBy : null,
+            date: queryDate
+        };
+    }).sort((a, b) => (Number(a.rollNumber) || 0) - (Number(b.rollNumber) || 0));
+
+    res.status(200).json(fullAttendanceList);
 });
 
 // @desc    Get Single Student Attendance (History)
 // @route   GET /api/attendance/student/:id
 // @access  Private (Student/Parent/Admin)
 export const getStudentAttendance = asyncHandler(async (req, res) => {
-    // id can be UserId or StudentId string
     let userId = req.params.id;
-
-    // Logic to resolve userId if string ID passed (omitted for brevity, assuming _id usually from frontend)
-    // Actually simpler to just search by student or studentId field in Model? 
-    // But Model stores Object ID ref.
 
     if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
         const user = await User.findOne({ studentId: userId });

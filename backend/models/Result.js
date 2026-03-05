@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const resultSchema = new mongoose.Schema({
     studentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Student', // Ideally we should have a Student model, or link to User
+        ref: 'StudentProfile',
         required: true
     },
     examId: {

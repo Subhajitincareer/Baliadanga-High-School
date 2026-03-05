@@ -12,6 +12,7 @@ import { Award } from '@/components/ui/award-icon';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { AttendanceGraph } from '@/components/student/AttendanceGraph';
 import { ExamResultCard } from '@/components/student/ExamResultCard';
+import { InsightfulResultView } from '@/components/student/InsightfulResultView';
 import { AttendanceDetailTable } from '@/components/student/AttendanceDetailTable';
 import { ClassScheduleGrid } from '@/components/shared/ClassScheduleGrid';
 import { useAuth } from '@/contexts/AuthContext';
@@ -421,10 +422,13 @@ const StudentDashboard = () => {
             {/* Results Tab */}
             <TabsContent value="results" className="m-0 space-y-4">
               {results && results.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {getLatestResults().map(result => (
-                    <ExamResultCard key={result._id} result={result} />
-                  ))}
+                <div>
+                  <InsightfulResultView results={results} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {getLatestResults().map(result => (
+                      <ExamResultCard key={result._id} result={result} />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <Card>
