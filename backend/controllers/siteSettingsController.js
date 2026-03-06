@@ -55,39 +55,37 @@ export const updateGeneral = asyncHandler(async (req, res) => {
   const settings = await getOrCreate();
 
   if (schoolInfo) {
-    settings.schoolInfo = { ...settings.schoolInfo.toObject?.() ?? settings.schoolInfo, ...schoolInfo };
+    Object.assign(settings.schoolInfo, schoolInfo);
+    settings.markModified('schoolInfo');
   }
   if (theme) {
-    settings.theme = { ...settings.theme.toObject?.() ?? settings.theme, ...theme };
+    Object.assign(settings.theme, theme);
+    settings.markModified('theme');
   }
   if (contact) {
-    settings.contact = { ...settings.contact.toObject?.() ?? settings.contact, ...contact };
+    Object.assign(settings.contact, contact);
+    settings.markModified('contact');
   }
   if (footer) {
-    settings.footer = { ...settings.footer.toObject?.() ?? settings.footer, ...footer };
+    Object.assign(settings.footer, footer);
+    settings.markModified('footer');
   }
   if (map) {
-    settings.map = { ...settings.map.toObject?.() ?? settings.map, ...map };
+    Object.assign(settings.map, map);
+    settings.markModified('map');
   }
-
   if (ticker) {
-    settings.ticker = { ...settings.ticker.toObject?.() ?? settings.ticker, ...ticker };
+    Object.assign(settings.ticker, ticker);
+    settings.markModified('ticker');
   }
   if (popup) {
-    settings.popup = { ...settings.popup.toObject?.() ?? settings.popup, ...popup };
+    Object.assign(settings.popup, popup);
+    settings.markModified('popup');
   }
   if (idCard) {
-    settings.idCard = { ...settings.idCard.toObject?.() ?? settings.idCard, ...idCard };
+    Object.assign(settings.idCard, idCard);
+    settings.markModified('idCard');
   }
-
-  settings.markModified('schoolInfo');
-  settings.markModified('theme');
-  settings.markModified('contact');
-  settings.markModified('footer');
-  settings.markModified('map');
-  settings.markModified('ticker');
-  settings.markModified('popup');
-  settings.markModified('idCard');
 
   await settings.save();
   res.json({ success: true, data: settings });
