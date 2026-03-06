@@ -72,7 +72,7 @@ const AttendancePage = () => {
     const handleSaveStatus = async (userId: string, status: string) => {
         try {
             const student = students.find(s => s.userId === userId);
-            await apiService.markAttendance({
+            const response = await apiService.markAttendance({
                 student: userId,
                 studentId: student?.studentId,
                 date: attendanceDate,
@@ -82,13 +82,17 @@ const AttendancePage = () => {
                 section: selectedSection
             });
             
-            setAttendanceData(prev => ({ ...prev, [userId]: status }));
-            // Partial update local students list to reflect change immediately in UI if not re-fetching
-            setStudents(prev => prev.map(s => s.userId === userId ? { ...s, status } : s));
+            if (response && response.success) {
+                setAttendanceData(prev => ({ ...prev, [userId]: status }));
+                // Partial update local students list to reflect change immediately in UI if not re-fetching
+                setStudents(prev => prev.map(s => s.userId === userId ? { ...s, status } : s));
 
-            toast({ title: `${student?.name} marked ${status}` });
+                toast({ title: `${student?.name} marked ${status}` });
+            } else {
+                throw new Error(response?.message || "Failed to update attendance");
+            }
         } catch (error: any) {
-            toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+            toast({ title: "Failed to update", description: error.message || "Failed to update status", variant: "destructive" });
         }
     };
 
@@ -105,11 +109,15 @@ const AttendancePage = () => {
                 section: selectedSection
             }));
 
-            await apiService.markAttendance(payload);
-            toast({ title: "Attendance Saved", description: `Updated ${students.length} records.` });
-            fetchAttendance(); // Refresh
+            const response = await apiService.markAttendance(payload);
+            if (response && response.success) {
+                toast({ title: "Attendance Saved", description: `Updated ${students.length} records.` });
+                fetchAttendance(); // Refresh
+            } else {
+                throw new Error(response?.message || "Failed to save attendance");
+            }
         } catch (error: any) {
-            toast({ title: "Failed to save", description: error.message, variant: "destructive" });
+            toast({ title: "Failed to save", description: error.message || "Failed to save data", variant: "destructive" });
         } finally {
             setSaving(false);
         }
@@ -189,36 +197,43 @@ const AttendancePage = () => {
                 studentId: decodedText,
                 date: new Date().toISOString(),
                 status: 'Present',
-                method: 'QR'
+                method: 'QR',
+                class: selectedClass, // Pass selected class context
+                section: selectedSection // Pass selected section context
             });
 
-            const studentInfo = res.lastMarkedStudent || { studentId: decodedText, name: "Scanning..." };
-            
-            setRecentScans(prev => [{ ...studentInfo, time: Date.now() }, ...prev].slice(0, 10));
-            playBeep();
-            
-            toast({
-                title: "Scan Successful",
-                description: `${studentInfo.name} marked Present.`,
-                className: "bg-green-600 text-white border-none"
-            });
-
-            // Auto-select class/section if they don't match or aren't set
-            if (studentInfo.class && studentInfo.section) {
-                // Normalize roman to numeric for the dropdown if needed
-                const classMap: any = { 'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9', 'X': '10', 'XI': '11', 'XII': '12' };
-                const numericClass = classMap[studentInfo.class] || studentInfo.class;
+            if (res && res.success) {
+                const studentInfo = res.lastMarkedStudent || { studentId: decodedText, name: "Scanning..." };
                 
-                if (selectedClass !== numericClass || selectedSection !== studentInfo.section) {
-                    setSelectedClass(numericClass);
-                    setSelectedSection(studentInfo.section);
-                } else {
-                    // Just refresh if we are already in the right view
-                    fetchAttendance();
+                setRecentScans(prev => [{ ...studentInfo, time: Date.now() }, ...prev].slice(0, 10));
+                playBeep();
+                
+                toast({
+                    title: "Scan Successful",
+                    description: `${studentInfo.name} marked Present.`,
+                    className: "bg-green-600 text-white border-none"
+                });
+
+                // Auto-select class/section if they don't match or aren't set
+                if (studentInfo.class && studentInfo.section) {
+                    // Ensure we use numeric class consistently
+                    const classMap: any = { 'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9', 'X': '10', 'XI': '11', 'XII': '12' };
+                    const numericClass = classMap[studentInfo.class] || studentInfo.class;
+                    
+                    if (selectedClass !== numericClass || selectedSection !== studentInfo.section) {
+                        setSelectedClass(numericClass);
+                        setSelectedSection(studentInfo.section);
+                    } else {
+                        // Just refresh if we are already in the right view
+                        fetchAttendance();
+                    }
                 }
+            } else {
+                throw new Error(res?.message || "Failed to mark attendance");
             }
         } catch (error: any) {
-            toast({ title: "Scan Failed", description: error.message, variant: "destructive" });
+            console.error("Attendance scan failed:", error);
+            toast({ title: "Scan Failed", description: error.message || "Student not found or attendance could not be saved.", variant: "destructive" });
         }
     };
 

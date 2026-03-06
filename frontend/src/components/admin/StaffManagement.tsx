@@ -109,23 +109,23 @@ export const StaffManagement: React.FC = () => {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0 pb-4">
           <div>
-            <CardTitle>Staff Management</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl">Staff Management</CardTitle>
             <CardDescription>Manage teachers, administrators, and support staff.</CardDescription>
           </div>
-          <Button onClick={handleAddStaff} className="bg-school-primary hover:bg-school-primary/90 text-white">
+          <Button onClick={handleAddStaff} className="w-full md:w-auto bg-school-primary hover:bg-school-primary/90 text-white">
             <Plus className="mr-2 h-4 w-4" /> Add Staff
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center py-4">
+          <div className="flex items-center py-2 md:py-4">
             <Search className="mr-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by name, email, ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
+              className="w-full md:max-w-sm"
             />
           </div>
 

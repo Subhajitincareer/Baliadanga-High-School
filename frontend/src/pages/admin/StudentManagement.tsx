@@ -267,25 +267,25 @@ const StudentManagement = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Student Management</h2>
-                    <p className="text-muted-foreground">Manage student records, admission, and bulk import.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Link to="/admin/students/quick-add">
-                        <Button className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Student Management</h2>
+                        <p className="text-sm md:text-base text-muted-foreground">Manage student records and admissions.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                    <Link to="/admin/students/quick-add" className="flex-1 md:flex-none">
+                        <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white">
                             <Zap className="mr-2 h-4 w-4" /> Quick Add
                         </Button>
                     </Link>
-                    <Link to="/admin/students/new">
-                        <Button variant="outline">
+                    <Link to="/admin/students/new" className="flex-1 md:flex-none">
+                        <Button variant="outline" className="w-full">
                             <User className="mr-2 h-4 w-4" /> Single Add
                         </Button>
                     </Link>
                     <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-school-primary hover:bg-school-primary/90">
+                            <Button className="flex-1 md:flex-none bg-school-primary hover:bg-school-primary/90">
                                 <Upload className="mr-2 h-4 w-4" /> Bulk Import
                             </Button>
                         </DialogTrigger>
@@ -517,18 +517,18 @@ const StudentManagement = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4 flex justify-end">
-                                                <Link to={`/admin/students/${student.studentId}`} className="flex-1">
+                                            <div className="mt-4 flex flex-wrap gap-2">
+                                                <Link to={`/admin/students/${student.studentId}`} className="flex-1 min-w-[100px]">
                                                     <Button size="sm" variant="outline" className="w-full">
-                                                        <Eye className="mr-2 h-4 w-4" /> View Detail
+                                                        <Eye className="mr-2 h-4 w-4" /> Details
                                                     </Button>
                                                 </Link>
-                                                <Link to={`/admin/students/${student.studentId}/edit`} className="flex-1">
+                                                <Link to={`/admin/students/${student.studentId}/edit`} className="flex-1 min-w-[80px]">
                                                     <Button size="sm" variant="outline" className="w-full text-blue-600 hover:text-blue-700">
                                                         <Edit className="mr-2 h-4 w-4" /> Edit
                                                     </Button>
                                                 </Link>
-                                                <Button size="sm" variant="outline" className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(student.studentId)}>
+                                                <Button size="sm" variant="outline" className="flex-1 min-w-[80px] text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(student.studentId)}>
                                                     <Trash2 className="mr-2 h-4 w-4" /> Delete
                                                 </Button>
                                             </div>

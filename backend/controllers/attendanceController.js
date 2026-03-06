@@ -4,9 +4,11 @@ import StudentProfile from '../models/StudentProfile.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 
 const normalizeClass = (cls) => {
+    if (!cls) return cls;
     const map = {
-        '5': 'V', '6': 'VI', '7': 'VII', '8': 'VIII', '9': 'IX', '10': 'X', '11': 'XI', '12': 'XII',
-        'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9', 'X': '10', 'XI': '11', 'XII': '12'
+        'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9', 'X': '10', 'XI': '11', 'XII': '12',
+        'v': '5', 'vi': '6', 'vii': '7', 'viii': '8', 'ix': '9', 'x': '10', 'xi': '11', 'xii': '12',
+        '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10', '11': '11', '12': '12'
     };
     return map[cls] || cls;
 };
@@ -29,6 +31,7 @@ export const markAttendance = asyncHandler(async (req, res) => {
             let studentProfile = null;
 
             if (!userId && item.studentId) {
+                // Search for student by ID
                 studentProfile = await StudentProfile.findOne({ studentId: item.studentId }).populate('user', 'name email');
                 if (studentProfile) userId = studentProfile.user._id;
             } else if (userId) {
@@ -37,12 +40,15 @@ export const markAttendance = asyncHandler(async (req, res) => {
 
             if (!userId) {
                 results.failed++;
-                results.errors.push(`Student not found for ID: ${item.studentId}`);
+                results.errors.push(`Student not found for ID: ${item.studentId || userId}`);
                 continue;
             }
 
             const date = new Date(item.date || Date.now());
             date.setHours(0, 0, 0, 0);
+
+            // Normalize class to numeric if possible for consistency
+            const normalizedClass = normalizeClass(item.class || studentProfile?.class);
 
             const payload = {
                 student: userId,
@@ -51,7 +57,7 @@ export const markAttendance = asyncHandler(async (req, res) => {
                 status: item.status || 'Present',
                 method: item.method || 'Manual',
                 markedBy: req.user._id,
-                class: item.class || studentProfile?.class,
+                class: normalizedClass,
                 section: item.section || studentProfile?.section
             };
 
@@ -62,23 +68,33 @@ export const markAttendance = asyncHandler(async (req, res) => {
             );
 
             results.success++;
-            if (data.length === 1 && studentProfile) {
+            if (studentProfile) {
                 results.lastMarkedStudent = {
                     name: studentProfile.user.name,
                     studentId: studentProfile.studentId,
                     rollNumber: studentProfile.rollNumber,
                     status: payload.status,
-                    class: studentProfile.class,
-                    section: studentProfile.section
+                    class: payload.class,
+                    section: payload.section
                 };
             }
         } catch (error) {
+            console.error('Attendance save error:', error);
             results.failed++;
             results.errors.push(error.message);
         }
     }
 
-    res.status(200).json({ message: 'Attendance processed', ...results });
+    // If single request and it failed, send 404/400
+    if (data.length === 1 && results.failed > 0) {
+        res.status(404).json({ message: results.errors[0], success: false, ...results });
+    } else {
+        res.status(200).json({ 
+            message: results.success > 0 ? 'Attendance processed' : 'Attendance failed', 
+            success: results.success > 0,
+            ...results 
+        });
+    }
 });
 
 // @desc    Get Attendance by Class & Date (Complete list including not-marked)

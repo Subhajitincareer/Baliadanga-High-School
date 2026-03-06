@@ -23,7 +23,7 @@ export const AnnouncementToolbar: React.FC<AnnouncementToolbarProps> = ({
         className="w-full sm:w-64 md:w-80"
         icon={Search}
       />
-      <Button onClick={onCreateClick} className="bg-school-primary hover:bg-school-primary/90">
+      <Button onClick={onCreateClick} className="w-full sm:w-auto bg-school-primary hover:bg-school-primary/90">
         <Plus className="mr-2 h-4 w-4" /> New Announcement
       </Button>
     </div>

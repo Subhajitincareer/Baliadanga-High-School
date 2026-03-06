@@ -306,7 +306,7 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
   const rejectedCount = admissions.filter(a => a.status === 'Rejected').length;
 
   return (
-    <div className="container py-8">
+    <div className="container py-4 md:py-8 px-2 md:px-4">
       {!hideHeader && (
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Admission Management</h1>
@@ -315,37 +315,37 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Applications</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{admissions.length}</div>
+          <CardContent className="p-4 md:p-6">
+            <div className="text-xl md:text-2xl font-bold">{admissions.length}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{pendingCount}</div>
+          <CardContent className="p-4 md:p-6">
+            <div className="text-xl md:text-2xl font-bold text-yellow-600">{pendingCount}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Approved</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{approvedCount}</div>
+          <CardContent className="p-4 md:p-6">
+            <div className="text-xl md:text-2xl font-bold text-green-600">{approvedCount}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{rejectedCount}</div>
+          <CardContent className="p-4 md:p-6">
+            <div className="text-xl md:text-2xl font-bold text-red-600">{rejectedCount}</div>
           </CardContent>
         </Card>
       </div>

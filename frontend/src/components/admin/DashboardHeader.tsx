@@ -17,10 +17,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   showLogout = true,
 }) => {
   return (
-    <div className="mb-8 flex flex-col justify-between md:flex-row md:items-center">
+    <div className="mb-6 md:mb-8 flex flex-col justify-between md:flex-row md:items-center gap-2">
       <div>
-        <h1 className="font-heading mb-2 text-3xl font-bold text-school-primary">{title}</h1>
-        <p className="text-lg text-muted-foreground">{subtitle}</p>
+        <h1 className="font-heading mb-1 md:mb-2 text-2xl md:text-3xl font-bold text-school-primary">{title}</h1>
+        <p className="text-sm md:text-lg text-muted-foreground">{subtitle}</p>
       </div>
       {showLogout && (
         <Button
