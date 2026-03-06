@@ -1,5 +1,5 @@
 import express from 'express';
-import { markAttendance, getClassAttendance, getStudentAttendance } from '../controllers/attendanceController.js';
+import { markAttendance, getClassAttendance, getStudentAttendance, markAbsentees } from '../controllers/attendanceController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -8,6 +8,8 @@ router.use(protect); // All routes protected
 
 router.route('/')
     .post(authorize('admin', 'teacher'), markAttendance);
+
+router.post('/absentees', authorize('admin', 'teacher'), markAbsentees);
 
 router.route('/class')
     .get(authorize('admin', 'teacher'), getClassAttendance);

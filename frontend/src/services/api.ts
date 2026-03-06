@@ -686,6 +686,13 @@ class ApiService {
     return this.request<any[]>(`/attendance/student/${studentId}`);
   }
 
+  async markAbsentees(className: string, section?: string, date?: string): Promise<any> {
+    return this.request<any>('/attendance/absentees', {
+      method: 'POST',
+      body: JSON.stringify({ className, section, date })
+    });
+  }
+
   // Mid-Day Meal Methods
   async markMidDayMeal(data: any): Promise<any> {
     return this.request<any>('/mid-day-meal', {

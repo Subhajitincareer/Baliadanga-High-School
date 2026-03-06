@@ -19,6 +19,7 @@ export interface SiteSettingsData {
   ticker: { active: boolean; messages: string[] };
   popup: { active: boolean; title: string; content: string; imageUrl: string };
   idCard: { signatureUrl: string; signatureFileId: string; address: string };
+  attendanceConfig: { cutoffTime: string; autoNotifyParents: boolean; absenteeAlertThreshold: number };
 }
 
 const DEFAULTS: SiteSettingsData = {
@@ -40,6 +41,7 @@ const DEFAULTS: SiteSettingsData = {
   ticker: { active: true, messages: ['Admission Open for Class V to IX (2025)'] },
   popup: { active: false, title: 'Important Notice', content: 'Welcome to Baliadanga High School. Please check our latest notifications.', imageUrl: '' },
   idCard: { signatureUrl: '', signatureFileId: '', address: 'Baliadanga, Kaliachak, Malda' },
+  attendanceConfig: { cutoffTime: '10:30 AM', autoNotifyParents: false, absenteeAlertThreshold: 3 },
 };
 
 interface SiteSettingsContextType {
@@ -96,6 +98,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           ticker:     { ...DEFAULTS.ticker,     ...json.data.ticker },
           popup:      { ...DEFAULTS.popup,      ...json.data.popup },
           idCard:     { ...DEFAULTS.idCard,     ...json.data.idCard },
+          attendanceConfig: { ...DEFAULTS.attendanceConfig, ...json.data.attendanceConfig },
         };
         setSettings(merged);
         applyTheme(merged.theme);

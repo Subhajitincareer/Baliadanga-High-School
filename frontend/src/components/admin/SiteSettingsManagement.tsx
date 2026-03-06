@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Upload, Plus, ImageIcon, User, Link as LinkIcon, School, Phone, MapPin, Layout, BadgeCheck, Palette, Megaphone, BellRing } from 'lucide-react';
+import { Trash2, Upload, Plus, ImageIcon, User, Link as LinkIcon, School, Phone, MapPin, Layout, BadgeCheck, Palette, Megaphone, BellRing, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
@@ -73,6 +73,8 @@ export const SiteSettingsManagement: React.FC = () => {
 
   /* ── idCard ────────────────────────────────────── */
   const [idCard, setIdCard]           = useState(liveSettings.idCard);
+  /* ── attendanceConfig ──────────────────────────── */
+  const [attendanceConfig, setAttendanceConfig] = useState(liveSettings.attendanceConfig);
   const [uploadingIdSign, setUploadingIdSign] = useState(false);
   const signFileRef = useRef<HTMLInputElement>(null);
 
@@ -90,6 +92,7 @@ export const SiteSettingsManagement: React.FC = () => {
     setTicker(liveSettings.ticker);
     setPopup(liveSettings.popup);
     setIdCard(liveSettings.idCard);
+    setAttendanceConfig(liveSettings.attendanceConfig);
   }, [liveSettings]);
 
   /* ─────────────────── hero handlers ─────────────────── */
@@ -149,7 +152,7 @@ export const SiteSettingsManagement: React.FC = () => {
       setSavingGeneral(true);
       await apiFetch('/site-settings/general', {
         method: 'PUT',
-        body: JSON.stringify({ schoolInfo, theme, contact, footer, map, ticker, popup, idCard }),
+        body: JSON.stringify({ schoolInfo, theme, contact, footer, map, ticker, popup, idCard, attendanceConfig }),
       });
       toast({ title: '✅ Settings saved! Changes apply instantly.' });
       refresh(); // re-apply theme vars via context
@@ -172,6 +175,7 @@ export const SiteSettingsManagement: React.FC = () => {
           <TabsTrigger value="ticker"     className="gap-1"><Megaphone className="h-4 w-4" /> Ticker</TabsTrigger>
           <TabsTrigger value="popup"      className="gap-1"><BellRing className="h-4 w-4" /> Popup</TabsTrigger>
           <TabsTrigger value="idcard"     className="gap-1"><BadgeCheck className="h-4 w-4" /> ID Card</TabsTrigger>
+          <TabsTrigger value="attendance" className="gap-1"><Clock className="h-4 w-4" /> Attendance Logic</TabsTrigger>
         </TabsList>
 
         {/* ══ Hero Carousel Tab ══════════════════════════════════════════ */}
@@ -623,6 +627,58 @@ export const SiteSettingsManagement: React.FC = () => {
               {savingGeneral ? 'Saving…' : '💾 Save ID Card Settings'}
             </Button>
           </div>
+        </TabsContent>
+
+        {/* ══ Attendance Tab ═════════════════════════════════════════════ */}
+        <TabsContent value="attendance">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4" /> Smart Attendance Logic
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Attendance Cutoff Time</Label>
+                  <p className="text-[10px] text-muted-foreground italic">Students not scanned by this time can be marked absent automatically.</p>
+                  <Input 
+                    type="text" 
+                    placeholder="e.g. 10:30 AM" 
+                    value={attendanceConfig.cutoffTime} 
+                    onChange={e => setAttendanceConfig(p => ({ ...p, cutoffTime: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Absentee Alert Threshold (Days)</Label>
+                  <p className="text-[10px] text-muted-foreground italic">Flag students as "Chronic Absentees" after this many consecutive absences.</p>
+                  <Input 
+                    type="number" 
+                    value={attendanceConfig.absenteeAlertThreshold} 
+                    onChange={e => setAttendanceConfig(p => ({ ...p, absenteeAlertThreshold: parseInt(e.target.value) || 3 }))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                <div className="space-y-0.5">
+                  <Label>Auto-Notify Parents</Label>
+                  <p className="text-xs text-muted-foreground font-normal">Send automated alerts when students are marked absent during a "Smart Close".</p>
+                </div>
+                <Switch 
+                  checked={attendanceConfig.autoNotifyParents} 
+                  onCheckedChange={checked => setAttendanceConfig(p => ({ ...p, autoNotifyParents: checked }))}
+                />
+              </div>
+
+              <div className="pt-2 border-t">
+                <Button size="sm" disabled={savingGeneral} onClick={saveGeneral}>
+                  {savingGeneral ? 'Saving…' : 'Save Attendance Settings'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
       </Tabs>

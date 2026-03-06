@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import apiService from '@/services/api';
-import { Loader2, CheckCircle2, XCircle, QrCode, Search, UserCheck, UserMinus, History, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, QrCode, Search, UserCheck, UserMinus, History, CheckCircle, Clock, Zap, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useSiteSettings } from '@/contexts/SiteSettingsContext';
+import { Progress } from "@/components/ui/progress";
 
 const AttendancePage = () => {
     const { toast } = useToast();
@@ -32,6 +34,11 @@ const AttendancePage = () => {
     // QR State
     const [recentScans, setRecentScans] = useState<any[]>([]);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+    // Smart Features State
+    const { settings } = useSiteSettings();
+    const [timeLeft, setTimeLeft] = useState<string>("");
+    const [isPastCutoff, setIsPastCutoff] = useState(false);
 
     // Stats
     const stats = {
@@ -142,6 +149,52 @@ const AttendancePage = () => {
             }
         });
         setAttendanceData(newData);
+    };
+
+    // Smart Logic: Timer & Session Closing
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const cutoffStr = settings.attendanceConfig?.cutoffTime || "10:30 AM";
+            const [time, modifier] = cutoffStr.split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
+            if (modifier === 'PM' && hours < 12) hours += 12;
+            if (modifier === 'AM' && hours === 12) hours = 0;
+
+            const now = new Date();
+            const cutoffDate = new Date();
+            cutoffDate.setHours(hours, minutes, 0, 0);
+
+            const diff = cutoffDate.getTime() - now.getTime();
+            if (diff <= 0) {
+                setTimeLeft("Expired");
+                setIsPastCutoff(true);
+            } else {
+                const h = Math.floor(diff / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                setTimeLeft(`${h > 0 ? h + 'h ' : ''}${m}m ${s}s`);
+                setIsPastCutoff(false);
+            }
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [settings.attendanceConfig]);
+
+    const handleSmartClose = async () => {
+        if (!selectedClass) return toast({ title: "Please select a class first" });
+        if (!window.confirm("This will mark all students who haven't arrived as ABSENT. Continue?")) return;
+
+        setSaving(true);
+        try {
+            const res = await apiService.markAbsentees(selectedClass, selectedSection, attendanceDate);
+            if (res.success) {
+                toast({ title: "Smart Close Complete", description: res.message });
+                fetchAttendance();
+            }
+        } catch (error: any) {
+            toast({ title: "Smart Close Failed", description: error.message, variant: "destructive" });
+        } finally {
+            setSaving(false);
+        }
     };
 
     // QR Logic
@@ -281,6 +334,43 @@ const AttendancePage = () => {
                     <TabsTrigger value="qr" className="rounded-lg px-6 data-[state=active]:bg-white data-[state=active]:shadow-sm flex gap-2"><QrCode className="h-4 w-4" /> Live Scanner</TabsTrigger>
                 </TabsList>
 
+                {/* Smart HUD */}
+                {(selectedClass && selectedSection) && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                        <Card className="md:col-span-2 border-school-primary/20 bg-school-primary/5">
+                            <CardContent className="p-4 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-3 rounded-full ${isPastCutoff ? 'bg-red-100 text-red-600' : 'bg-school-primary/10 text-school-primary'}`}>
+                                        <Clock className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Session Time Left</p>
+                                        <h3 className={`text-2xl font-bold ${isPastCutoff ? 'text-red-600' : 'text-school-primary'}`}>
+                                            {timeLeft || "--"}
+                                        </h3>
+                                    </div>
+                                </div>
+                                <div className="hidden sm:block text-right">
+                                    <p className="text-xs text-muted-foreground italic">Cutoff: {settings.attendanceConfig?.cutoffTime}</p>
+                                    <Progress value={isPastCutoff ? 100 : 70} className="h-2 w-32 mt-2" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-amber-200 bg-amber-50/50">
+                            <CardContent className="p-4 flex flex-col justify-center h-full">
+                                <Button 
+                                    className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-2 h-12 text-lg font-bold shadow-lg"
+                                    onClick={handleSmartClose}
+                                    disabled={saving || !isPastCutoff}
+                                >
+                                    <Zap className="h-5 w-5 fill-current" /> Smart Close
+                                </Button>
+                                {!isPastCutoff && <p className="text-[10px] text-center mt-1 text-amber-700 animate-pulse">Wait for cutoff to auto-close</p>}
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
                 <TabsContent value="overview">
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                         {/* Stats Cards */}
@@ -360,7 +450,14 @@ const AttendancePage = () => {
                                                         <tr key={s.userId} className="border-b hover:bg-slate-50/80 transition-colors">
                                                             <td className="px-4 py-3 font-semibold">{s.rollNumber}</td>
                                                             <td className="px-4 py-3">
-                                                                <div className="font-medium text-slate-900">{s.name}</div>
+                                                                <div className="font-medium text-slate-900 flex items-center gap-2">
+                                                                    {s.name}
+                                                                    {s.isChronic && (
+                                                                        <Badge variant="destructive" className="text-[10px] h-4 px-1 flex gap-0.5 items-center bg-red-100 text-red-600 border-red-200 hover:bg-red-100">
+                                                                            <AlertTriangle className="h-2.5 w-2.5" /> Chronic
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
                                                                 <div className="text-[10px] text-slate-400 font-mono tracking-tighter">{s.studentId}</div>
                                                             </td>
                                                             <td className="px-4 py-3">

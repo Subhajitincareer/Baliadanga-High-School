@@ -51,7 +51,7 @@ export const updateHeadmaster = asyncHandler(async (req, res) => {
 // @route   PUT /api/site-settings/general
 // @access  Private (admin)
 export const updateGeneral = asyncHandler(async (req, res) => {
-  const { schoolInfo, theme, contact, footer, map, ticker, popup, idCard } = req.body;
+  const { schoolInfo, theme, contact, footer, map, ticker, popup, idCard, attendanceConfig } = req.body;
   const settings = await getOrCreate();
 
   if (schoolInfo) {
@@ -85,6 +85,10 @@ export const updateGeneral = asyncHandler(async (req, res) => {
   if (idCard) {
     Object.assign(settings.idCard, idCard);
     settings.markModified('idCard');
+  }
+  if (attendanceConfig) {
+    Object.assign(settings.attendanceConfig, attendanceConfig);
+    settings.markModified('attendanceConfig');
   }
 
   await settings.save();

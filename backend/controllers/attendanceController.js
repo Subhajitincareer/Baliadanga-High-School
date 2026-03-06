@@ -136,8 +136,13 @@ export const getClassAttendance = asyncHandler(async (req, res) => {
     });
 
     // 3. Map students to records
-    const fullAttendanceList = students.map(student => {
+    const fullAttendanceList = await Promise.all(students.map(async student => {
         const record = attendanceRecords.find(r => r.student.toString() === student.user._id.toString());
+        
+        // Smart Logic: Check if student is a "Chronic Absentee" (e.g. 5+ total absences or use threshold from settings)
+        // For performance in a class view, we just flag if they have > 3 records with 'Absent' status in general
+        const totalAbsences = await Attendance.countDocuments({ student: student.user._id, status: 'Absent' });
+
         return {
             studentId: student.studentId,
             userId: student.user._id,
@@ -145,11 +150,13 @@ export const getClassAttendance = asyncHandler(async (req, res) => {
             rollNumber: student.rollNumber,
             status: record ? record.status : 'N/A', // Default to N/A if not marked
             markedBy: record ? record.markedBy : null,
-            date: queryDate
+            date: queryDate,
+            isChronic: totalAbsences >= 3 // Simple threshold for now
         };
-    }).sort((a, b) => (Number(a.rollNumber) || 0) - (Number(b.rollNumber) || 0));
+    }));
 
-    res.status(200).json(fullAttendanceList);
+    const sortedList = fullAttendanceList.sort((a, b) => (Number(a.rollNumber) || 0) - (Number(b.rollNumber) || 0));
+    res.status(200).json(sortedList);
 });
 
 // @desc    Get Single Student Attendance (History)
@@ -165,4 +172,75 @@ export const getStudentAttendance = asyncHandler(async (req, res) => {
 
     const attendance = await Attendance.find({ student: userId }).sort({ date: -1 });
     res.status(200).json(attendance);
+});
+
+// @desc    Mark remaining students as Absent (Smart Close)
+// @route   POST /api/attendance/absentees
+// @access  Private (Teacher/Admin)
+export const markAbsentees = asyncHandler(async (req, res) => {
+    const { className, section, date } = req.body;
+
+    if (!className || !date) {
+        res.status(400);
+        throw new Error('Class and Date are required');
+    }
+
+    const queryDate = new Date(date);
+    queryDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(queryDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const targetClass = normalizeClass(className);
+
+    // 1. Get all students in this class/section
+    const studentQuery = { 
+        $or: [
+            { class: className },
+            { class: targetClass }
+        ]
+    };
+    if (section) studentQuery.section = section;
+    const students = await StudentProfile.find(studentQuery).populate('user', 'name email');
+
+    // 2. Get existing attendance records for this date
+    const attendanceRecords = await Attendance.find({
+        $or: [
+            { class: className },
+            { class: targetClass }
+        ],
+        section: section ? section : { $exists: true },
+        date: { $gte: queryDate, $lt: nextDay }
+    });
+
+    const alreadyMarkedUserIds = attendanceRecords.map(r => r.student.toString());
+    const unmarkedStudents = students.filter(s => !alreadyMarkedUserIds.includes(s.user._id.toString()));
+
+    if (unmarkedStudents.length === 0) {
+        return res.json({ success: true, message: 'All students are already marked.', count: 0 });
+    }
+
+    // 3. Mark unmarked students as Absent
+    const bulkPayload = unmarkedStudents.map(student => ({
+        student: student.user._id,
+        studentId: student.studentId,
+        date: queryDate,
+        status: 'Absent',
+        method: 'System (Smart Close)',
+        markedBy: req.user._id,
+        class: targetClass,
+        section: section || student.section
+    }));
+
+    // Using a loop for upserts to be safe with markAttendance logic, 
+    // or we can use insertMany if we know no previous record exists (which we just checked)
+    await Attendance.insertMany(bulkPayload);
+
+    // 4. Mock Notification Logic
+    console.log(`[Smart Attendance] Marked ${unmarkedStudents.length} students absent. Mock notifications triggered.`);
+
+    res.json({ 
+        success: true, 
+        message: `Successfully marked ${unmarkedStudents.length} students as Absent.`,
+        count: unmarkedStudents.length 
+    });
 });

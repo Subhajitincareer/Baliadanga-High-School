@@ -79,6 +79,13 @@ const siteSettingsSchema = new mongoose.Schema({
     address:      { type: String, default: 'Baliadanga, Kaliachak, Malda' },
   },
 
+  // ── Attendance Config ────────────────────────────────────────
+  attendanceConfig: {
+    cutoffTime: { type: String, default: '10:30 AM' },
+    autoNotifyParents: { type: Boolean, default: false },
+    absenteeAlertThreshold: { type: Number, default: 3 },
+  },
+
 }, { timestamps: true });
 
 const SiteSettings = mongoose.model('SiteSettings', siteSettingsSchema);
