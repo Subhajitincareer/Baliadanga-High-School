@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import apiService from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { ReportCardPrint } from '@/components/admin/ReportCardPrint';
-import { Printer } from 'lucide-react';
+import { Loader2, TrophyIcon, Search, Send, BookOpen, Printer } from 'lucide-react';
 
 interface Exam {
   _id: string;
