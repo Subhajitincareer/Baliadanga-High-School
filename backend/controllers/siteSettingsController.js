@@ -51,7 +51,7 @@ export const updateHeadmaster = asyncHandler(async (req, res) => {
 // @route   PUT /api/site-settings/general
 // @access  Private (admin)
 export const updateGeneral = asyncHandler(async (req, res) => {
-  const { schoolInfo, theme, contact, footer, map, ticker, popup } = req.body;
+  const { schoolInfo, theme, contact, footer, map, ticker, popup, idCard } = req.body;
   const settings = await getOrCreate();
 
   if (schoolInfo) {
@@ -76,6 +76,9 @@ export const updateGeneral = asyncHandler(async (req, res) => {
   if (popup) {
     settings.popup = { ...settings.popup.toObject?.() ?? settings.popup, ...popup };
   }
+  if (idCard) {
+    settings.idCard = { ...settings.idCard.toObject?.() ?? settings.idCard, ...idCard };
+  }
 
   settings.markModified('schoolInfo');
   settings.markModified('theme');
@@ -84,6 +87,7 @@ export const updateGeneral = asyncHandler(async (req, res) => {
   settings.markModified('map');
   settings.markModified('ticker');
   settings.markModified('popup');
+  settings.markModified('idCard');
 
   await settings.save();
   res.json({ success: true, data: settings });

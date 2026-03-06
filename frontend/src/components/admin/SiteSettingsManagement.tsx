@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Upload, Plus, ImageIcon, User, Link as LinkIcon, School, Phone, MapPin, Layout, BadgeCheck, Palette } from 'lucide-react';
+import { Trash2, Upload, Plus, ImageIcon, User, Link as LinkIcon, School, Phone, MapPin, Layout, BadgeCheck, Palette, Megaphone, BellRing } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
@@ -169,8 +169,8 @@ export const SiteSettingsManagement: React.FC = () => {
           <TabsTrigger value="contact"    className="gap-1"><Phone     className="h-4 w-4" /> Contact</TabsTrigger>
           <TabsTrigger value="footer"     className="gap-1"><Layout    className="h-4 w-4" /> Footer</TabsTrigger>
           <TabsTrigger value="map"        className="gap-1"><MapPin    className="h-4 w-4" /> Map</TabsTrigger>
-          <TabsTrigger value="ticker"     className="gap-1">📢 Ticker</TabsTrigger>
-          <TabsTrigger value="popup"      className="gap-1">🖼️ Popup</TabsTrigger>
+          <TabsTrigger value="ticker"     className="gap-1"><Megaphone className="h-4 w-4" /> Ticker</TabsTrigger>
+          <TabsTrigger value="popup"      className="gap-1"><BellRing className="h-4 w-4" /> Popup</TabsTrigger>
           <TabsTrigger value="idcard"     className="gap-1"><BadgeCheck className="h-4 w-4" /> ID Card</TabsTrigger>
         </TabsList>
 
