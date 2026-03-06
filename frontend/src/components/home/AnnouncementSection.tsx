@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Calendar, Bell, FileText } from 'lucide-react';
 import { Announcement } from '@/components/admin/AnnouncementForm';
+import apiService from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 
 const defaultAnnouncements: Announcement[] = [
   {
@@ -44,6 +46,42 @@ const defaultAnnouncements: Announcement[] = [
 
 const AnnouncementSection = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>(defaultAnnouncements);
+  const { toast } = useToast();
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownload = async (id: string, fileName: string) => {
+    try {
+      setDownloadingId(id);
+      toast({ title: 'Downloading PDF...', description: 'Please wait...', duration: 2000 });
+      const full = await apiService.getAnnouncementById(id);
+      
+      let pdfData = full.pdfFile?.data;
+      if (!pdfData && full.pdf_url) {
+         const parsed = typeof full.pdf_url === 'string' ? JSON.parse(full.pdf_url) : full.pdf_url;
+         pdfData = parsed.data;
+      }
+      if (!pdfData && full.attachments && full.attachments.length > 0) {
+         pdfData = full.attachments[0].url;
+      }
+
+      if (!pdfData) {
+         toast({ title: 'Error', description: 'No PDF data found in this announcement.', variant: 'destructive' });
+         return;
+      }
+
+      const link = document.createElement('a');
+      link.href = pdfData;
+      link.download = fileName || 'announcement.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Download error:', err);
+      toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'destructive' });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   useEffect(() => {
     // Load announcements from localStorage if available
@@ -96,14 +134,22 @@ const AnnouncementSection = () => {
 
                 {announcement.pdfFile && (
                   <div className="mt-4">
-                    <a
-                      href={announcement.pdfFile.data}
-                      download={announcement.pdfFile.name}
-                      className="inline-flex items-center rounded-md bg-school-light px-3 py-2 text-sm font-medium text-school-primary hover:bg-school-light/80"
+                    <Button
+                      variant="outline"
+                      disabled={downloadingId === announcement._id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (announcement._id) handleDownload(announcement._id, announcement.pdfFile!.name);
+                      }}
+                      className="inline-flex items-center rounded-md bg-school-light px-3 py-2 text-sm font-medium text-school-primary hover:bg-school-light/80 hover:text-school-primary border-none"
                     >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </a>
+                      {downloadingId === announcement._id ? (
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-school-primary border-t-transparent" />
+                      ) : (
+                        <FileText className="mr-2 h-4 w-4" />
+                      )}
+                      {downloadingId === announcement._id ? 'Downloading...' : 'Download PDF'}
+                    </Button>
                   </div>
                 )}
               </CardContent>

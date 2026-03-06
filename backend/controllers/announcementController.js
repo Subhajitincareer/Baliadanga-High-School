@@ -5,8 +5,25 @@ import asyncHandler from '../middlewares/asyncHandler.js';
 // @route   GET /api/announcements
 // @access  Public
 export const getAnnouncements = asyncHandler(async (req, res, next) => {
-    const announcements = await Announcement.find({ isActive: true }).sort({ createdAt: -1 });
+    // Exclude the heavy base64 URL from attachments to improve loading performance
+    const announcements = await Announcement.find({ isActive: true })
+        .select('-attachments.url')
+        .sort({ createdAt: -1 });
     res.status(200).json(announcements);
+});
+
+// @desc    Get single announcement by ID
+// @route   GET /api/announcements/:id
+// @access  Public
+export const getAnnouncementById = asyncHandler(async (req, res, next) => {
+    const announcement = await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+        res.status(404);
+        throw new Error('Announcement not found');
+    }
+
+    res.status(200).json(announcement);
 });
 
 // @desc    Create new announcement

@@ -23,7 +23,9 @@ export function useAnnouncements() {
             ? typeof item.pdf_url === 'string'
               ? JSON.parse(item.pdf_url)
               : item.pdfFile
-            : undefined,
+            : item.attachments?.length > 0
+              ? { name: item.attachments[0].filename, data: '' }
+              : undefined,
       }));
 
       setAnnouncements(processedData);

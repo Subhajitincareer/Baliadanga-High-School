@@ -4,6 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, FileText } from 'lucide-react';
 import { Announcement } from '@/components/admin/AnnouncementForm';
+import apiService from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface AnnouncementTableProps {
   announcements: Announcement[];
@@ -16,6 +18,43 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { toast } = useToast();
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownload = async (id: string, fileName: string) => {
+    try {
+      setDownloadingId(id);
+      toast({ title: 'Downloading PDF...', description: 'Please wait...', duration: 2000 });
+      const full = await apiService.getAnnouncementById(id);
+      
+      let pdfData = full.pdfFile?.data;
+      if (!pdfData && full.pdf_url) {
+         const parsed = typeof full.pdf_url === 'string' ? JSON.parse(full.pdf_url) : full.pdf_url;
+         pdfData = parsed.data;
+      }
+      if (!pdfData && full.attachments && full.attachments.length > 0) {
+         pdfData = full.attachments[0].url;
+      }
+
+      if (!pdfData) {
+         toast({ title: 'Error', description: 'No PDF data found in this announcement.', variant: 'destructive' });
+         return;
+      }
+
+      const link = document.createElement('a');
+      link.href = pdfData;
+      link.download = fileName || 'announcement.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Download error:', err);
+      toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'destructive' });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   if (announcements.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center rounded-md border border-dashed">
@@ -62,14 +101,23 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
                 </TableCell>
                 <TableCell>
                   {announcement.pdfFile ? (
-                    <a
-                      href={announcement.pdfFile.data}
-                      download={announcement.pdfFile.name}
-                      className="flex items-center text-blue-600 hover:text-blue-800"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={downloadingId === announcement._id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (announcement._id) handleDownload(announcement._id, announcement.pdfFile!.name);
+                      }}
+                      className="flex h-8 items-center text-blue-600 hover:text-blue-800 p-0 hover:bg-transparent"
                     >
-                      <FileText className="mr-1 h-4 w-4" />
-                      <span className="text-xs">Download</span>
-                    </a>
+                      {downloadingId === announcement._id ? (
+                        <div className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                      ) : (
+                         <FileText className="mr-1 h-4 w-4" />
+                      )}
+                      <span className="text-xs">{downloadingId === announcement._id ? 'Downloading...' : 'Download'}</span>
+                    </Button>
                   ) : (
                     <span className="text-xs text-muted-foreground">No PDF</span>
                   )}
@@ -142,14 +190,23 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
                 })}
               </span>
               {announcement.pdfFile && (
-                <a
-                  href={announcement.pdfFile.data}
-                  download={announcement.pdfFile.name}
-                  className="flex items-center text-blue-600 hover:text-blue-800"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={downloadingId === announcement._id}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (announcement._id) handleDownload(announcement._id, announcement.pdfFile!.name);
+                  }}
+                  className="flex h-6 items-center text-blue-600 hover:text-blue-800 p-0 hover:bg-transparent"
                 >
-                  <FileText className="mr-1 h-3 w-3" />
-                  <span className="text-xs">PDF</span>
-                </a>
+                  {downloadingId === announcement._id ? (
+                    <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  ) : (
+                    <FileText className="mr-1 h-3 w-3" />
+                  )}
+                  <span className="text-xs">{downloadingId === announcement._id ? '...' : 'PDF'}</span>
+                </Button>
               )}
             </div>
           </div>

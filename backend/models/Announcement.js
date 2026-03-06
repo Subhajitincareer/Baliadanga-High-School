@@ -53,4 +53,8 @@ const announcementSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Composite index to prevent duplicate attendance ... (wait, this is Announcement model)
+// Add compound index to optimize sorting of active announcements
+announcementSchema.index({ isActive: 1, createdAt: -1 });
+
 export default mongoose.model('Announcement', announcementSchema);

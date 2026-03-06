@@ -360,6 +360,10 @@ class ApiService {
     return this.request<Announcement[]>('/announcements');
   }
 
+  async getAnnouncementById(id: string): Promise<Announcement> {
+    return this.request<Announcement>(`/announcements/${id}`);
+  }
+
   async createAnnouncement(announcementData: Announcement): Promise<Announcement> {
     return this.request<Announcement>('/announcements', {
       method: 'POST',
