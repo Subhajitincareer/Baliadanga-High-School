@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, TrophyIcon, Search, Send, BookOpen } from 'lucide-react';
 import apiService from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { ReportCardPrint } from '@/components/admin/ReportCardPrint';
+import { Printer } from 'lucide-react';
 
 interface Exam {
   _id: string;
@@ -52,6 +53,8 @@ const StudentResults: React.FC<{ hideHeader?: boolean }> = ({ hideHeader = false
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [selectedPrintData, setSelectedPrintData] = useState<any>(null);
 
   const selectedExam = exams.find(e => e._id === selectedExamId);
 
@@ -96,6 +99,39 @@ const StudentResults: React.FC<{ hideHeader?: boolean }> = ({ hideHeader = false
     const name = (s?.user?.name || s?.name || '').toLowerCase();
     return !searchTerm || name.includes(searchTerm.toLowerCase());
   });
+
+  const handlePrintClick = (result: StudentResult) => {
+    if (!selectedExam) return;
+    const s = typeof result.studentId === 'object' ? (result.studentId as any) : null;
+    
+    // Format data for ReportCardPrint
+    const printData = {
+      student: {
+        name: s?.user?.name || s?.name || 'Unknown',
+        studentId: s?.studentId || 'N/A',
+        rollNumber: s?.rollNumber || 'N/A',
+        class: selectedExam.class,
+        section: selectedExam.section || 'A',
+        session: selectedExam.academicYear
+      },
+      exam: {
+        name: selectedExam.name,
+        type: selectedExam.type,
+        academicYear: selectedExam.academicYear || '',
+        subjects: selectedExam.subjects
+      },
+      result: {
+        marks: result.marks,
+        totalObtained: result.totalObtained,
+        percentage: result.percentage,
+        grade: result.grade,
+        rank: result.rank
+      }
+    };
+    
+    setSelectedPrintData(printData);
+    setIsPrintModalOpen(true);
+  };
 
   // Stats
   const avgPct = results.length > 0 ? Math.round(results.reduce((s, r) => s + r.percentage, 0) / results.length) : 0;
@@ -190,6 +226,7 @@ const StudentResults: React.FC<{ hideHeader?: boolean }> = ({ hideHeader = false
                   <TableHead className="text-center">Total</TableHead>
                   <TableHead className="text-center">%</TableHead>
                   <TableHead className="text-center">Grade</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -215,6 +252,17 @@ const StudentResults: React.FC<{ hideHeader?: boolean }> = ({ hideHeader = false
                         <TableCell className="text-center font-mono font-semibold">{result.totalObtained}</TableCell>
                         <TableCell className="text-center font-semibold">{Math.round(result.percentage)}%</TableCell>
                         <TableCell className="text-center"><GradeBadge grade={result.grade} /></TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => handlePrintClick(result)}
+                            title="Print Report Card"
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -223,6 +271,13 @@ const StudentResults: React.FC<{ hideHeader?: boolean }> = ({ hideHeader = false
           </CardContent>
         </Card>
       )}
+
+      {/* Report Card Modal */}
+      <ReportCardPrint 
+        data={selectedPrintData} 
+        open={isPrintModalOpen} 
+        onClose={() => setIsPrintModalOpen(false)} 
+      />
     </div>
   );
 };
