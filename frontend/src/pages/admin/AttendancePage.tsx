@@ -43,9 +43,9 @@ const AttendancePage = () => {
     // Stats
     const stats = {
         total: students.length,
-        present: students.filter(s => attendanceData[s.userId] === 'Present' || s.status === 'Present').length,
-        absent: students.filter(s => attendanceData[s.userId] === 'Absent' || s.status === 'Absent').length,
-        unmarked: students.filter(s => (attendanceData[s.userId] || s.status) === 'N/A').length
+        present: students.filter(s => (s.userId && (attendanceData[s.userId] === 'Present' || s.status === 'Present'))).length,
+        absent: students.filter(s => (s.userId && (attendanceData[s.userId] === 'Absent' || s.status === 'Absent'))).length,
+        unmarked: students.filter(s => (s.userId && (attendanceData[s.userId] || s.status) === 'N/A')).length
     };
 
     // Load data when class+section+date change
@@ -64,7 +64,9 @@ const AttendancePage = () => {
             // Sync status to local state for manual editing
             const statusMap: Record<string, string> = {};
             data.forEach((s: any) => {
-                statusMap[s.userId] = s.status;
+                if (s.userId) {
+                    statusMap[s.userId] = s.status;
+                }
             });
             setAttendanceData(statusMap);
             setQuickAbsentInput("");

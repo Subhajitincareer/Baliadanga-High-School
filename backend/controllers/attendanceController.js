@@ -137,6 +137,15 @@ export const getClassAttendance = asyncHandler(async (req, res) => {
 
     // 3. Map students to records
     const fullAttendanceList = await Promise.all(students.map(async student => {
+        if (!student.user) {
+            return {
+                studentId: student.studentId,
+                userId: null,
+                name: 'Unknown Student',
+                rollNumber: student.rollNumber,
+                status: 'N/A'
+            };
+        }
         const record = attendanceRecords.find(r => r.student.toString() === student.user._id.toString());
         
         // Smart Logic: Check if student is a "Chronic Absentee" (e.g. 5+ total absences or use threshold from settings)

@@ -66,7 +66,7 @@ const PermissionManagement = () => {
 
             // Update local state
             setStaffList(prev => prev.map(staff => {
-                if (staff.userId._id === userId) {
+                if (staff.userId?._id === userId) {
                     return {
                         ...staff,
                         userId: {
@@ -141,8 +141,8 @@ const PermissionManagement = () => {
                                                 <TableCell key={p.key} className="text-center">
                                                     <Checkbox
                                                         checked={isAdmin || hasPermission}
-                                                        disabled={isAdmin || saving === user._id}
-                                                        onCheckedChange={() => handlePermissionToggle(user._id, p.key, user.permissions)}
+                                                        disabled={isAdmin || saving === user?._id}
+                                                        onCheckedChange={() => user?._id && handlePermissionToggle(user._id, p.key, user.permissions)}
                                                     />
                                                 </TableCell>
                                             );
