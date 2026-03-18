@@ -88,8 +88,7 @@ export const updateAdmissionStatus = asyncHandler(async (req, res, next) => {
             });
 
             // Ideally we should send an email here with credentials
-            console.log(`Auto-created student account: ${newUser.email} / ${password}`);
-        }
+}
     }
 
     res.status(200).json(admission);

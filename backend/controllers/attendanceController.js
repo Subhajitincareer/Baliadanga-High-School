@@ -79,8 +79,7 @@ export const markAttendance = asyncHandler(async (req, res) => {
                 };
             }
         } catch (error) {
-            console.error('Attendance save error:', error);
-            results.failed++;
+results.failed++;
             results.errors.push(error.message);
         }
     }
@@ -245,9 +244,7 @@ export const markAbsentees = asyncHandler(async (req, res) => {
     await Attendance.insertMany(bulkPayload);
 
     // 4. Mock Notification Logic
-    console.log(`[Smart Attendance] Marked ${unmarkedStudents.length} students absent. Mock notifications triggered.`);
-
-    res.json({ 
+res.json({ 
         success: true, 
         message: `Successfully marked ${unmarkedStudents.length} students as Absent.`,
         count: unmarkedStudents.length 

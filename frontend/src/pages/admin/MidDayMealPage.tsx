@@ -53,8 +53,7 @@ const MidDayMealPage = () => {
                 setMealTakers(new Set());
             }
         } catch (error: any) {
-            console.error(error);
-            toast({ title: 'Error fetching data', description: error.message, variant: 'destructive' });
+toast({ title: 'Error fetching data', description: error.message, variant: 'destructive' });
         } finally {
             setIsLoading(false);
         }

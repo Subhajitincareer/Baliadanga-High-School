@@ -66,8 +66,7 @@ const Admission = () => {
         description: "Your admission application has been received.",
       });
     } catch (error: any) {
-      console.error("Error submitting form:", error);
-      toast({
+toast({
         title: "Error submitting application",
         description: error.message || "Please try again later.",
         variant: "destructive",

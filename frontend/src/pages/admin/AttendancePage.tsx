@@ -71,7 +71,6 @@ const AttendancePage = () => {
             setAttendanceData(statusMap);
             setQuickAbsentInput("");
         } catch (error) {
-            console.error(error);
             toast({ title: "Error fetching attendance", variant: "destructive" });
         } finally {
             setLoading(false);
@@ -214,7 +213,7 @@ const AttendancePage = () => {
 
         return () => {
             if (scannerRef.current) {
-                scannerRef.current.clear().catch(error => console.error("Failed to clear scanner", error));
+                scannerRef.current.clear().catch(() => {});
                 scannerRef.current = null;
             }
         };
@@ -238,8 +237,7 @@ const AttendancePage = () => {
             oscillator.start();
             oscillator.stop(context.currentTime + 0.1);
         } catch (e) {
-            console.error("Audio beep failed", e);
-        }
+}
     };
 
     const onScanSuccess = async (decodedText: string) => {
@@ -287,7 +285,6 @@ const AttendancePage = () => {
                 throw new Error(res?.message || "Failed to mark attendance");
             }
         } catch (error: any) {
-            console.error("Attendance scan failed:", error);
             toast({ title: "Scan Failed", description: error.message || "Student not found or attendance could not be saved.", variant: "destructive" });
         }
     };

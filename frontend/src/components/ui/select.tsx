@@ -115,9 +115,7 @@ const SelectItem = React.forwardRef<
 >(({ className, children, value, ...props }, ref) => {
   // Skip validation for undefined values to allow dynamic rendering
   if (value === '') {
-    console.warn(
-      "Warning: Select.Item received an empty string value. The Select value can be set to an empty string to clear the selection, so this might cause issues."
-    );
+    
   }
 
   return (

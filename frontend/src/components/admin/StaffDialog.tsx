@@ -76,8 +76,7 @@ export const StaffDialog: React.FC<StaffDialogProps> = ({
             onSuccess();
             onOpenChange(false);
         } catch (error: any) {
-            console.error(error);
-            toast({
+toast({
                 title: 'Error',
                 description: error.message || 'Failed to save staff member',
                 variant: 'destructive'

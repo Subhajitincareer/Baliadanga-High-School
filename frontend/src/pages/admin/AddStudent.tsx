@@ -97,8 +97,7 @@ const AddStudent = () => {
             }
 
         } catch (error) {
-            console.error(error);
-            toast({
+toast({
                 title: "Error",
                 description: error instanceof Error ? error.message : "Failed to add student",
                 variant: "destructive"

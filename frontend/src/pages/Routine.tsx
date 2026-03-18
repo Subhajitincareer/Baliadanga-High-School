@@ -33,8 +33,7 @@ const RoutinePage = () => {
                 setRoutine(null);
             }
         } catch (error) {
-            console.error('Error fetching routine:', error);
-            setRoutine(null);
+setRoutine(null);
         } finally {
             setLoading(false);
         }

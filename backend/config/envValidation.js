@@ -17,39 +17,26 @@ const envSchema = z.object({
 
     // Auth — required
     JWT_SECRET: z.string({
-        required_error: 'JWT_SECRET is required. Generate a strong secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"',
-    }).min(32, 'JWT_SECRET must be at least 32 characters long'),
-
-    // CORS
-    CLIENT_URL: z.string().url().default('http://localhost:8080'),
-
-    // ImageKit — optional (warn if missing)
-    IMAGEKIT_PUBLIC_KEY: z.string().optional(),
-    IMAGEKIT_PRIVATE_KEY: z.string().optional(),
-    IMAGEKIT_URL_ENDPOINT: z.string().url().optional(),
-
-    // Seed Admin — optional (only needed in development)
-    SEED_ADMIN_EMAIL: z.string().email().optional(),
-    SEED_ADMIN_PASSWORD: z.string().min(8).optional(),
+        required_error: 'JWT_SECRET is required. Add it to your .env file.',
+    }).min(32, 'JWT_SECRET must be at least 32 characters long for security.'),
 });
 
 export function validateEnv() {
     const result = envSchema.safeParse(process.env);
 
     if (!result.success) {
-        console.error('\n❌  Environment validation failed. Server cannot start.\n');
-        console.error('Missing or invalid environment variables:');
-        result.error.issues.forEach((issue) => {
+        const errors = result.error.issues.map((issue) => {
             const field = issue.path.join('.') || 'unknown';
-            console.error(`  ✗  ${field}: ${issue.message}`);
+            return `  ❌ ${field}: ${issue.message}`;
         });
-        console.error('\nPlease check your backend/.env file.\n');
+
+        process.stderr.write('\n🚨 Environment validation failed:\n' + errors.join('\n') + '\n\n');
         process.exit(1);
     }
 
     // Warn about optional but recommended vars
     if (!process.env.IMAGEKIT_PUBLIC_KEY || !process.env.IMAGEKIT_PRIVATE_KEY) {
-        console.warn('⚠️  ImageKit env vars not set — file uploads will not work.');
+        process.stderr.write('⚠️  ImageKit keys not set — file uploads will be disabled.\n');
     }
 
     return result.data;

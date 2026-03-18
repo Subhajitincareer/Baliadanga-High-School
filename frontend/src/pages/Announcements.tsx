@@ -22,8 +22,7 @@ const Announcements = () => {
         setAnnouncements(data);
         setError(null);
       } catch (err) {
-        console.error('Failed to fetch announcements:', err);
-        setError('Failed to load announcements. Please try again later.');
+setError('Failed to load announcements. Please try again later.');
       } finally {
         setIsLoading(false);
       }

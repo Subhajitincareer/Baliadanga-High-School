@@ -31,8 +31,7 @@ const ExamManagement = () => {
             const data = await apiService.getExams();
             setExams(data);
         } catch (error) {
-            console.error(error);
-        }
+}
     };
 
     const handleSubjectChange = (index: number, field: string, value: any) => {

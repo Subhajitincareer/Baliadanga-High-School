@@ -76,8 +76,7 @@ const AnnouncementSection = () => {
       link.click();
       document.body.removeChild(link);
     } catch (err) {
-      console.error('Download error:', err);
-      toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'destructive' });
+toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'destructive' });
     } finally {
       setDownloadingId(null);
     }

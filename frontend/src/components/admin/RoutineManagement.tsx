@@ -106,8 +106,7 @@ export const RoutineManagement = () => {
             const staff = await apiService.getStaff();
             setStaffList(staff.filter(s => s.isActive && (s.position === 'Teacher' || s.position === 'Principal' || s.position === 'Vice Principal')));
         } catch (error) {
-            console.error('Error fetching staff:', error);
-        }
+}
     };
 
     const fetchAllRoutines = async () => {
@@ -116,8 +115,7 @@ export const RoutineManagement = () => {
             const data = await apiService.getRoutines('', '');
             setAllRoutines(data);
         } catch (error) {
-            console.error('Error fetching all routines:', error);
-        }
+}
     };
 
     const fetchRoutine = async () => {
@@ -135,8 +133,7 @@ export const RoutineManagement = () => {
                 });
             }
         } catch (error) {
-            console.error('Error fetching routine:', error);
-            setRoutine({
+setRoutine({
                 _id: '',
                 className,
                 section,
@@ -212,8 +209,7 @@ export const RoutineManagement = () => {
             fetchRoutine();
             fetchAllRoutines();
         } catch (error: any) {
-            console.error('Save error:', error);
-            toast({
+toast({
                 title: '⚠️ Conflict Detected',
                 description: error.message || 'Failed to save routine.',
                 variant: 'destructive',

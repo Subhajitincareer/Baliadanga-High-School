@@ -33,8 +33,7 @@ export function useAnnouncements() {
       // Update localStorage for offline fallback
       localStorage.setItem('announcements', JSON.stringify(processedData));
     } catch (error: any) {
-      console.error('Error fetching announcements:', error);
-      toast({
+toast({
         title: 'Error',
         description: 'Failed to load announcements.',
         variant: 'destructive',
@@ -70,8 +69,7 @@ export function useAnnouncements() {
 
       return true;
     } catch (error: any) {
-      console.error('Error deleting announcement:', error);
-      toast({
+toast({
         title: 'Error',
         description: 'Failed to delete the announcement.',
         variant: 'destructive',

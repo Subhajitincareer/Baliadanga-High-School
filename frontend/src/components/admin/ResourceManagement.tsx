@@ -42,8 +42,7 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
                 setResources(response.data);
             }
         } catch (error: any) {
-            console.error('Error fetching resources:', error);
-            toast({
+toast({
                 title: 'Error',
                 description: 'Failed to load resources.',
                 variant: 'destructive',
@@ -107,8 +106,7 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
 
             await fetchResources(); // Ensure we wait for fetch
         } catch (error: any) {
-            console.error('Upload error:', error);
-            toast({
+toast({
                 title: 'Upload Failed',
                 description: error.message || 'Failed to upload resource. Please check your connection.',
                 variant: 'destructive',
@@ -129,8 +127,7 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({ hideHead
             });
             setResources(prev => prev.filter(r => r._id !== id));
         } catch (error: any) {
-            console.error('Delete error:', error);
-            toast({
+toast({
                 title: 'Error',
                 description: 'Failed to delete resource.',
                 variant: 'destructive',

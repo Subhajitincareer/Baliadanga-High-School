@@ -49,8 +49,7 @@ export const DashboardStats: React.FC = () => {
                 const res = await apiService.getDashboardSummary();
                 setSummary(res.data);
             } catch (err) {
-                console.error('Failed to load dashboard summary', err);
-            } finally {
+} finally {
                 setLoading(false);
             }
         };

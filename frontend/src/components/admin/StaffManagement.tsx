@@ -43,8 +43,7 @@ export const StaffManagement: React.FC = () => {
       // Ensure data is an array
       setStaffList(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Failed to fetch staff:', error);
-      toast({
+toast({
         title: 'Error',
         description: 'Failed to load staff list.',
         variant: 'destructive',
@@ -85,8 +84,7 @@ export const StaffManagement: React.FC = () => {
       });
       fetchStaff();
     } catch (error) {
-      console.error('Failed to delete staff:', error);
-      toast({
+toast({
         title: 'Error',
         description: 'Failed to delete staff member.',
         variant: 'destructive',

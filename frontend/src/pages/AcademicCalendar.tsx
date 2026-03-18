@@ -56,8 +56,7 @@ const AcademicCalendar: React.FC = () => {
       const mappedEvents = eventsList.map(mapApiEventToCalendarEvent);
       setEvents(mappedEvents);
     } catch (error) {
-      console.error('Failed to fetch calendar events', error);
-      toast({
+toast({
         title: 'Error',
         description: 'Failed to load calendar events.',
         variant: 'destructive',

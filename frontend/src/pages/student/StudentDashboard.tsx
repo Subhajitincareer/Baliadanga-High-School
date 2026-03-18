@@ -81,14 +81,12 @@ const StudentDashboard = () => {
         });
 
       } catch (attError) {
-        console.error('Failed to fetch attendance', attError);
-      }
+}
 
       setProfile(profileData);
       setResults(resultsData || []);
     } catch (error) {
-      console.error('Error fetching student data:', error);
-      toast({
+toast({
         title: "Error",
         description: "Failed to load student data. Please try again.",
         variant: "destructive",
@@ -461,7 +459,7 @@ const StudentDashboard = () => {
                     try {
                       const data = await apiService.getRoutinesByClass(profile.class, profile.section);
                       setRoutines(Array.isArray(data) ? data : []);
-                    } catch (e) { console.error(e); }
+                    } catch (e) {  }
                     finally { setRoutinesLoading(false); }
                   }}
                 >
@@ -493,7 +491,7 @@ const StudentDashboard = () => {
                         const data = await apiService.getAnnouncements();
                         setAnnouncements(Array.isArray(data) ? data : []);
                         setAnnouncementsLoaded(true);
-                      } catch (e) { console.error(e); }
+                      } catch (e) {  }
                     }}
                   >
                     Load Announcements
@@ -545,7 +543,7 @@ const StudentDashboard = () => {
                   try {
                     const res = await apiService.getMyFeeHistory();
                     setFeesData(res?.data || null);
-                  } catch (e) { console.error(e); }
+                  } catch (e) {  }
                   finally { setFeesLoading(false); }
                 }}
               />
@@ -565,7 +563,7 @@ const StudentDashboard = () => {
                     try {
                       const data = await apiService.getHomeworks({ className: profile.class, section: profile.section });
                       setHomeworks(Array.isArray(data) ? data : []);
-                    } catch (e) { console.error(e); }
+                    } catch (e) {  }
                     finally { setHomeworksLoading(false); }
                   }}
                 >

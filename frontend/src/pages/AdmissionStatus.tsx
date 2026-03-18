@@ -59,8 +59,7 @@ const AdmissionStatus = () => {
         setAdmissionStatus(result);
       }
     } catch (error: any) {
-      console.error('Error fetching admission status:', error);
-      toast({
+toast({
         title: "Error",
         description: error.message || "Failed to check admission status. Please try again.",
         variant: "destructive",

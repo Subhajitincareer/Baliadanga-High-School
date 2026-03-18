@@ -115,8 +115,7 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
       const data = await apiService.getAdmissions();
       setAdmissions((data || []) as any);
     } catch (error: any) {
-      console.error('Error fetching admissions:', error);
-      toast({
+toast({
         title: 'Error',
         description: error.message || 'Failed to load admissions data.',
         variant: 'destructive',
@@ -212,8 +211,7 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
       handleCloseApproveModal();
       await fetchAdmissions();
     } catch (error: any) {
-      console.error('Error approving admission:', error);
-      toast({
+toast({
         title: 'Error',
         description: error.message || 'Failed to approve admission.',
         variant: 'destructive',
@@ -250,8 +248,7 @@ const AdmissionManagement: React.FC<AdmissionManagementProps> = ({ hideHeader = 
       handleCloseRejectModal();
       await fetchAdmissions();
     } catch (error: any) {
-      console.error('Error rejecting admission:', error);
-      toast({
+toast({
         title: 'Error',
         description: error.message || 'Failed to reject admission.',
         variant: 'destructive',

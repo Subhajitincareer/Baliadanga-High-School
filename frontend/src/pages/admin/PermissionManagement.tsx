@@ -39,8 +39,7 @@ const PermissionManagement = () => {
             // Cast data to PopulatedStaff[] as backend is updated
             setStaffList(data as unknown as PopulatedStaff[]);
         } catch (error) {
-            console.error(error);
-            toast({
+toast({
                 title: "Error",
                 description: "Failed to load staff list.",
                 variant: 'destructive'

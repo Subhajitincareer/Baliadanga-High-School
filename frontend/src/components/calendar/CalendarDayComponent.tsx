@@ -17,8 +17,7 @@ const CalendarDayComponent: React.FC<CalendarDayProps> = ({ props, events }) => 
   const date = day?.date || (props as any).date;
 
   if (!date) {
-    console.warn("CalendarDayComponent: date is undefined", props);
-    return <div />;
+return <div />;
   }
 
   // Memoize filtering events for this date to optimize performance

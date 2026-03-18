@@ -42,8 +42,7 @@ const StudentDetail = () => {
                     setStudent(found);
                 }
             } catch (error) {
-                console.error(error);
-            } finally {
+} finally {
                 setLoading(false);
             }
         };
@@ -138,7 +137,7 @@ const StudentDetail = () => {
                                   try {
                                     const data = await apiService.getExams();
                                     setExams(Array.isArray(data) ? data : []);
-                                  } catch (e) { console.error(e); }
+                                  } catch (e) {  }
                                 }
                               }}
                             >Exam Results</TabsTrigger>
@@ -270,8 +269,7 @@ const StudentDetail = () => {
                                                         setReportCardData(res?.data || res || null);
                                                         setShowReportCard(true);
                                                     } catch (e) {
-                                                        console.error(e);
-                                                    } finally {
+} finally {
                                                         setReportCardLoading(false);
                                                     }
                                                 }}

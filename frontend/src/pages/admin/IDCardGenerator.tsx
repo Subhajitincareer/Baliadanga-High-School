@@ -66,8 +66,7 @@ export const IDCardGenerator = () => {
 
             setStudents(formatted);
         } catch (error) {
-            console.error(error);
-            toast({ title: "Error fetching students", variant: "destructive" });
+toast({ title: "Error fetching students", variant: "destructive" });
         } finally {
             setLoading(false);
         }

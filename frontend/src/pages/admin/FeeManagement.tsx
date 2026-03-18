@@ -35,8 +35,7 @@ const FeeManagement = () => {
             const data = await apiService.getFeeStructures();
             setStructures(data);
         } catch (error) {
-            console.error(error);
-        } finally {
+} finally {
             setLoadingStructures(false);
         }
     };

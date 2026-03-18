@@ -42,8 +42,7 @@ export const EventManagement = () => {
             const eventsList = Array.isArray(data) ? data : (data as any).data || [];
             setEvents(eventsList);
         } catch (error) {
-            console.error('Failed to fetch events', error);
-            toast({
+toast({
                 title: 'Error',
                 description: 'Failed to load events',
                 variant: 'destructive',
@@ -79,8 +78,7 @@ export const EventManagement = () => {
             toast({ title: 'Success', description: 'Event deleted successfully' });
             fetchEvents();
         } catch (error) {
-            console.error(error);
-            toast({ title: 'Error', description: 'Failed to delete event', variant: 'destructive' });
+toast({ title: 'Error', description: 'Failed to delete event', variant: 'destructive' });
         } finally {
             setIsDeleteDialogOpen(false);
             setEventToDelete(null);

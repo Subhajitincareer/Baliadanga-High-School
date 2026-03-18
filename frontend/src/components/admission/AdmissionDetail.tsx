@@ -48,8 +48,7 @@ const AdmissionDetail: React.FC<AdmissionDetailProps> = ({
       const data = await apiService.getAdmissionById(admissionId);
       setAdmission(data);
     } catch (error: any) {
-      console.error('Error fetching admission details:', error);
-      toast({
+toast({
         title: "Error",
         description: error.message || "Failed to load admission details",
         variant: "destructive",

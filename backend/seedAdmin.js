@@ -12,9 +12,7 @@ const seedAdmin = async () => {
 
         const adminEmail = 'admin@baliadanga.com';
         const adminPassword = 'adminpassword123';
-
-        console.log('Cleaning up existing admin data...');
-        // Clean up any case variants
+// Clean up any case variants
         await User.deleteMany({ email: { $regex: new RegExp(`^${adminEmail}$`, 'i') } });
         await AdminWhitelist.deleteMany({ email: { $regex: new RegExp(`^${adminEmail}$`, 'i') } });
 
@@ -25,21 +23,13 @@ const seedAdmin = async () => {
             password: adminPassword,
             role: 'admin'
         });
-        console.log('Admin user created successfully');
-
-        // 2. Add to Whitelist
+// 2. Add to Whitelist
         await AdminWhitelist.create({ email: adminEmail });
-        console.log('Admin added to whitelist successfully');
 
-        console.log(`\n--- Admin Credentials ---`);
-        console.log(`Email: ${adminEmail}`);
-        console.log(`Password: ${adminPassword}`);
-        console.log(`-------------------------\n`);
 
-        process.exit();
+process.exit();
     } catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
+process.exit(1);
     }
 };
 

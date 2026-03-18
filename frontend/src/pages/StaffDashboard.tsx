@@ -71,18 +71,13 @@ const StaffDashboard = () => {
         const myName = user?.fullName || user?.name;
 
         if (!myName) {
-            console.log("StaffDashboard: No user name available (fullName or name)");
-            console.log("Current user object:", user);
             return;
         }
-        console.log("StaffDashboard: Fetching routine for:", myName);
         setIsLoading(true);
         try {
             const data = await apiService.getTeacherRoutine(myName);
-            console.log("StaffDashboard: Raw Routine Data:", data);
             setMyRoutines(data);
         } catch (error) {
-            console.error("StaffDashboard: Error fetching routine", error);
             toast({ title: "Error", description: "Failed to fetch routine", variant: "destructive" });
         } finally {
             setIsLoading(false);
@@ -94,8 +89,7 @@ const StaffDashboard = () => {
             const data = await apiService.getMyStaffProfile();
             setProfileData(data);
         } catch (error) {
-            console.error(error);
-        }
+}
     };
 
     const handleProfileUpdate = async (e: React.FormEvent) => {

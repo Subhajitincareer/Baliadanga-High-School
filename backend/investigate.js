@@ -13,24 +13,17 @@ const mongoURI = process.env.MONGO_URI;
 async function checkData() {
     try {
         await mongoose.connect(mongoURI);
-        console.log('Connected to MongoDB');
-
-        const StudentProfile = mongoose.model('StudentProfile', new mongoose.Schema({
+const StudentProfile = mongoose.model('StudentProfile', new mongoose.Schema({
             class: String,
             section: String,
             studentId: String
         }));
 
         const students = await StudentProfile.find({}).limit(10);
-        console.log('Sample Students:', JSON.stringify(students, null, 2));
-
-        const classes = await StudentProfile.distinct('class');
-        console.log('Unique Classes in DB:', classes);
-
-        await mongoose.disconnect();
+const classes = await StudentProfile.distinct('class');
+await mongoose.disconnect();
     } catch (err) {
-        console.error(err);
-    }
+}
 }
 
 checkData();

@@ -242,23 +242,20 @@ export const seedAdmin = asyncHandler(async (req, res) => {
     user.password = adminPassword;
     user.role = 'admin';
     await user.save();
-    console.log('Admin user updated');
-  } else {
+} else {
     user = await User.create({
       name: 'Super Admin',
       email: adminEmail,
       password: adminPassword,
       role: 'admin'
     });
-    console.log('Admin user created');
-  }
+}
 
   // 2. Add to Whitelist
   const whitelistEntry = await AdminWhitelist.findOne({ email: adminEmail });
   if (!whitelistEntry) {
     await AdminWhitelist.create({ email: adminEmail });
-    console.log('Admin added to whitelist');
-  }
+}
 
   res.json({
     success: true,

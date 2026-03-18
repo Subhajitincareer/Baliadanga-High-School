@@ -89,8 +89,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             onSuccess();
             onOpenChange(false);
         } catch (error: any) {
-            console.error(error);
-            toast({
+toast({
                 title: 'Error',
                 description: error.message || 'Failed to save event',
                 variant: 'destructive'

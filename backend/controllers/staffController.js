@@ -78,8 +78,7 @@ export const createStaff = async (req, res, next) => {
                 password: 'changeme123', // Default password
                 role
             });
-            console.log(`Created new User for staff: ${email} with role: ${role}`);
-        }
+}
         userId = user._id;
 
         // 2. Create Staff Profile
@@ -167,9 +166,7 @@ export const getStaffByUserId = async (req, res, next) => {
         let staff = await Staff.findOne({ userId: req.user.id });
 
         if (!staff) {
-            console.log(`Staff profile not found for user ${req.user.name}, auto-creating...`);
-
-            // Map role to position (title case)
+// Map role to position (title case)
             const roleToPosition = {
                 'teacher': 'Teacher',
                 'principal': 'Principal',
@@ -199,8 +196,7 @@ export const getStaffByUserId = async (req, res, next) => {
             data: staff
         });
     } catch (err) {
-        console.error("Error in getStaffByUserId:", err);
-        res.status(500).json({ success: false, message: 'Server Error' });
+res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 

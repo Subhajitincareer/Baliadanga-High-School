@@ -48,8 +48,7 @@ export const HomeworkAssignment = () => {
             const data = await apiService.getHomeworks({ teacherId: user?._id });
             setHomeworks(data);
         } catch (error) {
-            console.error('Error fetching homeworks:', error);
-            toast({
+toast({
                 title: 'Error',
                 description: 'Failed to load homework assignments.',
                 variant: 'destructive',

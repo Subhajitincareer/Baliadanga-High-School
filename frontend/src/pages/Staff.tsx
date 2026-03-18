@@ -14,8 +14,7 @@ const Staff = () => {
         const data = await apiService.getPublicStaffDirectory();
         setStaffList(data);
       } catch (error) {
-        console.error('Failed to fetch staff directory:', error);
-      } finally {
+} finally {
         setIsLoading(false);
       }
     };

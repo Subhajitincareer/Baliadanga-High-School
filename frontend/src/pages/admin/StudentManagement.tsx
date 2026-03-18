@@ -71,8 +71,7 @@ const StudentManagement = () => {
 
             setStudents(normalizedData as any);
         } catch (error) {
-            console.error("Failed to fetch students:", error);
-            toast({
+toast({
                 title: "Error",
                 description: "Failed to load student list",
                 variant: "destructive"
@@ -95,8 +94,7 @@ const StudentManagement = () => {
             });
             fetchStudents(); // Refresh list
         } catch (error: any) {
-            console.error('Failed to delete student:', error);
-            toast({
+toast({
                 title: 'Error',
                 description: error.message || 'Failed to delete student',
                 variant: 'destructive',
@@ -222,8 +220,7 @@ const StudentManagement = () => {
                 setCsvFile(null);
                 fetchStudents();
             } catch (error) {
-                console.error(error);
-                toast({
+toast({
                     title: "Import Failed",
                     description: error instanceof Error ? error.message : "Failed to import students",
                     variant: 'destructive'

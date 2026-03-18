@@ -153,8 +153,7 @@ const EditStudent = () => {
             navigate(`/admin/students/${id}`);
 
         } catch (error: any) {
-            console.error(error);
-            toast({
+toast({
                 title: "Error",
                 description: error.message || "Failed to update student",
                 variant: "destructive"

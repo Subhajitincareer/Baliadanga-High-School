@@ -42,7 +42,7 @@ const MarksEntry = () => {
     const [isFetchingStudents, setIsFetchingStudents] = useState(false);
 
     useEffect(() => {
-        apiService.getExams().then(setExams).catch(console.error);
+        apiService.getExams().then(setExams).catch(() => {});
     }, []);
 
     // Fetch students when class+section change

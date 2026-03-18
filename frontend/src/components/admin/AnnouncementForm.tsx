@@ -333,7 +333,6 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
 
       onSuccess();
     } catch (error) {
-      console.error('Error saving announcement:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Error saving announcement.',

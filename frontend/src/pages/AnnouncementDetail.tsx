@@ -27,8 +27,7 @@ const AnnouncementDetail = () => {
           setError('Announcement not found');
         }
       } catch (err) {
-        console.error("Error fetching announcement:", err);
-        setError("Failed to load announcement details");
+setError("Failed to load announcement details");
       } finally {
         setLoading(false);
       }

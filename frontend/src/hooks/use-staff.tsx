@@ -35,8 +35,7 @@ export function useStaff() {
       const data = await apiService.getStaff();
       setStaffMembers(data || []);
     } catch (error: any) {
-      console.error('Error fetching staff:', error);
-      toast({
+toast({
         title: 'Error',
         description: 'Failed to load staff members.',
         variant: 'destructive',
@@ -59,8 +58,7 @@ export function useStaff() {
       await fetchStaffMembers();
       return newStaff;
     } catch (error: any) {
-      console.error('Error adding staff member:', error);
-      toast({
+toast({
         title: 'Error',
         description: error.message || 'Failed to add staff member.',
         variant: 'destructive',
@@ -86,8 +84,7 @@ export function useStaff() {
       await fetchStaffMembers();
       return updatedStaff;
     } catch (error: any) {
-      console.error('Error updating staff member:', error);
-      toast({
+toast({
         title: 'Error',
         description: error.message || 'Failed to update staff member.',
         variant: 'destructive',
@@ -109,8 +106,7 @@ export function useStaff() {
       await fetchStaffMembers();
       return true;
     } catch (error: any) {
-      console.error('Error deleting staff member:', error);
-      toast({
+toast({
         title: 'Error',
         description: error.message || 'Failed to delete staff member.',
         variant: 'destructive',
