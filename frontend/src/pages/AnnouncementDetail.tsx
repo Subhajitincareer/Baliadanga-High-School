@@ -27,7 +27,7 @@ const AnnouncementDetail = () => {
           setError('Announcement not found');
         }
       } catch (err) {
-setError("Failed to load announcement details");
+        setError("Failed to load announcement details");
       } finally {
         setLoading(false);
       }
@@ -107,55 +107,55 @@ setError("Failed to load announcement details");
           </div>
 
           {/* Attachments Section with Inline PDF Viewer */}
-          {announcement.attachments && announcement.attachments.map((file, idx) => (
-            <div key={idx} className="mt-8 border rounded-lg overflow-hidden">
-              <div className="bg-muted px-4 py-2 flex items-center justify-between border-b">
-                <div className="flex items-center font-medium">
-                  <FileText className="mr-2 h-4 w-4" />
-                  {file.filename}
-                </div>
-                <div className="flex gap-2">
-                  <a
-                    href={file.url}
-                    download={file.filename}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs flex items-center bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90"
-                  >
-                    Download
-                  </a>
-                </div>
-              </div>
+          {announcement.attachments && announcement.attachments
+            .filter(file => file && file.url && file.filename)
+            .map((file, idx) => {
+              const isPdf =
+                file.mimetype === 'application/pdf' ||
+                (typeof file.url === 'string' && (file.url.endsWith('.pdf') || file.url.startsWith('data:application/pdf')));
+              const isDataUri = typeof file.url === 'string' && file.url.startsWith('data:');
 
-              {/* PDF Previewer Logic */}
-              {(file.mimetype === 'application/pdf' || file.url.endsWith('.pdf') || file.url.startsWith('data:application/pdf')) ? (
-                <div className="w-full h-[600px] bg-slate-50 flex items-center justify-center relative">
-                  {/* Using Google Docs Viewer for remote URLs or direct embed for data URIs/local */}
-                  {/* Note: Data URIs might be heavy for iframe src depending on browser limit, but often work */}
-                  {file.url.startsWith('data:') ? (
-                    <iframe
-                      src={file.url}
-                      className="w-full h-full"
-                      title={file.filename}
-                    />
+              return (
+                <div key={idx} className="mt-8 border rounded-lg overflow-hidden">
+                  <div className="bg-muted px-4 py-2 flex items-center justify-between border-b">
+                    <div className="flex items-center font-medium">
+                      <FileText className="mr-2 h-4 w-4" />
+                      {file.filename}
+                    </div>
+                    <div className="flex gap-2">
+                      <a
+                        href={file.url}
+                        download={file.filename}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs flex items-center bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* PDF Previewer */}
+                  {isPdf ? (
+                    <div className="w-full h-[600px] bg-slate-50">
+                      <iframe
+                        src={isDataUri ? file.url : `${file.url}#toolbar=0`}
+                        className="w-full h-full"
+                        title={file.filename}
+                      />
+                    </div>
                   ) : (
-                    /* Fallback for remote URLs often needs a viewer if CORS is an issue, 
-                       but for same-origin or public URLs, direct embed usually works if browser supports PDF */
-                    <iframe
-                      src={`${file.url}#toolbar=0`}
-                      className="w-full h-full"
-                      title={file.filename}
-                    />
+                    <div className="p-8 text-center text-muted-foreground">
+                      <Eye className="mx-auto mb-2 h-6 w-6 opacity-30" />
+                      <p>Preview not available for this file type.</p>
+                      <a href={file.url} download className="underline text-primary cursor-pointer mt-2 block">
+                        Download to view
+                      </a>
+                    </div>
                   )}
                 </div>
-              ) : (
-                <div className="p-8 text-center text-muted-foreground">
-                  <p>Preview not available for this file type.</p>
-                  <a href={file.url} download className="underline text-primary cursor-pointer mt-2 block">Download to view</a>
-                </div>
-              )}
-            </div>
-          ))}
+              );
+            })}
 
           <div className="pt-6 border-t mt-4">
             <Link to="/announcements">
