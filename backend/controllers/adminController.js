@@ -28,6 +28,7 @@ export const checkWhitelist = asyncHandler(async (req, res) => {
     }
 });
 
+
 // @desc    Get all students
 // @route   GET /api/admin/students
 // @access  Private (Admin/Teacher)
