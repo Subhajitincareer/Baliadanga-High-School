@@ -1,6 +1,6 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import AnnouncementForm, { Announcement } from '@/components/admin/AnnouncementForm';
+import AnnouncementForm from '@/components/admin/AnnouncementForm';
+import { Announcement } from '@/services/api';
 
 interface AnnouncementDialogProps {
   isOpen: boolean;

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import apiService from '@/services/api';
+import apiService, { Announcement } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { Announcement } from '@/components/admin/AnnouncementForm';
 
 export function useAnnouncements() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);

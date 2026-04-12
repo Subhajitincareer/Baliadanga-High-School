@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import apiService from '@/services/api';
+import apiService, { Announcement, Category, Audience, Priority } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar as CalendarIcon, X, FileText, Upload, LayoutTemplate } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -15,21 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-export interface Announcement {
-  _id?: string;
-  title: string;
-  content: string;
-  category: 'Event' | 'General' | 'Academic' | 'Holiday' | 'Emergency' | 'Sports';
-  targetAudience: 'All' | 'Students' | 'Staff' | 'Parents';
-  priority?: 'Low' | 'Medium' | 'High' | 'Critical';
-  publishDate: string;
-  authorId: string;
-  authorName: string;
-  pdfFile?: {
-    name: string;
-    data: string;
-  };
-}
+
 
 interface AnnouncementFormProps {
   announcement?: Announcement;
@@ -185,13 +171,13 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ announcement, onSuc
   const [activeTab, setActiveTab] = useState<'write' | 'upload'>('write');
   const [title, setTitle] = useState(announcement?.title || '');
   const [content, setContent] = useState(announcement?.content || '');
-  const [category, setCategory] = useState<'Event' | 'General' | 'Academic' | 'Holiday' | 'Emergency' | 'Sports'>(
+  const [category, setCategory] = useState<Category>(
     announcement?.category || 'General'
   );
-  const [targetAudience, setTargetAudience] = useState<'All' | 'Students' | 'Staff' | 'Parents'>(
+  const [targetAudience, setTargetAudience] = useState<Audience>(
     announcement?.targetAudience || 'All'
   );
-  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Critical'>(
+  const [priority, setPriority] = useState<Priority>(
     announcement?.priority || 'Medium'
   );
   const [publishDate, setPublishDate] = useState<Date>(

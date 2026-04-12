@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Announcement } from '@/components/admin/AnnouncementForm';
+import { Announcement } from '@/services/api';
 
 interface DeleteAnnouncementDialogProps {
   isOpen: boolean;

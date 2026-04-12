@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, FileText } from 'lucide-react';
-import { Announcement } from '@/components/admin/AnnouncementForm';
+import { Edit, Trash2, FileText, Loader2 } from 'lucide-react';
+import { Announcement } from '@/services/api';
 import apiService from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,6 +12,106 @@ interface AnnouncementTableProps {
   onDelete: (announcement: Announcement) => void;
 }
 
+// ─── UTILITIES (Outside component to prevent re-instantiation) ─────────────
+const formatDate = (dateString: string) => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+// ─── SUB-COMPONENTS (DRY Principle) ──────────────────────────────────────────
+
+const CategoryBadge = ({ category }: { category: string }) => {
+  const styles = category === "Event" 
+    ? "bg-blue-100 text-blue-800" 
+    : "bg-amber-100 text-amber-800";
+    
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles}`}>
+      {category}
+    </span>
+  );
+};
+
+interface DownloadButtonProps {
+  announcement: Announcement;
+  isDownloading: boolean;
+  onDownload: (announcement: Announcement) => void;
+  size?: 'sm' | 'xs';
+}
+
+const DownloadButton = ({ announcement, isDownloading, onDownload, size = 'sm' }: DownloadButtonProps) => {
+  if (!announcement.pdfFile && !announcement.pdf_url && (!announcement.attachments || announcement.attachments.length === 0)) {
+    return <span className="text-xs text-muted-foreground italic">No PDF</span>;
+  }
+
+  const isMobile = size === 'xs';
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={isDownloading}
+      onClick={(e) => {
+        e.preventDefault();
+        onDownload(announcement);
+      }}
+      className={`flex h-8 items-center text-blue-600 hover:text-blue-800 p-0 hover:bg-transparent ${isMobile ? 'h-6' : ''}`}
+    >
+      {isDownloading ? (
+        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+      ) : (
+        <FileText className={`mr-1 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+      )}
+      <span className="text-xs">
+        {isDownloading ? (isMobile ? '...' : 'Downloading...') : (isMobile ? 'PDF' : 'Download')}
+      </span>
+    </Button>
+  );
+};
+
+const ActionButtons = ({ 
+  announcement, 
+  onEdit, 
+  onDelete,
+  variant = 'default' 
+}: { 
+  announcement: Announcement; 
+  onEdit: (a: Announcement) => void; 
+  onDelete: (a: Announcement) => void;
+  variant?: 'default' | 'icon-only';
+}) => {
+  const isIconOnly = variant === 'icon-only';
+  
+  return (
+    <div className={`flex items-center ${isIconOnly ? 'space-x-1' : 'justify-end space-x-2'}`}>
+      <Button
+        variant={isIconOnly ? "ghost" : "outline"}
+        size={isIconOnly ? "icon" : "sm"}
+        className={isIconOnly ? "h-8 w-8" : ""}
+        onClick={() => onEdit(announcement)}
+        title="Edit Announcement"
+      >
+        <Edit className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={isIconOnly ? "ghost" : "outline"}
+        size={isIconOnly ? "icon" : "sm"}
+        className={`${isIconOnly ? "h-8 w-8" : ""} text-destructive hover:bg-destructive/10 hover:text-destructive`}
+        onClick={() => onDelete(announcement)}
+        title="Delete Announcement"
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
+
+// ─── MAIN COMPONENT ─────────────────────────────────────────────────────────
+
 export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
   announcements,
   onEdit,
@@ -21,34 +120,44 @@ export const AnnouncementTable: React.FC<AnnouncementTableProps> = ({
   const { toast } = useToast();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const handleDownload = async (id: string, fileName: string) => {
+  const handleDownload = async (announcement: Announcement) => {
+    if (!announcement._id) return;
+
     try {
-      setDownloadingId(id);
-      toast({ title: 'Downloading PDF...', description: 'Please wait...', duration: 2000 });
-      const full = await apiService.getAnnouncementById(id);
+      setDownloadingId(announcement._id);
       
+      const full = await apiService.getAnnouncementById(announcement._id);
+      
+      // Prioritized extraction with safety checks
       let pdfData = full.pdfFile?.data;
+      
       if (!pdfData && full.pdf_url) {
-         const parsed = typeof full.pdf_url === 'string' ? JSON.parse(full.pdf_url) : full.pdf_url;
-         pdfData = parsed.data;
+        try {
+          const parsed = typeof full.pdf_url === 'string' ? JSON.parse(full.pdf_url) : full.pdf_url;
+          pdfData = (parsed as any).data || (typeof full.pdf_url === 'string' ? full.pdf_url : (full.pdf_url as any).data);
+        } catch (e) {
+          pdfData = typeof full.pdf_url === 'string' ? full.pdf_url : (full.pdf_url as any).data;
+        }
       }
-      if (!pdfData && full.attachments && full.attachments.length > 0) {
-         pdfData = full.attachments[0].url;
+      
+      if (!pdfData && (full.attachments?.length ?? 0) > 0) {
+        pdfData = full.attachments![0].url;
       }
 
       if (!pdfData) {
-         toast({ title: 'Error', description: 'No PDF data found in this announcement.', variant: 'destructive' });
-         return;
+        throw new Error('No PDF document data found for this announcement.');
       }
 
-      const link = document.createElement('a');
-      link.href = pdfData;
-      link.download = fileName || 'announcement.pdf';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'destructive' });
+      // Modern download approach: Open in new tab (safest for cross-origin/blobs)
+      window.open(pdfData, '_blank');
+      
+    } catch (err: any) {
+      console.error('Download error:', err);
+      toast({ 
+        title: 'Download Failed', 
+        description: err.message || 'Failed to retrieve the document.', 
+        variant: 'destructive' 
+      });
     } finally {
       setDownloadingId(null);
     }
@@ -56,8 +165,8 @@ toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'de
 
   if (announcements.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center rounded-md border border-dashed">
-        <p className="text-center text-muted-foreground">
+      <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50/50">
+        <p className="text-center text-sm text-muted-foreground">
           No announcements available. Create one to get started.
         </p>
       </div>
@@ -65,80 +174,42 @@ toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'de
   }
 
   return (
-
     <>
       {/* Desktop Table View */}
-      <div className="hidden rounded-md border md:block">
+      <div className="hidden rounded-md border border-slate-200 md:block">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-slate-50/50">
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>PDF</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="font-semibold text-slate-700">Title</TableHead>
+              <TableHead className="font-semibold text-slate-700">Category</TableHead>
+              <TableHead className="font-semibold text-slate-700">Date</TableHead>
+              <TableHead className="font-semibold text-slate-700">PDF</TableHead>
+              <TableHead className="text-right font-semibold text-slate-700">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {announcements.map((announcement, index) => (
-              <TableRow key={announcement._id || index}>
-                <TableCell className="font-medium">{announcement.title}</TableCell>
+            {announcements.map((announcement) => (
+              <TableRow key={announcement._id || `fallback-${announcement.title}`} className="hover:bg-slate-50/30 transition-colors">
+                <TableCell className="font-medium text-slate-900">{announcement.title}</TableCell>
                 <TableCell>
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${announcement.category === "Event"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-amber-100 text-amber-800"
-                    }`}>
-                    {announcement.category}
-                  </span>
+                  <CategoryBadge category={announcement.category} />
+                </TableCell>
+                <TableCell className="text-slate-600">
+                  {formatDate(announcement.publishDate)}
                 </TableCell>
                 <TableCell>
-                  {new Date(announcement.publishDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </TableCell>
-                <TableCell>
-                  {announcement.pdfFile ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={downloadingId === announcement._id}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (announcement._id) handleDownload(announcement._id, announcement.pdfFile!.name);
-                      }}
-                      className="flex h-8 items-center text-blue-600 hover:text-blue-800 p-0 hover:bg-transparent"
-                    >
-                      {downloadingId === announcement._id ? (
-                        <div className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-                      ) : (
-                         <FileText className="mr-1 h-4 w-4" />
-                      )}
-                      <span className="text-xs">{downloadingId === announcement._id ? 'Downloading...' : 'Download'}</span>
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">No PDF</span>
-                  )}
+                  <DownloadButton 
+                    announcement={announcement} 
+                    isDownloading={downloadingId === announcement._id}
+                    onDownload={handleDownload}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(announcement)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onDelete(announcement)}
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <ActionButtons 
+                    announcement={announcement}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -148,65 +219,31 @@ toast({ title: 'Error', description: 'Failed to download the PDF.', variant: 'de
 
       {/* Mobile Card View */}
       <div className="space-y-4 md:hidden">
-        {announcements.map((announcement, index) => (
-          <div key={announcement._id || index} className="rounded-lg border bg-white p-4 shadow-sm">
+        {announcements.map((announcement) => (
+          <div key={announcement._id || `mob-${announcement.title}`} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm active:bg-slate-50 transition-colors">
             <div className="mb-2 flex items-start justify-between">
-              <div>
-                <h3 className="font-semibold">{announcement.title}</h3>
-                <span className={`mt-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${announcement.category === "Event"
-                  ? "bg-blue-100 text-blue-800"
-                  : "bg-amber-100 text-amber-800"
-                  }`}>
-                  {announcement.category}
-                </span>
+              <div className="space-y-1">
+                <h3 className="font-semibold text-slate-900 leading-tight">{announcement.title}</h3>
+                <CategoryBadge category={announcement.category} />
               </div>
-              <div className="flex space-x-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onEdit(announcement)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => onDelete(announcement)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <ActionButtons 
+                announcement={announcement}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                variant="icon-only"
+              />
             </div>
 
-            <div className="mt-2 flex items-center justify-between text-sm text-muted-foreground">
-              <span>
-                {new Date(announcement.publishDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
+            <div className="mt-4 flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                {formatDate(announcement.publishDate)}
               </span>
-              {announcement.pdfFile && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={downloadingId === announcement._id}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (announcement._id) handleDownload(announcement._id, announcement.pdfFile!.name);
-                  }}
-                  className="flex h-6 items-center text-blue-600 hover:text-blue-800 p-0 hover:bg-transparent"
-                >
-                  {downloadingId === announcement._id ? (
-                    <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-                  ) : (
-                    <FileText className="mr-1 h-3 w-3" />
-                  )}
-                  <span className="text-xs">{downloadingId === announcement._id ? '...' : 'PDF'}</span>
-                </Button>
-              )}
+              <DownloadButton 
+                announcement={announcement} 
+                isDownloading={downloadingId === announcement._id}
+                onDownload={handleDownload}
+                size="xs"
+              />
             </div>
           </div>
         ))}

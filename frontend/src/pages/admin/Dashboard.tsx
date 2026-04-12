@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AnnouncementTable } from '@/components/admin/AnnouncementTable';
 import { AnnouncementToolbar } from '@/components/admin/AnnouncementToolbar';
-import { Announcement } from '@/components/admin/AnnouncementForm';
+import { Announcement } from '@/services/api';
 import { AnnouncementDialog } from '@/components/admin/AnnouncementDialog';
 import { DeleteAnnouncementDialog } from '@/components/admin/DeleteAnnouncementDialog';
 import { useAnnouncements } from '@/hooks/use-announcements';

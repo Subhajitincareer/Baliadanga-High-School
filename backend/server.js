@@ -12,62 +12,29 @@ import { validateEnv } from './config/envValidation.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { globalLimiter } from './middlewares/rateLimiter.js';
 
-// Route files
-import authRoutes from './routes/auth.js';
-import items from './routes/items.js';
-import admin from './routes/admin.js';
-import resourceRoutes from './routes/resources.js';
-import admissionRoutes from './routes/admissions.js';
-import announcementRoutes from './routes/announcements.js';
-import calendar from './routes/calendar.js';
-import staffRoutes from './routes/staff.js';
-import examRoutes from './routes/exam.js';
-import resultRoutes from './routes/results.js';
-import uploadRoutes from './routes/upload.js';
-import routineRoutes from './routes/routine.js';
-import studentRoutes from './routes/students.js';
-import attendanceRoutes from './routes/attendanceRoutes.js';
-import midDayMealRoutes from './routes/midDayMealRoutes.js';
-import feeRoutes from './routes/fees.js';
-import promotionRoutes from './routes/promotion.js';
-import analyticsRoutes from './routes/analytics.js';
-import homeworkRoutes from './routes/homework.js';
-import siteSettingsRoutes from './routes/siteSettings.js';
-import courseMaterialRoutes from './routes/courseMaterials.js';
-import eventRoutes from './routes/events.js';
-import galleryRoutes from './routes/gallery.js';
+// Central Router
+import apiRouter from './routes/index.js';
 
-// ─── Startup ──────────────────────────────────────────────────────────────────
-// Load env vars FIRST — must come before validateEnv and connectDB
+// ─── Pre-flight ─────────────────────────────────────────────────────────────
 dotenv.config();
-
-// Validate all required env vars — exits with a clear error if any are missing
 validateEnv();
 
-// Connect to database
-connectDB();
-
-// ─── App Setup ───────────────────────────────────────────────────────────────
 const app = express();
 
-// Trust proxy - required for secure cookies on Render/Vercel
+// ─── Global Middleware ──────────────────────────────────────────────────────
+// 1. Logger - Move to top to catch all requests
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// 2. Trust proxy - required for secure cookies on Render/Vercel
 app.set('trust proxy', 1);
 
-// Body parsers
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false }));
-
-// Cookie parser — required for httpOnly JWT cookies
-app.use(cookieParser());
-
-// Enable CORS — credentials: true required for cookies to be sent cross-origin
+// 3. CORS - Hardened origin check
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:8080',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:4173',
   'https://baliadanga-high-school.vercel.app',
   'https://baliadanga-high-school.onrender.com',
   process.env.CLIENT_URL
@@ -75,93 +42,99 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, Postman)
+    // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
+    
+    // Check for exact match or allowed localhosts in dev
+    const isAllowed = allowedOrigins.includes(origin) || 
+                     (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:'));
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
-callback(new Error('Not allowed by CORS'));
+      callback(new Error('CORS Blocking: Origin unauthorized'));
     }
   },
-  credentials: true,  // Required for cookies
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// Dev logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('combined'));
-}
+// 4. Body parsers - Lower global limit (100kb is standard for JSON)
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: false, limit: '100kb' }));
+
+// 5. Cookie parser
+app.use(cookieParser());
 
 // ─── Rate Limiting ───────────────────────────────────────────────────────────
-// Global limiter: 100 req / 15 min per IP — applied to all API routes
-// Login-specific limiter (5/15min) is applied in routes/auth.js directly
+// Apply global limiter to all API routes
 app.use('/api', globalLimiter);
 
-// ─── Mount Routers ────────────────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
-app.use('/api/items', items);
-app.use('/api/admin', admin);
-app.use('/api/resources', resourceRoutes);
-app.use('/api/admissions', admissionRoutes);
-app.use('/api/announcements', announcementRoutes);
-app.use('/api/calendar', calendar);
-app.use('/api/staff', staffRoutes);
-app.use('/api/exams', examRoutes);
-app.use('/api/results', resultRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/routines', routineRoutes);
-app.use('/api/students', studentRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/mid-day-meal', midDayMealRoutes);
-app.use('/api/fees', feeRoutes);
-app.use('/api/promotion', promotionRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/homework', homeworkRoutes);
-app.use('/api/site-settings', siteSettingsRoutes);
-app.use('/api/course-materials', courseMaterialRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/gallery', galleryRoutes);
+// ─── Route Mounting ─────────────────────────────────────────────────────────
+// Mount consolidated API router
+app.use('/api', apiRouter);
 
-
-
-// ─── Static & Utility Routes ─────────────────────────────────────────────────
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+// Utility Routes
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'MERN Server is running!',
+    message: 'MERN Server is healthy',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
+    uptime: process.uptime(),
+    env: process.env.NODE_ENV
   });
 });
 
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to Baliadanga High Hub API 🚀',
-    version: '1.0.0',
-    endpoints: { auth: '/api/auth', health: '/health' },
-    documentation: 'See README.md for API documentation'
+    version: '1.2.0',
+    documentation: 'See project README.md for endpoint details'
   });
 });
 
-// ─── Error Handler ────────────────────────────────────────────────────────────
+// ─── Static Files (Optional) ────────────────────────────────────────────────
+// Note: In production (Render/Vercel), local disk is ephemeral. 
+// Use cloud storage (ImageKit/Cloudinary) for persistent file uploads.
+if (process.env.NODE_ENV === 'development') {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+}
+
+// ─── Error Handling ──────────────────────────────────────────────────────────
+// Final middleware to catch all errors
 app.use(errorHandler);
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
+// ─── Server Startup ─────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+const startServer = async () => {
+  try {
+    // 1. Ensure DB is connected before starting listener
+    await connectDB();
+    console.log('📦 Database connected successfully');
 
-});
+    const server = app.listen(PORT, () => {
+      console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    });
 
-process.on('unhandledRejection', (err) => {
-server.close(() => { process.exit(1); });
-});
+    // Handle abrupt shutdowns
+    process.on('unhandledRejection', (err) => {
+      console.error(`💥 Unhandled Rejection: ${err.message}`);
+      server.close(() => process.exit(1));
+    });
 
-process.on('SIGTERM', () => {
-server.close(() => {  });
-});
+    process.on('SIGTERM', () => {
+      console.log('👋 SIGTERM received. Shutting down gracefully.');
+      server.close(() => process.exit(0));
+    });
+
+  } catch (error) {
+    console.error(`❌ Failed to start server: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+startServer();

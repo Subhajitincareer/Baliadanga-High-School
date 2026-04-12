@@ -89,6 +89,11 @@ export interface Announcement {
   authorName: string;
   publishDate?: string;
   isActive?: boolean;
+  pdfFile?: {
+    name: string;
+    data: string;
+  };
+  pdf_url?: string | { data: string };
   attachments?: Array<{
     filename: string;
     url: string;
